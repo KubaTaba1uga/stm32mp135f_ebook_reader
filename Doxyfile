@@ -1,5 +1,5 @@
 # Name of your project
-PROJECT_NAME           = "stm32mp135f_ebook_reader"
+PROJECT_NAME           = "STM32MP135F eBook Reader"
 
 # Where to find your source code
 INPUT                  = src

@@ -1,14 +1,17 @@
-stm32mp135f_ebook_reader Documentation
-=======================
+STM32MP135F Ebook Reader Documentation
+======================================
+
+Welcome to the documentation for ``STM32MP135F Ebook Reader``.
+
+This site contains:
+
+* A quick overview of the project
+* Setup and usage instructions
+* API reference generated from Doxygen
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-
-API Reference
--------------
-
-.. doxygenfile:: example.h
-   :project: stm32mp135f_ebook_reader
-   :path: ../src
+   getting_started
+   api
