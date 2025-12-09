@@ -4,13 +4,13 @@ Getting Started
 Installation
 ------------
 
-.. code-block:: bash
+.. code-block:: console
 
-   git clone https://github.com/you/stm32mp135f_ebook_reader.git
-   cd stm32mp135f_ebook_reader
-   inv install
-   inv build-docs
-   inv serve-docs   
+   $ git clone https://github.com/you/stm32mp135f_ebook_reader.git
+   $ cd stm32mp135f_ebook_reader
+   $ inv install
+   $ inv build-docs
+   $ inv serve-docs   
 
 Usage
 -----

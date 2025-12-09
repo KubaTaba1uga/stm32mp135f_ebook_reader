@@ -30,7 +30,8 @@ def install(c):
     try: 
        c.run("sudo apt-get install doxygen")
        c.run("virtualenv .venv")
-       c.run(".venv/bin/python -m pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25")
+       os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
+       c.run("pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25 sphinx-autobuild==2025.08.25")
     except Exception:
         _pr_error("Installing failed")
         raise
@@ -58,11 +59,9 @@ def build_docs(c):
 
 @task
 def serve_docs(c, port=8000):
-    os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", ".bin")}:{os.environ["PATH"]}'
-    docs_path = os.path.join(BUILD_PATH, "docs", "html")
-    
-    with c.cd(docs_path):
-        c.run(f"python3 -m http.server {port}",pty=True)
+    os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
+
+    c.run(f"sphinx-autobuild --port {port} docs build/docs/html", pty=True)
 
     
 ###############################################
