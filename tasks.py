@@ -185,7 +185,7 @@ def deploy_to_tftp(c, directory="/srv/tftp"):
         raise ValueError(f"{directory} does not exists")
 
     with c.cd("build/buildroot/images"):
-        c.run(# Copy linux artifacts
+        c.run(
             f"sudo cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}"
         )
         c.run("sudo chmod 777 {directory}/stm32mp135f-dk-ebook_reader.dtb")

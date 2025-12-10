@@ -23,8 +23,8 @@
 /* USER CODE END includes */
 
 / {
-	model = "STMicroelectronics STM32MP135F-DK STM32CubeMX board - openstlinux-6.6-yocto-scarthgap-mpu-v25.06.11";
-	compatible = "st,stm32mp135f-dk-mx", "st,stm32mp135f-dk", "st,stm32mp135";
+	model = "STM32MP135F-DK Ebook Reader";
+	compatible = "st,stm32mp135f-dk-ebook_reader";
 
 	memory@c0000000 {
 		device_type = "memory";
