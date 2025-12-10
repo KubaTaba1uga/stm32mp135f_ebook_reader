@@ -1,4 +1,4 @@
-Getting Started
+Development
 ===============
 
 Installation
@@ -34,9 +34,9 @@ Before you are ready to boot up the image, you need to configure your developmen
 .. toctree::
    :maxdepth: 1
 
-   getting_started/set_up_tftp
-   getting_started/set_up_nfs
-   getting_started/set_up_sdcard   
+   development/set_up_tftp
+   development/set_up_nfs
+   development/set_up_sdcard   
 
 The development image is meant to be booted over USB acting as a CDC gadget.
 The development boot flow looks like this:

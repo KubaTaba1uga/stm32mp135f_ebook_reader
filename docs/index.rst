@@ -10,8 +10,8 @@ This site contains:
 * API reference generated from Doxygen
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
-   getting_started
+   development
    api
