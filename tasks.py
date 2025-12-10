@@ -6,7 +6,8 @@ from invoke import task
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
-env = None
+
+os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
 
 @task
 def add_repo(c, name, tag, url):
@@ -27,10 +28,11 @@ def add_repo(c, name, tag, url):
 def install(c):
     _pr_info(f"Installing dependencies...")
 
+
+    
     try: 
        c.run("sudo apt-get install doxygen")
        c.run("virtualenv .venv")
-       os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
        c.run("pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25 sphinx-autobuild==2025.08.25")
     except Exception:
         _pr_error("Installing failed")
@@ -43,7 +45,6 @@ def install(c):
 def build_docs(c):
     _pr_info(f"Building docs...")
 
-    os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
     docs_path = os.path.join(BUILD_PATH, "docs", "html")
     
     try:
@@ -56,13 +57,56 @@ def build_docs(c):
 
     _pr_info(f"Building docs completed")
 
+@task
+def build_linux(c):
+    _pr_info(f"Building linux...")
+
+    with c.cd("buildroot"):
+        c.run("make linux")
+    
+    _pr_info(f"Building linux completed")
 
 @task
-def serve_docs(c, port=8000):
-    os.environ["PATH"] = f'{os.path.join(ROOT_PATH, ".venv", "bin")}:{os.environ["PATH"]}'
+def build_uboot(c):
+    _pr_info(f"Building u-boot...")
 
+    with c.cd("buildroot"):
+        c.run("make uboot-rebuild")
+    
+    _pr_info(f"Building u-boot completed")
+
+@task
+def build_tfa(c):
+    _pr_info(f"Building tf-a...")
+
+    with c.cd("buildroot"):
+        c.run("make arm-trusted-firmware-rebuild")
+    
+    _pr_info(f"Building tf-a completed")
+
+    
+    
+    
+@task
+def build_bsp(c, configure=True):
+    _pr_info(f"Building BSP...")    
+
+    if configure:
+       with c.cd("buildroot"):
+           c.run("make O=../build/buildroot \
+                       BR2_DL_DIR=../third_party \
+                       BR2_EXTERNAL=../buildroot-external-st \
+                       st_stm32mp135f_dk_defconfig")
+    with c.cd("build/buildroot"):
+        c.run("make")
+
+    _pr_info(f"Building BSP completed")
+    
+@task
+def serve_docs(c, port=8000):
     c.run(f"sphinx-autobuild --port {port} docs build/docs/html", pty=True)
 
+    
     
 ###############################################
 #                Private API                  #
