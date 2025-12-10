@@ -29,7 +29,7 @@ def install(c):
     _pr_info(f"Installing dependencies...")
 
     try: 
-       c.run("sudo apt-get install -y doxygen \
+       c.run("sudo apt-get install -y doxygen virtualenv \
               which sed make binutils build-essential diffutils \
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk wget \
