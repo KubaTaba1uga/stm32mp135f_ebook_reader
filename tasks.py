@@ -84,29 +84,77 @@ def download(c, config="ebook_reader_dev_defconfig"):
 
     
 @task
-def build_linux(c, config="ebook_reader_dev_defconfig"):
+def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
+    """
+    Build the Buildroot `linux` package.
+
+    Args:
+        config (str): Buildroot defconfig name. (Currently unused inside this task.)
+        target (str | None): Optional package-specific make target appended to `linux-`.
+            This maps to Buildroot "package infrastructure" targets. Valid values:
+
+            Core build steps (executed in this order during a normal build):
+            - "source"           : Fetch source (download tarball / clone repo).
+            - "depends"          : Build/install dependencies required for the package.
+            - "extract"          : Put source into build dir (extract/copy).
+            - "patch"            : Apply patches.
+            - "configure"        : Run configure commands (if any).
+            - "build"            : Compile the package.
+            - "install-staging"  : Install into staging dir (if needed).
+            - "install-target"   : Install into target/rootfs dir (if needed).
+            - "install"          : Run install-staging + install-target
+                                  (host packages: install into host dir).
+            Cleanup / rebuild shortcuts:
+            - "dirclean"     : Remove the whole package build directory.
+            - "reinstall"    : Re-run install commands only.
+            - "rebuild"      : Re-run compilation commands only
+                               (mainly useful with OVERRIDE_SRCDIR or manual edits).
+            - "reconfigure"  : Re-run configure, then rebuild
+                               (same caveats as rebuild).
+    
+           If target is None, runs `make linux`.
+           If target is set, runs `make linux-<target>`.
+
+    References:
+        Buildroot manual, section 8.13.5 "Package-specific make targets".
+    """
     _pr_info(f"Building linux...")
 
-    with c.cd("buildroot"):
-        c.run("make linux")
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "linux"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
     
     _pr_info(f"Building linux completed")
 
 @task
-def build_uboot(c, config="ebook_reader_dev_defconfig"):
+def build_uboot(c, config="ebook_reader_dev_defconfig", target=None):
     _pr_info(f"Building u-boot...")
 
-    with c.cd("buildroot"):
-        c.run("make uboot-rebuild")
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "uboot"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
     
     _pr_info(f"Building u-boot completed")
 
 @task
-def build_tfa(c, config="ebook_reader_dev_defconfig"):
+def build_tfa(c, config="ebook_reader_dev_defconfig", target=None):
     _pr_info(f"Building tf-a...")
 
-    with c.cd("buildroot"):
-        c.run("make arm-trusted-firmware-rebuild")
+    with c.cd("build/buildroot"):
+        cmd = "arm-trusted-firmware"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make {cmd}")
     
     _pr_info(f"Building tf-a completed")
 
@@ -127,6 +175,56 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
 def serve_docs(c, port=8000):
     c.run(f"sphinx-autobuild --port {port} docs build/docs/html", pty=True)
 
+@task
+def deploy_to_tftp(c, directory="/srv/tftp"):
+    _pr_info(f"Deploying to TFTP...")
+    
+    if not os.path.exists(directory):
+        raise ValueError(f"{directory} does not exists")
+
+    with c.cd("build/buildroot/images"):
+        c.run(# Copy linux artifacts
+            f"sudo cp zImage stm32mp135f-dk.dtb {directory}"
+        )
+        
+    _pr_info(f"Deploy to TFTP completed")
+
+@task
+def deploy_to_nfs(c, directory="/srv/nfs"):
+    _pr_info(f"Deploying to NFS...")
+
+    if not os.path.exists(directory):
+        raise ValueError(f"{directory} does not exists")
+
+    with c.cd("build/buildroot/images"):
+        c.run(f"sudo tar xvf rootfs.tar -C {directory}")
+    
+    _pr_info(f"Deploy to NFS completed")
+
+
+@task
+def deploy_to_sdcard(c, dev="sda"):
+    _pr_info(f"Deploying to sdcard...")
+    
+    if not os.path.exists("/dev/disk/by-partlabel/fsbl1"):
+        raise ValueError("No /dev/disk/by-partlabel/fsbl1")
+    if not os.path.exists("/dev/disk/by-partlabel/fsbl2"):
+        raise ValueError("No /dev/disk/by-partlabel/fsbl2")
+    if not os.path.exists("/dev/disk/by-partlabel/fip"):
+        raise ValueError("No /dev/disk/by-partlabel/fip")
+
+    with c.cd("build/buildroot/images"):
+        c.run(
+            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl1 bs=1K conv=fsync"
+        )
+        c.run(
+            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl2 bs=1K conv=fsync"
+        )
+        c.run("sudo dd if=fip.bin of=/dev/disk/by-partlabel/fip bs=1K conv=fsync")
+        
+    c.run("sudo sync")
+
+    _pr_info(f"Deploy to sdcard completed")    
     
     
 ###############################################
