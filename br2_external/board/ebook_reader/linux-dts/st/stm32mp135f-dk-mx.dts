@@ -107,7 +107,7 @@
 		brightness-levels = <0 16 22 30 40 55 75 102 138 188 255>;
 		default-brightness-level = <10>;
 		power-supply = <&scmi_v3v3_sw>;
-		status = "okay";
+		status = "disabled";
 	};
 
 	panel_rgb:panel-rgb{
@@ -117,7 +117,7 @@
 		power-supply = <&scmi_v3v3_sw>;
 		data-mapping = "bgr666";
 		default-on;
-		status = "okay";
+		status = "disabled";
 		width-mm = <105>;
 		height-mm = <67>;
 
@@ -582,14 +582,14 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&adc1_pins_mx>;
 	pinctrl-1 = <&adc1_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN adc_1 */
 	vdda-supply = <&scmi_vdd_adc>;
 	vref-supply = <&scmi_vdd_adc>;
 
 	adc1:adc@0{
-		status = "okay";
+		status = "disabled";
 
 		channel@6{
 			reg = <6>;
@@ -605,14 +605,14 @@
 };
 
 &crc1 {
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN crc1 */
 	/* USER CODE END crc1 */
 };
 
 &cryp {
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN cryp */
 	/* USER CODE END cryp */
@@ -622,7 +622,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&dcmipp_pins_mx>;
 	pinctrl-1 = <&dcmipp_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN dcmipp */
 
@@ -675,7 +675,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&eth1_pins_mx>;
 	pinctrl-1 = <&eth1_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN ethernet1 */
 	phy-mode = "rmii";
@@ -705,7 +705,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&eth2_pins_mx>;
 	pinctrl-1 = <&eth2_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN ethernet2 */
 	phy-mode = "rmii";
@@ -736,7 +736,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&i2c1_pins_mx>;
 	pinctrl-1 = <&i2c1_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN i2c1 */
 	i2c-scl-rising-time-ns = <96>;
@@ -785,7 +785,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&i2c5_pins_mx>;
 	pinctrl-1 = <&i2c5_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN i2c5 */
 	i2c-scl-rising-time-ns = <170>;
@@ -797,7 +797,7 @@
 	stmipi:stmipi@14{
 		compatible = "st,st-mipid02";
 		reg = <0x14>;
-		status = "okay";
+		status = "disabled";
 		clocks = <&clk_mco1>;
 		clock-names = "xclk";
 		VDDE-supply = <&scmi_v1v8_periph>;
@@ -841,7 +841,7 @@
 		dvdd-supply = <&scmi_v3v3_sw>;
 		powerdown-gpios = <&mcp23017 3 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL)>;
 		reset-gpios = <&mcp23017 4 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL)>;
-		status = "okay";
+		status = "disabled";
 
 		port{
 
@@ -884,7 +884,7 @@
 		VDDIO-supply = <&scmi_v3v3_sw>;
 		touchscreen-size-x = <480>;
 		touchscreen-size-y = <272>;
-		status = "okay";
+		status = "disabled";
 	};
 	/* USER CODE END i2c5 */
 };
@@ -893,7 +893,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&ltdc_pins_mx>;
 	pinctrl-1 = <&ltdc_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN ltdc */
 	default-on;
@@ -1009,7 +1009,7 @@
 	pinctrl-0 = <&usart2_pins_mx>;
 	pinctrl-1 = <&usart2_idle_pins_mx>;
 	pinctrl-2 = <&usart2_sleep_pins_mx>;
-	status = "okay";
+	status = "disabled";
 
 	/* USER CODE BEGIN usart2 */
 	uart-has-rtscts;
@@ -1053,7 +1053,6 @@
 	/* USER CODE BEGIN usbotg_hs */
 	phys = <&usbphyc_port1 0>;
 	phy-names = "usb2-phy";
-	// usb-role-switch;
 	dr_mode = "peripheral";
 	port{
 
@@ -1111,7 +1110,7 @@
 
 &arm_wdt {
 	timeout-sec = <32>;
-	status = "okay";
+	status = "disabled";
 };
 
 &scmi_regu {
