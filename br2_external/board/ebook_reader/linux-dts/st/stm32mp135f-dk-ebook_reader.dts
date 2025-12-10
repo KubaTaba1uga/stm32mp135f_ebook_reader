@@ -92,6 +92,18 @@
 		};
 	};
 
+	rtc_pins_mx: rtc_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+		};
+	};
+
+	rtc_sleep_pins_mx: rtc_sleep_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+		};
+	};
+
 	sdmmc1_pins_mx: sdmmc1_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('C', 8, AF12)>, /* SDMMC1_D0 */
@@ -227,6 +239,7 @@
 					 <STM32_PINMUX('D', 8, ANALOG)>; /* UART4_RX */
 		};
 	};
+
 	/* USER CODE BEGIN pinctrl */
 	/* USER CODE END pinctrl */
 };
@@ -237,16 +250,10 @@
 
 &crc1 {
 	status = "disabled";
-
-	/* USER CODE BEGIN crc1 */
-	/* USER CODE END crc1 */
 };
 
 &cryp {
 	status = "disabled";
-
-	/* USER CODE BEGIN cryp */
-	/* USER CODE END cryp */
 };
 
 &dcmipp {
@@ -255,10 +262,16 @@
 
 &dma1 {
 	status = "okay";
+
+	/* USER CODE BEGIN dma1 */
+	/* USER CODE END dma1 */
 };
 
 &dma2 {
 	status = "okay";
+
+	/* USER CODE BEGIN dma2 */
+	/* USER CODE END dma2 */
 };
 
 &dmamux1 {
@@ -273,6 +286,9 @@
 
 &dts {
 	status = "okay";
+
+	/* USER CODE BEGIN dts */
+	/* USER CODE END dts */
 };
 
 &ethernet1 {
@@ -447,8 +463,7 @@
 	/* USER CODE BEGIN usbotg_hs */
 	phys = <&usbphyc_port1 0>;
 	phy-names = "usb2-phy";
-	usb-role-switch;
-
+	dr_mode = "peripheral";
 	port{
 
 		usbotg_hs_ep:endpoint{
@@ -501,13 +516,6 @@
 	/* USER CODE END usbphyc_port1 */
 };
 
-/* USER CODE BEGIN addons */
-
-&arm_wdt {
-	timeout-sec = <32>;
-	status = "disabled";
-};
-
 &scmi_regu {
 
 	scmi_vddcpu:regulator@6{
@@ -551,12 +559,13 @@
 	};
 };
 
-&sram2 {
 
-	spi5_dma_pool:dma-sram@1000{
-		reg = <0x1000 0x1000>;
-		pool;
-	};
+&arm_wdt {
+	timeout-sec = <32>;
+	status = "okay";
 };
 
+/* USER CODE BEGIN addons */
+
+/* USER CODE END addons */
 
