@@ -186,8 +186,9 @@ def deploy_to_tftp(c, directory="/srv/tftp"):
 
     with c.cd("build/buildroot/images"):
         c.run(# Copy linux artifacts
-            f"sudo cp zImage stm32mp135f*.dtb {directory}"
+            f"sudo cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}"
         )
+        c.run("sudo chmod 777 {directory}/stm32mp135f-dk-ebook_reader.dtb")
         
     _pr_info(f"Deploy to TFTP completed")
 
