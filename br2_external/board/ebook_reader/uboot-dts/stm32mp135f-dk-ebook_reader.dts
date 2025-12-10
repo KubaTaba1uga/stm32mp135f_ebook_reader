@@ -40,7 +40,6 @@
 		ranges;
 
 		/* USER CODE BEGIN reserved-memory */
-
 		optee@dd000000{
 			reg = <0xdd000000 0x3000000>;
 			no-map;
@@ -509,7 +508,6 @@
 };
 
 &scmi_regu {
-
 	scmi_vddcpu:regulator@6{
 		reg = <VOLTD_SCMI_STPMIC1_BUCK1>;
 		regulator-name = "vddcpu";
@@ -552,7 +550,6 @@
 };
 
 &sram2 {
-
 	spi5_dma_pool:dma-sram@1000{
 		reg = <0x1000 0x1000>;
 		pool;
@@ -563,4 +560,3 @@
 	timeout-sec = <32>;
 	status = "okay";
 };
-
