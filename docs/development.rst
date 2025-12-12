@@ -75,7 +75,7 @@ They are okay if you are forced to interact with Buildroot, but for everyday wor
 Fast interface
 --------------
 
-The problem with Buildroot commands is they are very, very slow, too slow for development. For example, on my machine each command takes around 30–60 seconds just to start, so we need something without the overhead.
+The problem with Buildroot commands is they are very, very slow, too slow for development. For example, on my machine each command takes around 30-60 seconds just to start, so we need something without the overhead.
 
 We have a bunch of invoke commands which are meant to replicate what Buildroot is doing, but faster. Each of these commands starts with ``fbuild-`` (abbreviation for “fast build”) and tries to do what Buildroot does, just faster for development needs.
 
