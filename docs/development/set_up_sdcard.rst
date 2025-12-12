@@ -1,10 +1,5 @@
 Set up SD Card
-======================
-
-This guide explains how to set up the SD card for development.
-
-Prepare the SD Card
-----------------------
+==============
 
 Initialize and partition the SD card.
 

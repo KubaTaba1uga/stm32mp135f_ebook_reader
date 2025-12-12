@@ -188,7 +188,7 @@ def deploy_to_tftp(c, directory="/srv/tftp"):
         c.run(
             f"sudo cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}"
         )
-        c.run(fq"sudo chmod 777 {directory}/stm32mp135f-dk-ebook_reader.dtb")
+        c.run(f"sudo chmod 777 {directory}/stm32mp135f-dk-ebook_reader.dtb")
         
     _pr_info(f"Deploy to TFTP completed")
 

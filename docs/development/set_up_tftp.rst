@@ -1,35 +1,53 @@
 Set up TFTP server
 ==================
 
-This guide explains how to install and configure a **TFTP server** on the host,
-prepare files for transfer, and fetch them from the STM32MP135F board via **U-Boot**.
-
-
-Install the TFTP Server
------------------------
-
-Install ``tftpd-hpa`` (it is often already available on Ubuntu/Debian):
+Install ``dnsmasq``:
 
 .. code-block:: console
 
-   $ sudo apt install tftpd-hpa
+   $ sudo apt install dnsmasq
 
-To locate its configuration and service files:
-
-.. code-block:: console
-
-   $ sudo find /etc | grep tftp
-
-The main configuration file is in ``/etc/default/tftpd-hpa`` directory:
+Create configuration file in ``/etc/dnsmasq.d/tftp.conf``:
 
 .. code-block:: none
+		
+   # Disable dns
+   port=0
 
-   TFTP_USERNAME="tftp"
-   TFTP_DIRECTORY="/srv/tftp/"
-   TFTP_ADDRESS=":69"
-   TFTP_OPTIONS="--secure"
+   # Enable dnsmasq's built-in TFTP server
+   enable-tftp
 
+   # Set the root directory for files available via FTP.
+   tftp-root=/srv/tftp
+
+   # Do not abort if the tftp-root is unavailable
+   tftp-no-fail
+
+   # Make the TFTP server more secure: with this set, only files owned by
+   # the user dnsmasq, will be send over the net.
+   tftp-secure
+
+   # This option stops dnsmasq from negotiating a larger blocksize for TFTP
+   # transfers. It will slow things down, but may rescue some broken TFTP
+   # clients.
+   tftp-no-blocksize
+
+   # Bind to interfaces that appear later
+   # Optional: restrict to your USB NIC only
+   interface=enxf8dc7a000001
+
+.. warning::
+
+   Name of the interface assigned in ``interface=enxf8dc7a000001`` may be different on your machine.
    
+Enable and start tftp service:
+
+.. code-block:: console
+
+   $ sudo systemctl enable dnsmasq
+   $ sudo systemctl restart dnsmasq
+		
+
 Create a Test File
 ------------------
 
@@ -37,28 +55,25 @@ Add a small file to verify the setup:
 
 .. code-block:: console
 
-   $ echo -e "Hello friend\n" | sudo tee /srv/tftp/textfile.txt
-
-Ensure it is readable by TFTP clients:
-
-.. code-block:: console
-
-   $ sudo chmod 555 /srv/tftp/textfile.txt
+   $ echo Hello friend | sudo -u dnsmasq tee /srv/tftp/textfile.txt
 
 Test by reading it:
 
 .. code-block:: console
 
-   $ sudo cat /srv/tftp/textfile.txt
+   $ cat /srv/tftp/textfile.txt
    Hello friend
 
 
 Transfer File via TFTP
 ----------------------
 
-Boot board with u-boot next run TFTP to load the test file into RAM.
-Avoid reserved memory addresses like ``0x81000000`` - use a safe one such as
-``0xC0000000``.
+Boot your board and enter u-boot cli, once we are in uboot we can transfer a test file via TFTP and load it into RAM.
+
+.. warning::
+
+   Avoid reserved memory addresses like ``0x81000000``, better use tested one such as
+   ``0xC0000000``.
 
 .. code-block:: console
 
