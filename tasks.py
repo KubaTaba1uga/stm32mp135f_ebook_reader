@@ -132,7 +132,7 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
     _pr_info(f"Building linux completed")
 
 @task
-def build_linux_dt(c):
+def fbuild_linux_dt(c):
     os.environ["CROSS_COMPILE"] = os.path.join(ROOT_PATH,"build", "buildroot", "host", "bin", "arm-linux-")
     os.environ["ARCH"] = "arm"
 
@@ -197,6 +197,7 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
     
 @task
 def serve_docs(c, port=8000):
+    build_docs(c)
     c.run(f"sphinx-autobuild --port {port} docs build/docs/html", pty=True)
 
 @task

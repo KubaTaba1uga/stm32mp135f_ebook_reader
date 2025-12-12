@@ -49,7 +49,6 @@
 	};
 
 	/* USER CODE BEGIN root */
-
 	aliases{
 		ethernet0 = &ethernet1;
 		ethernet1 = &ethernet2;
@@ -72,13 +71,26 @@
 			status = "disabled";
 		};
 	};
+
+	leds{
+		compatible = "gpio-leds";
+
+		led-blue{
+			function = LED_FUNCTION_HEARTBEAT;
+			color = <LED_COLOR_ID_BLUE>;
+			gpios = <&gpioa 14 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "heartbeat";
+			default-state = "off";
+		};
+	};
+	/* USER CODE END root */
 }; /*root*/
 
 &pinctrl {
 	i2c1_pins_mx: i2c1_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('D', 12, AF5)>, /* I2C1_SCL */
-					 <STM32_PINMUX('E', 8, AF5)>; /* I2C1_SDA */
+				 <STM32_PINMUX('E', 8, AF5)>; /* I2C1_SDA */
 			bias-disable;
 			drive-open-drain;
 			slew-rate = <0>;
@@ -88,7 +100,7 @@
 	i2c1_sleep_pins_mx: i2c1_sleep_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('D', 12, ANALOG)>, /* I2C1_SCL */
-					 <STM32_PINMUX('E', 8, ANALOG)>; /* I2C1_SDA */
+				 <STM32_PINMUX('E', 8, ANALOG)>; /* I2C1_SDA */
 		};
 	};
 
@@ -107,11 +119,11 @@
 	sdmmc1_pins_mx: sdmmc1_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('C', 8, AF12)>, /* SDMMC1_D0 */
-					 <STM32_PINMUX('C', 9, AF12)>, /* SDMMC1_D1 */
-					 <STM32_PINMUX('C', 10, AF12)>, /* SDMMC1_D2 */
-					 <STM32_PINMUX('C', 11, AF12)>, /* SDMMC1_D3 */
-					 <STM32_PINMUX('C', 12, AF12)>, /* SDMMC1_CK */
-					 <STM32_PINMUX('D', 2, AF12)>; /* SDMMC1_CMD */
+				 <STM32_PINMUX('C', 9, AF12)>, /* SDMMC1_D1 */
+				 <STM32_PINMUX('C', 10, AF12)>, /* SDMMC1_D2 */
+				 <STM32_PINMUX('C', 11, AF12)>, /* SDMMC1_D3 */
+				 <STM32_PINMUX('C', 12, AF12)>, /* SDMMC1_CK */
+				 <STM32_PINMUX('D', 2, AF12)>; /* SDMMC1_CMD */
 			bias-disable;
 			drive-push-pull;
 			slew-rate = <1>;
@@ -121,10 +133,10 @@
 	sdmmc1_opendrain_pins_mx: sdmmc1_opendrain_mx-0 {
 		pins1 {
 			pinmux = <STM32_PINMUX('C', 8, AF12)>, /* SDMMC1_D0 */
-					 <STM32_PINMUX('C', 9, AF12)>, /* SDMMC1_D1 */
-					 <STM32_PINMUX('C', 10, AF12)>, /* SDMMC1_D2 */
-					 <STM32_PINMUX('C', 11, AF12)>, /* SDMMC1_D3 */
-					 <STM32_PINMUX('C', 12, AF12)>; /* SDMMC1_CK */
+				 <STM32_PINMUX('C', 9, AF12)>, /* SDMMC1_D1 */
+				 <STM32_PINMUX('C', 10, AF12)>, /* SDMMC1_D2 */
+				 <STM32_PINMUX('C', 11, AF12)>, /* SDMMC1_D3 */
+				 <STM32_PINMUX('C', 12, AF12)>; /* SDMMC1_CK */
 			bias-disable;
 			drive-push-pull;
 			slew-rate = <1>;
@@ -140,22 +152,22 @@
 	sdmmc1_sleep_pins_mx: sdmmc1_sleep_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('C', 8, ANALOG)>, /* SDMMC1_D0 */
-					 <STM32_PINMUX('C', 9, ANALOG)>, /* SDMMC1_D1 */
-					 <STM32_PINMUX('C', 10, ANALOG)>, /* SDMMC1_D2 */
-					 <STM32_PINMUX('C', 11, ANALOG)>, /* SDMMC1_D3 */
-					 <STM32_PINMUX('C', 12, ANALOG)>, /* SDMMC1_CK */
-					 <STM32_PINMUX('D', 2, ANALOG)>; /* SDMMC1_CMD */
+				 <STM32_PINMUX('C', 9, ANALOG)>, /* SDMMC1_D1 */
+				 <STM32_PINMUX('C', 10, ANALOG)>, /* SDMMC1_D2 */
+				 <STM32_PINMUX('C', 11, ANALOG)>, /* SDMMC1_D3 */
+				 <STM32_PINMUX('C', 12, ANALOG)>, /* SDMMC1_CK */
+				 <STM32_PINMUX('D', 2, ANALOG)>; /* SDMMC1_CMD */
 		};
 	};
 
 	sdmmc2_pins_mx: sdmmc2_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('B', 3, AF10)>, /* SDMMC2_D2 */
-					 <STM32_PINMUX('B', 4, AF10)>, /* SDMMC2_D3 */
-					 <STM32_PINMUX('B', 14, AF10)>, /* SDMMC2_D0 */
-					 <STM32_PINMUX('B', 15, AF10)>, /* SDMMC2_D1 */
-					 <STM32_PINMUX('E', 3, AF10)>, /* SDMMC2_CK */
-					 <STM32_PINMUX('G', 6, AF10)>; /* SDMMC2_CMD */
+				 <STM32_PINMUX('B', 4, AF10)>, /* SDMMC2_D3 */
+				 <STM32_PINMUX('B', 14, AF10)>, /* SDMMC2_D0 */
+				 <STM32_PINMUX('B', 15, AF10)>, /* SDMMC2_D1 */
+				 <STM32_PINMUX('E', 3, AF10)>, /* SDMMC2_CK */
+				 <STM32_PINMUX('G', 6, AF10)>; /* SDMMC2_CMD */
 			bias-pull-up;
 			drive-push-pull;
 			slew-rate = <1>;
@@ -165,10 +177,10 @@
 	sdmmc2_opendrain_pins_mx: sdmmc2_opendrain_mx-0 {
 		pins1 {
 			pinmux = <STM32_PINMUX('B', 3, AF10)>, /* SDMMC2_D2 */
-					 <STM32_PINMUX('B', 4, AF10)>, /* SDMMC2_D3 */
-					 <STM32_PINMUX('B', 14, AF10)>, /* SDMMC2_D0 */
-					 <STM32_PINMUX('B', 15, AF10)>, /* SDMMC2_D1 */
-					 <STM32_PINMUX('E', 3, AF10)>; /* SDMMC2_CK */
+				 <STM32_PINMUX('B', 4, AF10)>, /* SDMMC2_D3 */
+				 <STM32_PINMUX('B', 14, AF10)>, /* SDMMC2_D0 */
+				 <STM32_PINMUX('B', 15, AF10)>, /* SDMMC2_D1 */
+				 <STM32_PINMUX('E', 3, AF10)>; /* SDMMC2_CK */
 			bias-pull-up;
 			drive-push-pull;
 			slew-rate = <1>;
@@ -184,11 +196,11 @@
 	sdmmc2_sleep_pins_mx: sdmmc2_sleep_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('B', 3, ANALOG)>, /* SDMMC2_D2 */
-					 <STM32_PINMUX('B', 4, ANALOG)>, /* SDMMC2_D3 */
-					 <STM32_PINMUX('B', 14, ANALOG)>, /* SDMMC2_D0 */
-					 <STM32_PINMUX('B', 15, ANALOG)>, /* SDMMC2_D1 */
-					 <STM32_PINMUX('E', 3, ANALOG)>, /* SDMMC2_CK */
-					 <STM32_PINMUX('G', 6, ANALOG)>; /* SDMMC2_CMD */
+				 <STM32_PINMUX('B', 4, ANALOG)>, /* SDMMC2_D3 */
+				 <STM32_PINMUX('B', 14, ANALOG)>, /* SDMMC2_D0 */
+				 <STM32_PINMUX('B', 15, ANALOG)>, /* SDMMC2_D1 */
+				 <STM32_PINMUX('E', 3, ANALOG)>, /* SDMMC2_CK */
+				 <STM32_PINMUX('G', 6, ANALOG)>; /* SDMMC2_CMD */
 		};
 	};
 
@@ -236,13 +248,33 @@
 	uart4_sleep_pins_mx: uart4_sleep_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('D', 6, ANALOG)>, /* UART4_TX */
-					 <STM32_PINMUX('D', 8, ANALOG)>; /* UART4_RX */
+				 <STM32_PINMUX('D', 8, ANALOG)>; /* UART4_RX */
 		};
 	};
 
-	/* USER CODE BEGIN pinctrl */
+	stm32g0_intn_pins_a: stm32g0-intn-0 {
+		pins {
+			pinmux = <STM32_PINMUX('I', 2, GPIO)>;
+			bias-pull-up;
+		};
+	};
+
+	rtc_pins_mx: rtc_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+		};
+	};
+
+	rtc_sleep_pins_mx: rtc_sleep_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+		};
+	};
+
+	/* USER CODE BEGIN pinctrl */	
 	/* USER CODE END pinctrl */
 };
+
 
 &adc_1 {
 	status = "disabled";
@@ -316,7 +348,7 @@
 		compatible = "st,stm32g0-typec";
 		reg = <0x53>;
 		interrupts-extended = <&optee 1>;
-		firmware-name = "stm32g0-ucsi.mp135f-dk.fw";
+		/* firmware-name = "stm32g0-ucsi.mp135f-dk.fw"; It causes error in driver's probe. */
 		wakeup-source;
 
 		connector{
@@ -357,7 +389,14 @@
 };
 
 &rtc {
-	status = "disabled";
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&rtc_pins_mx>;
+	pinctrl-1 = <&rtc_sleep_pins_mx>;
+	status = "okay";
+
+	/* USER CODE BEGIN rtc */
+	st,lsco = <RTC_OUT2_RMP>;
+	/* USER CODE END rtc */
 };
 
 &sdmmc1 {
@@ -517,7 +556,6 @@
 };
 
 &scmi_regu {
-
 	scmi_vddcpu:regulator@6{
 		reg = <VOLTD_SCMI_STPMIC1_BUCK1>;
 		regulator-name = "vddcpu";
@@ -558,7 +596,6 @@
 		regulator-name = "v3v3_sw";
 	};
 };
-
 
 &arm_wdt {
 	timeout-sec = <32>;
