@@ -131,7 +131,29 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
     
     _pr_info(f"Building linux completed")
 
+@task
+def build_linux_dt(c):
+    os.environ["CROSS_COMPILE"] = os.path.join(ROOT_PATH,"build", "buildroot", "host", "bin", "arm-linux-")
+    os.environ["ARCH"] = "arm"
 
+    dtb = None
+    with open("br2_external/configs/ebook_reader_dev_defconfig", "r") as fp:
+        for line in fp.readlines():
+            if line.startswith("BR2_LINUX_KERNEL_INTREE_DTS_NAME="):                
+                dtb = line.removeprefix("BR2_LINUX_KERNEL_INTREE_DTS_NAME=").rstrip('\n')
+            if line.startswith("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR="):
+                dts_dirs = line.removeprefix("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR=")
+                sanitized_dts_dirs = dts_dirs.replace("$(BR2_EXTERNAL_ST_PATH)", "br2_external")
+                for dts in sanitized_dts_dirs.split(" "):
+                    c.run(f"cp -r {dts.rstrip('\n')}/* build/buildroot/build/linux-custom/arch/arm/boot/dts")
+
+    if not dtb:
+        _pr_err("No dtb file found in br2_external/configs/ebook_reader_dev_defconfig")
+        return 1
+    
+    with c.cd("build/buildroot/build/linux-custom"):
+        c.run(f"make {dtb}.dtb")
+        c.run(f"cp arch/arm/boot/dts/{dtb}.dtb ../../images/")
     
 @task
 def build_uboot(c, config="ebook_reader_dev_defconfig", target=None):
@@ -156,7 +178,7 @@ def build_tfa(c, config="ebook_reader_dev_defconfig", target=None):
         cmd = "arm-trusted-firmware"
         if target:
             cmd = f"{cmd}-{target}"
-        c.run(f"make {cmd}")
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
     
     _pr_info(f"Building tf-a completed")
 
@@ -186,9 +208,8 @@ def deploy_to_tftp(c, directory="/srv/tftp"):
 
     with c.cd("build/buildroot/images"):
         c.run(
-            f"sudo cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}"
+            f"sudo -u dnsmasq cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}"
         )
-        c.run(f"sudo chmod 777 {directory}/stm32mp135f-dk-ebook_reader.dtb")
         
     _pr_info(f"Deploy to TFTP completed")
 
