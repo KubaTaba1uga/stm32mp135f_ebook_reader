@@ -174,6 +174,9 @@ def build_uboot(c, config="ebook_reader_dev_defconfig", target=None):
 def build_tfa(c, config="ebook_reader_dev_defconfig", target=None):
     _pr_info(f"Building tf-a...")
 
+    if config:
+        configure(c, config)
+    
     with c.cd("build/buildroot"):
         cmd = "arm-trusted-firmware"
         if target:

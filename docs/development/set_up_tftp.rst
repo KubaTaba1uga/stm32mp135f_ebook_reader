@@ -23,15 +23,6 @@ Create configuration file in ``/etc/dnsmasq.d/tftp.conf``:
    # Do not abort if the tftp-root is unavailable
    tftp-no-fail
 
-   # Make the TFTP server more secure: with this set, only files owned by
-   # the user dnsmasq, will be send over the net.
-   tftp-secure
-
-   # This option stops dnsmasq from negotiating a larger blocksize for TFTP
-   # transfers. It will slow things down, but may rescue some broken TFTP
-   # clients.
-   tftp-no-blocksize
-
    # Bind to interfaces that appear later
    # Optional: restrict to your USB NIC only
    interface=enxf8dc7a000001
