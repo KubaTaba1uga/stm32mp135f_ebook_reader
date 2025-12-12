@@ -41,4 +41,3 @@ index bdb6b77b3805b..e31ad60db99f6 100644
  	if (!device_may_wakeup(dwmac->dev))
 -- 
 2.43.0
-

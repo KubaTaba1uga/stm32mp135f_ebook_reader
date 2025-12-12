@@ -1053,8 +1053,8 @@
 	/* USER CODE BEGIN usbotg_hs */
 	phys = <&usbphyc_port1 0>;
 	phy-names = "usb2-phy";
-	usb-role-switch;
-
+	// usb-role-switch;
+	dr_mode = "peripheral";
 	port{
 
 		usbotg_hs_ep:endpoint{
