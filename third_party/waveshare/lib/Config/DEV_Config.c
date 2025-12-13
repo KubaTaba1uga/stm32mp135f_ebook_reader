@@ -69,6 +69,12 @@ void DEV_Digital_Write(UWORD Pin, UBYTE Value)
 	Debug("not support");
 #endif
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+	STM_GPIOD_Write(Pin, Value);
+#endif
+#endif
 }
 
 UBYTE DEV_Digital_Read(UWORD Pin)
@@ -93,6 +99,13 @@ UBYTE DEV_Digital_Read(UWORD Pin)
 	Debug("not support");
 #endif
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+	Read_value = STM_GPIOD_Read(Pin);
+#endif
+#endif
+        
 	return Read_value;
 }
 
@@ -120,6 +133,12 @@ void DEV_SPI_WriteByte(uint8_t Value)
 	Debug("not support");
 #endif
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+	DEV_HARDWARE_SPI_TransferByte(Value);
+#endif
+#endif        
 }
 
 void DEV_SPI_Write_nByte(uint8_t *pData, uint32_t Len)
@@ -148,6 +167,13 @@ void DEV_SPI_Write_nByte(uint8_t *pData, uint32_t Len)
 	Debug("not support");
 #endif
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+	DEV_HARDWARE_SPI_Transfer(pData, Len);
+#endif
+#endif
+    
 }
 
 /**
@@ -197,6 +223,18 @@ void DEV_GPIO_Mode(UWORD Pin, UWORD Mode)
 	Debug("not support");
 #endif
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+    if(Mode == 0 || Mode == STM_GPIOD_IN) {
+        STM_GPIOD_Direction(Pin, STM_GPIOD_IN);
+        // Debug("IN Pin = %d\r\n",Pin);
+    } else {
+        STM_GPIOD_Direction(Pin, STM_GPIOD_OUT);
+        // Debug("OUT Pin = %d\r\n",Pin);
+    }
+#endif
+#endif        
 }
 
 /**
@@ -225,6 +263,15 @@ void DEV_Delay_ms(UDOUBLE xms)
 		usleep(1000);
 	}
 #endif
+
+#ifdef STM        
+#ifdef USE_DEV_LIB
+	UDOUBLE i;
+	for(i=0; i < xms; i++) {
+		usleep(1000);
+	}
+#endif
+#endif        
 }
 
 static int DEV_Equipment_Testing(void)
@@ -272,6 +319,10 @@ static int DEV_Equipment_Testing(void)
 		return -1;
 	}
 #endif
+
+#ifdef STM        
+	printf("Not recognized\n");
+#endif        
 	return 0;
 }
 
@@ -295,17 +346,28 @@ void DEV_GPIO_Init(void)
 	EPD_BUSY_PIN    = GPIO24;
         EPD_MOSI_PIN    = SPI0_MOSI;
 	EPD_SCLK_PIN    = SPI0_SCK;
+#elif STM
+	EPD_RST_PIN     = STM_GPIOD_register(2, 'C');  // GPIOC 2
+	EPD_DC_PIN      = STM_GPIOD_register(0, 'I');  // GPIOI 0
+	EPD_CS_PIN      = STM_GPIOD_register(11, 'H'); // GPIOH 11
+	EPD_PWR_PIN     = STM_GPIOD_register(4, 'A');  // GPIOA 4
+	EPD_BUSY_PIN    = STM_GPIOD_register(3, 'G');  // GPIOG 3
+	EPD_MOSI_PIN    = STM_GPIOD_register(3, 'H');  // GPIOH 3
+	EPD_SCLK_PIN    = STM_GPIOD_register(7, 'H');  // GPIOH 7
 #endif
 
         DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
 	DEV_GPIO_Mode(EPD_RST_PIN, 1);
-	DEV_GPIO_Mode(EPD_DC_PIN, 1);
-	DEV_GPIO_Mode(EPD_CS_PIN, 1);
+        DEV_GPIO_Mode(EPD_DC_PIN, 1);
+#ifndef STM
+        DEV_GPIO_Mode(EPD_CS_PIN, 1);
+#endif        
         DEV_GPIO_Mode(EPD_PWR_PIN, 1);
         // DEV_GPIO_Mode(EPD_MOSI_PIN, 0);
 	// DEV_GPIO_Mode(EPD_SCLK_PIN, 1);
-
-	DEV_Digital_Write(EPD_CS_PIN, 1);
+#ifndef STM
+        DEV_Digital_Write(EPD_CS_PIN, 1);
+#endif        
         DEV_Digital_Write(EPD_PWR_PIN, 1);
 }
 
@@ -461,6 +523,15 @@ UBYTE DEV_Module_Init(void)
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
 #endif
 
+#elif STM        
+#ifdef USE_DEV_LIB
+	printf("Write and read /dev/spidev0.0 \r\n");
+        STM_GPIOD_Export();
+	DEV_GPIO_Init();
+	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
+        DEV_HARDWARE_SPI_setSpeed(10000000);
+#endif
+
 #endif
     printf("/***********************************/ \r\n");
 	return 0;
@@ -510,12 +581,25 @@ void DEV_Module_Exit(void)
 #elif JETSON
 #ifdef USE_DEV_LIB
 	SYSFS_GPIO_Unexport(EPD_CS_PIN);
-    SYSFS_GPIO_Unexport(EPD_PWR_PIN;
-	SYSFS_GPIO_Unexport(EPD_DC_PIN);
-	SYSFS_GPIO_Unexport(EPD_RST_PIN);
-	SYSFS_GPIO_Unexport(EPD_BUSY_PIN);
+        SYSFS_GPIO_Unexport(EPD_PWR_PIN; SYSFS_GPIO_Unexport(EPD_DC_PIN);
+                            SYSFS_GPIO_Unexport(EPD_RST_PIN);
+                            SYSFS_GPIO_Unexport(EPD_BUSY_PIN);
 #elif USE_HARDWARE_LIB
 	Debug("not support");
 #endif
+
+#elif STM
+#ifdef USE_DEV_LIB
+    DEV_HARDWARE_SPI_end();
+    /* DEV_Digital_Write(EPD_CS_PIN, 0); */
+    DEV_Digital_Write(EPD_PWR_PIN, 0);
+    DEV_Digital_Write(EPD_DC_PIN, 0);
+    DEV_Digital_Write(EPD_RST_PIN, 0);
+    STM_GPIOD_Unexport(EPD_PWR_PIN);
+    STM_GPIOD_Unexport(EPD_DC_PIN);
+    STM_GPIOD_Unexport(EPD_RST_PIN);
+    STM_GPIOD_Unexport(EPD_BUSY_PIN);
+    STM_GPIOD_Unexport_GPIO();
+#endif  
 #endif
 }

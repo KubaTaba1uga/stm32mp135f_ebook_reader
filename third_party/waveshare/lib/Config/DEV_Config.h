@@ -79,7 +79,12 @@
     #elif USE_HARDWARE_LIB
         
     #endif
-
+#endif
+#ifdef STM
+    #ifdef USE_DEV_LIB
+        #include "STM_gpiod.h"
+        #include "dev_hardware_SPI.h"
+    #endif
 #endif
 
 /**
@@ -114,6 +119,5 @@ UBYTE DEV_SPI_ReadData();
 
 UBYTE DEV_Module_Init(void);
 void DEV_Module_Exit(void);
-
 
 #endif
