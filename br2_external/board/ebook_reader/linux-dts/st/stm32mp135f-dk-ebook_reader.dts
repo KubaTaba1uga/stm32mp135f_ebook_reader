@@ -627,7 +627,10 @@
 	status = "okay";
 
 	epaper@0 {
-	    compatible = "spidev";
+	    compatible = "dh,dhcom-board"; // spidev driver is a bit wierd cause
+	                                   //  it require not `spidev` in compatibile
+					   //  but `dh,dhcom-board` or other value
+					   //  stored in `spidev_dt_ids`.
 	    reg = <0>;   /* CS0 */
 	    spi-max-frequency = <8000000>;
 	};
