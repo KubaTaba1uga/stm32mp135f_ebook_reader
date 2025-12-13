@@ -82,4 +82,3 @@ We have a bunch of invoke commands which are meant to replicate what Buildroot i
 Currently supported fast commands are:
 
 * ``inv fbuild-linux-dt``: The goal of this command is to read ``BR2_LINUX_KERNEL_INTREE_DTS_NAME`` and ``BR2_LINUX_KERNEL_CUSTOM_DTS_DIR`` from ``ebook_reader_dev_defconfig``, recompile the appropriate Linux DT files, and copy them to ``build/buildroot/images``.
-

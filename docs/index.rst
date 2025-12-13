@@ -15,3 +15,4 @@ This site contains:
 
    development
    api
+   hardware

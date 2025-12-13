@@ -130,6 +130,71 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
         c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
     
     _pr_info(f"Building linux completed")
+    
+import os
+from invoke import task
+
+@task
+def fbuild_linux_kernel(c):
+    proj = "/home/taba1uga/Github/stm32mp135f_ebook_reader"
+    br = os.path.join(proj, "build", "buildroot")
+
+    host_bin  = os.path.join(br, "host", "bin")
+    host_sbin = os.path.join(br, "host", "sbin")
+    host_lib  = os.path.join(br, "host", "lib")
+    host_inc  = os.path.join(br, "host", "include")
+    images    = os.path.join(br, "images")
+    target    = os.path.join(br, "target")
+    linux_src = os.path.join(br, "build", "linux-custom")
+
+    os.environ.update({
+        "ARCH": "arm",
+        "CROSS_COMPILE": os.path.join(host_bin, "arm-linux-"),
+
+        "PATH": ":".join([
+            host_bin,
+            host_sbin,
+            os.environ["PATH"],
+        ]),
+
+        "PKG_CONFIG": os.path.join(host_bin, "pkg-config"),
+        "PKG_CONFIG_SYSROOT_DIR": "/",
+        "PKG_CONFIG_ALLOW_SYSTEM_CFLAGS": "1",
+        "PKG_CONFIG_ALLOW_SYSTEM_LIBS": "1",
+        "PKG_CONFIG_LIBDIR": ":".join([
+            os.path.join(host_lib, "pkgconfig"),
+            os.path.join(br, "host", "share", "pkgconfig"),
+        ]),
+
+        "BR_BINARIES_DIR": images,
+    })
+
+    hostcc = (
+        f"{os.path.join(host_bin,'ccache')} /usr/bin/gcc -O2 "
+        f"-isystem {host_inc} "
+        f"-L{host_lib} "
+        f"-Wl,-rpath,{host_lib}"
+    )
+
+    cmd = (
+        f'/usr/bin/make -j5 '
+        f'HOSTCC="{hostcc}" '
+        f'ARCH=arm '
+        f'KCFLAGS="-Wno-attribute-alias" '
+        f'INSTALL_MOD_PATH={target} '
+        f'CROSS_COMPILE="{os.path.join(host_bin,"arm-linux-")}" '
+        f'WERROR=0 '
+        f'REGENERATE_PARSERS=1 '
+        f'DEPMOD={os.path.join(host_sbin,"depmod")} '
+        f'INSTALL_MOD_STRIP=1 '
+        f'-C {linux_src} zImage'
+    )
+
+    # keep your original behavior: run from inside linux_src, then copy from in-tree path
+    with c.cd("build/buildroot/build/linux-custom"):
+        c.run(cmd)
+        c.run(f"cp arch/arm/boot/zImage ../../images/")
+
 
 @task
 def fbuild_linux_dt(c):

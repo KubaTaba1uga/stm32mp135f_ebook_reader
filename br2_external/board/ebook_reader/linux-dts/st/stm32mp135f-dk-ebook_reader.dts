@@ -259,19 +259,28 @@
 		};
 	};
 
-	rtc_pins_mx: rtc_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+	/* USER CODE BEGIN pinctrl */
+	spi5_pins_mx: spi5-0 {
+		pins1 {
+			pinmux = <STM32_PINMUX('H', 7, AF6)>, /* SPI5_SCK */
+				 <STM32_PINMUX('H', 3, AF5)>; /* SPI5_MOSI */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <1>;
+		};
+		pins2 {
+			pinmux = <STM32_PINMUX('H', 11, AF1)>; /* SPI5_NSS */
+			bias-disable;
 		};
 	};
 
-	rtc_sleep_pins_mx: rtc_sleep_mx-0 {
+	spi5_sleep_pins_mx: spi5-sleep-0 {
 		pins {
-			pinmux = <STM32_PINMUX('I', 1, ANALOG)>; /* RTC_OUT2 */
+			pinmux = <STM32_PINMUX('H',  7, ANALOG)>, /* SPI5_SCK */
+				 <STM32_PINMUX('H',  3, ANALOG)>, /* SPI5_MOSI */
+			         <STM32_PINMUX('H', 11, ANALOG)>; /* SPI5_NSS */				 
 		};
 	};
-
-	/* USER CODE BEGIN pinctrl */	
 	/* USER CODE END pinctrl */
 };
 
@@ -603,6 +612,26 @@
 };
 
 /* USER CODE BEGIN addons */
+// &sram2 {
+// 	spi5_dma_pool:dma-sram@1000{
+// 		reg = <0x1000 0x1000>;
+// 		pool;
+// 	};
+// };
+
+&spi5 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&spi5_pins_mx>;
+	pinctrl-1 = <&spi5_sleep_pins_mx>;
+	// sram = <&spi5_dma_pool>;
+	status = "okay";
+
+	epaper@0 {
+	    compatible = "spidev";
+	    reg = <0>;   /* CS0 */
+	    spi-max-frequency = <8000000>;
+	};
+};
 
 /* USER CODE END addons */
 
