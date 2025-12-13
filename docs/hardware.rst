@@ -110,17 +110,49 @@ We can confirm that spi5 is detected by linux checking whether there is spi mast
 
 On our example `4c003000` points to spi5 register which confirms it is enabled.
 
+Screen Driver
+-------------
+
+The waveshare driver require choosing library to talk with gpio. We choose `libgpiod <https://libgpiod.readthedocs.io/en/stable/index.html>`_, mainly because this is standard way of communicating now with userspace gpio interface, so it should just work. Version: 1.6.5.
+
+## TO-DO improve above argumentation
+
+To confirm that libgpiod is working you can try turning led on board (`PA14`) on and off:
+.. code-block:: console
+		
+   # gpiodetect
+   gpiochip0 [GPIOA] (16 lines)
+   gpiochip1 [GPIOB] (16 lines)
+   gpiochip2 [GPIOC] (16 lines)
+   gpiochip3 [GPIOD] (16 lines)
+   gpiochip4 [GPIOE] (16 lines)
+   gpiochip5 [GPIOF] (16 lines)
+   gpiochip6 [GPIOG] (16 lines)
+   gpiochip7 [GPIOH] (15 lines)
+   gpiochip8 [GPIOI] (8 lines)
+   #gpioinfo 0
+   gpiochip0 - 16 lines:
+	   line   0:        "PA0"       unused   input  active-high
+	   line   1:        "PA1"       unused   input  active-high
+	   line   2:        "PA2"       unused   input  active-high
+	   line   3:        "PA3"       unused   input  active-high
+	   line   4:        "PA4"       unused   input  active-high
+	   line   5:        "PA5"       unused   input  active-high
+	   line   6:        "PA6"       kernel   input  active-high [used]
+	   line   7:        "PA7"       unused   input  active-high
+	   line   8:        "PA8"       unused   input  active-high
+	   line   9:        "PA9"       unused   input  active-high
+	   line  10:       "PA10"       unused   input  active-high
+	   line  11:       "PA11"       unused   input  active-high
+	   line  12:       "PA12"       unused   input  active-high
+	   line  13:       "PA13"       unused   input  active-high
+	   line  14:       "PA14"       unused   input  active-high
+	   line  15:       "PA15"       unused   input  active-high
+   # gpioget 0 14
+   1
+   # gpioset 0 14=0
+   # gpioset 0 14=1
 
 
-Thirst things to do now is configure pins approprietly to it's functions via DT.
 
-
-
-Working with the display is mainly driven by choice of the alreay available HAL to quick things up.
-
-
-
-
-
-The HAL can be used with various backends but we chose ``USE_DEV_LIB`` backend. 
-
+To use this lib with RPI we n
