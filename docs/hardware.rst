@@ -118,8 +118,9 @@ The waveshare driver require choosing library to talk with gpio. We choose `libg
 ## TO-DO improve above argumentation
 
 To confirm that libgpiod is working you can try turning led on board (`PA14`) on and off:
+
 .. code-block:: console
-		
+
    # gpiodetect
    gpiochip0 [GPIOA] (16 lines)
    gpiochip1 [GPIOB] (16 lines)
@@ -154,5 +155,5 @@ To confirm that libgpiod is working you can try turning led on board (`PA14`) on
    # gpioset 0 14=1
 
 
+SPI is used from userspace thanks to spidev library, more info about api `here <https://www.kernel.org/doc/html/latest/spi/spidev.html>`_.
 
-To use this lib with RPI we n

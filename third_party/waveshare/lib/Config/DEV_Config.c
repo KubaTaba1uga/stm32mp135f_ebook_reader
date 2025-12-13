@@ -283,31 +283,30 @@ void DEV_GPIO_Init(void)
 	EPD_RST_PIN     = 17;
 	EPD_DC_PIN      = 25;
 	EPD_CS_PIN      = 8;
-    EPD_PWR_PIN     = 18;
+        EPD_PWR_PIN     = 18;
 	EPD_BUSY_PIN    = 24;
-    EPD_MOSI_PIN    = 10;
+        EPD_MOSI_PIN    = 10;
 	EPD_SCLK_PIN    = 11;
 #elif JETSON
 	EPD_RST_PIN     = GPIO17;
 	EPD_DC_PIN      = GPIO25;
 	EPD_CS_PIN      = SPI0_CS0;
-    EPD_PWR_PIN     = GPIO18;
+        EPD_PWR_PIN     = GPIO18;
 	EPD_BUSY_PIN    = GPIO24;
-    EPD_MOSI_PIN    = SPI0_MOSI;
+        EPD_MOSI_PIN    = SPI0_MOSI;
 	EPD_SCLK_PIN    = SPI0_SCK;
 #endif
 
-    DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
+        DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
 	DEV_GPIO_Mode(EPD_RST_PIN, 1);
 	DEV_GPIO_Mode(EPD_DC_PIN, 1);
 	DEV_GPIO_Mode(EPD_CS_PIN, 1);
-    DEV_GPIO_Mode(EPD_PWR_PIN, 1);
-    // DEV_GPIO_Mode(EPD_MOSI_PIN, 0);
+        DEV_GPIO_Mode(EPD_PWR_PIN, 1);
+        // DEV_GPIO_Mode(EPD_MOSI_PIN, 0);
 	// DEV_GPIO_Mode(EPD_SCLK_PIN, 1);
 
 	DEV_Digital_Write(EPD_CS_PIN, 1);
-    DEV_Digital_Write(EPD_PWR_PIN, 1);
-    
+        DEV_Digital_Write(EPD_PWR_PIN, 1);
 }
 
 void DEV_SPI_SendnData(UBYTE *Reg)
@@ -442,10 +441,10 @@ UBYTE DEV_Module_Init(void)
     DEV_GPIO_Init();
 #elif USE_DEV_LIB
 	printf("Write and read /dev/spidev0.0 \r\n");
-    GPIOD_Export();
+        GPIOD_Export();
 	DEV_GPIO_Init();
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
-    DEV_HARDWARE_SPI_setSpeed(10000000);
+        DEV_HARDWARE_SPI_setSpeed(10000000);
 #endif
 
 #elif JETSON
