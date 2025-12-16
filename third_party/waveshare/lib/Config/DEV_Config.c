@@ -349,11 +349,11 @@ void DEV_GPIO_Init(void)
 #elif STM
 	EPD_RST_PIN     = STM_GPIOD_register(2, 'C');  // GPIOC 2
 	EPD_DC_PIN      = STM_GPIOD_register(0, 'I');  // GPIOI 0
-	EPD_CS_PIN      = STM_GPIOD_register(11, 'H'); // GPIOH 11
+	/* EPD_CS_PIN      = STM_GPIOD_register(11, 'H'); // GPIOH 11 */
 	EPD_PWR_PIN     = STM_GPIOD_register(4, 'A');  // GPIOA 4
 	EPD_BUSY_PIN    = STM_GPIOD_register(3, 'G');  // GPIOG 3
-	EPD_MOSI_PIN    = STM_GPIOD_register(3, 'H');  // GPIOH 3
-	EPD_SCLK_PIN    = STM_GPIOD_register(7, 'H');  // GPIOH 7
+	/* EPD_MOSI_PIN    = STM_GPIOD_register(3, 'H');  // GPIOH 3 */
+	/* EPD_SCLK_PIN    = STM_GPIOD_register(7, 'H');  // GPIOH 7 */
 #endif
 
         DEV_GPIO_Mode(EPD_BUSY_PIN, 0);

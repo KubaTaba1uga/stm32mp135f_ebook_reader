@@ -192,6 +192,9 @@ else ifeq ($(EPD), epd7in5V2)
 else ifeq ($(EPD), epd7in5V2_old)
 	OBJ_C_EPD = ${DIR_EPD}/EPD_7in5_V2_old.c
 	OBJ_C_Examples = ${DIR_Examples}/EPD_7in5_V2_test_old.c
+else ifeq ($(EPD), epd7in5V2stm)
+	OBJ_C_EPD = ${DIR_EPD}/EPD_7in5_V2_STM.c
+	OBJ_C_Examples = ${DIR_Examples}/EPD_7in5_V2_stm_test.c
 else ifeq ($(EPD), epd7in5bc)
 	OBJ_C_EPD = ${DIR_EPD}/EPD_7in5bc.c
 	OBJ_C_Examples = ${DIR_Examples}/EPD_7in5bc_test.c

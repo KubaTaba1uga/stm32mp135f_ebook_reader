@@ -109,9 +109,10 @@ int GPIOD_Direction(int Pin, int Dir)
         return -1;
     }
 
-    if(Dir == GPIOD_IN)
-    {
-        ret = gpiod_line_request_input(gpioline, "gpio");
+    if (Dir == GPIOD_IN) {
+        ret = gpiod_line_request_input_flags(gpioline, "gpio", GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN);
+      
+        // ret = gpiod_line_request_input(gpioline, "gpio");
         if (ret != 0)
         {
             GPIOD_Debug( "Export Failed: Pin%d\n", Pin);

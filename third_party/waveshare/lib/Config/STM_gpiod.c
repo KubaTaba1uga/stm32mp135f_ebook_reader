@@ -151,7 +151,9 @@ int STM_GPIOD_Unexport_GPIO(void) {
 }
 
 int STM_GPIOD_Direction(int Pin, int Dir) {
-  struct gpiod_line *  gpioline = gpiod_chip_get_line(reg_to_chip(Pin), reg_to_pin(Pin));
+  struct gpiod_line *gpioline =
+      gpiod_chip_get_line(reg_to_chip(Pin), reg_to_pin(Pin));
+  int ret=0;  
   if (gpioline == NULL) {
     STM_GPIOD_Debug("Export Failed: Pin%d\n", Pin);
     return -1;

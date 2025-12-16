@@ -313,22 +313,22 @@
 		};
 	};
 
-	i2c5_pins_mx: i2c5_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('D', 1, AF4)>, /* I2C5_SCL */
-					 <STM32_PINMUX('H', 6, AF4)>; /* I2C5_SDA */
-			bias-disable;
-			drive-open-drain;
-			slew-rate = <0>;
-		};
-	};
+	// i2c5_pins_mx: i2c5_mx-0 {
+	// 	pins {
+	// 		pinmux = <STM32_PINMUX('D', 1, AF4)>, /* I2C5_SCL */
+	// 				 <STM32_PINMUX('H', 6, AF4)>; /* I2C5_SDA */
+	// 		bias-disable;
+	// 		drive-open-drain;
+	// 		slew-rate = <0>;
+	// 	};
+	// };
 
-	i2c5_sleep_pins_mx: i2c5_sleep_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('D', 1, ANALOG)>, /* I2C5_SCL */
-					 <STM32_PINMUX('H', 6, ANALOG)>; /* I2C5_SDA */
-		};
-	};
+	// i2c5_sleep_pins_mx: i2c5_sleep_mx-0 {
+	// 	pins {
+	// 		pinmux = <STM32_PINMUX('D', 1, ANALOG)>, /* I2C5_SCL */
+	// 				 <STM32_PINMUX('H', 6, ANALOG)>; /* I2C5_SDA */
+	// 	};
+	// };
 
 	ltdc_pins_mx: ltdc_mx-0 {
 		pins {
@@ -782,10 +782,10 @@
 };
 
 &i2c5 {
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&i2c5_pins_mx>;
-	pinctrl-1 = <&i2c5_sleep_pins_mx>;
-	status = "okay";
+	// pinctrl-names = "default", "sleep";
+	// pinctrl-0 = <&i2c5_pins_mx>;
+	// pinctrl-1 = <&i2c5_sleep_pins_mx>;
+	status = "disable";
 
 	/* USER CODE BEGIN i2c5 */
 	i2c-scl-rising-time-ns = <170>;
