@@ -250,6 +250,21 @@ def build_tfa(c, config="ebook_reader_dev_defconfig", target=None):
     
     _pr_info(f"Building tf-a completed")
 
+@task
+def build_optee(c, config="ebook_reader_dev_defconfig", target=None):
+    _pr_info(f"Building optee...")
+
+    if config:
+        configure(c, config)
+    
+    with c.cd("build/buildroot"):
+        cmd = "optee-os"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
+    
+    _pr_info(f"Building optee completed")
+    
     
 @task
 def build_bsp(c, config="ebook_reader_dev_defconfig"):

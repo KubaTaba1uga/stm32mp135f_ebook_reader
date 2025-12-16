@@ -83,13 +83,20 @@ static void EPD_SendData2(UBYTE *pData, UDOUBLE len)
 function :	Wait until the busy_pin goes LOW
 parameter:
 ******************************************************************************/
-static void EPD_WaitUntilIdle(void)
-{
-    Debug("e-Paper busy\r\n");
-	do{
-		DEV_Delay_ms(5);  
-	}while(!(DEV_Digital_Read(EPD_BUSY_PIN)));   
-	DEV_Delay_ms(5);      
+static void EPD_WaitUntilIdle(void) {
+  Debug("e-Paper busy\r\n");
+  EPD_SendCommand(0x71);
+  
+  while (DEV_Digital_Read(EPD_BUSY_PIN) == 0) {
+    EPD_SendCommand(0x71);
+  }
+  DEV_Delay_ms(20);
+  
+    /* Debug("e-Paper busy\r\n"); */
+    /* 	do{ */
+    /* 		DEV_Delay_ms(20); */
+    /* 	}while(!(DEV_Digital_Read(EPD_BUSY_PIN))); */
+    /* 	DEV_Delay_ms(5); */
     Debug("e-Paper busy release\r\n");
 }
 /******************************************************************************
@@ -117,11 +124,24 @@ UBYTE EPD_7IN5_V2_Init(void)
 	EPD_SendData(0x3f);		//VDL=-15V
 
 	//Enhanced display drive(Add 0x06 command)
-	EPD_SendCommand(0x06);			//Booster Soft Start 
+	EPD_SendCommand(0x06);			//Booster Soft Start
 	EPD_SendData(0x17);
-	EPD_SendData(0x17);   
-	EPD_SendData(0x28);		
-	EPD_SendData(0x17);	
+	EPD_SendData(0x17);
+	EPD_SendData(0x28);
+	EPD_SendData(0x17);
+	/* EPD_SendCommand(0x06);			//Booster Soft Start  */
+	/* EPD_SendData(0x17); */
+	/* EPD_SendData(0x17);    */
+	/* EPD_SendData(0x28);		 */
+	/* EPD_SendData(0x17); */
+
+        /* EPD_SendCommand(0x01);			//POWER SETTING */
+	/* EPD_SendData(0x07); */
+	/* EPD_SendData(0x07);    //VGH=20V,VGL=-20V */
+	/* EPD_SendData(0x28);		//VDH=15V */
+	/* EPD_SendData(0x17);		//VDL=-15V */
+
+	//Enhanced display drive(Add 0x06 command)
 
 	EPD_SendCommand(0x04); //POWER ON
 	DEV_Delay_ms(100); 

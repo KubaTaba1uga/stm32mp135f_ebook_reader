@@ -158,7 +158,8 @@ int STM_GPIOD_Direction(int Pin, int Dir) {
   }
 
   if (Dir == STM_GPIOD_IN) {
-    ret = gpiod_line_request_input(gpioline, "gpio");
+    ret = gpiod_line_request_input_flags(gpioline, "gpio", GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN);    
+    // ret = gpiod_line_request_input(gpioline, "gpio"); TO-DO: streamline this change
     if (ret != 0) {
       STM_GPIOD_Debug("Export Failed: Pin%d\n", Pin);
       return -1;

@@ -68,7 +68,7 @@ Screen
      - 3
      - F
      - —
-     - Input, Active High
+     - Input, Active Low
      - BUSY (device ready/busy)
    * - 12
      - A
