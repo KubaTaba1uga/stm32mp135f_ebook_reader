@@ -1,3 +1,15 @@
+/*
+  This file is meant to test whether GPIO used by display are working properly
+  on the board. We are using the same library as the waveshare driver.
+
+ Test GPIO  |  Display GPIO
+        H6 <-- A4
+        D1 --> G3
+        B1 --> C2
+        C0 <-- I0
+
+*/
+
 #include <gpiod.h>
 #include <stdio.h>
 
