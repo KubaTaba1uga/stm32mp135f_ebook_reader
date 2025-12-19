@@ -1,0 +1,21 @@
+[constants]
+tc = 'PLACEHOLDER/build/buildroot/host/bin/arm-linux-'
+
+[binaries]
+c       = tc + 'gcc'
+ar      = tc + 'gcc-ar'
+ld      = tc + 'ld'
+strip   = tc + 'strip'
+objcopy = tc + 'objcopy'
+objdump = tc + 'objdump'
+
+[built-in options]
+c_args = ['-IPLACEHOLDER/build/buildroot/build/libgpiod-1.6.5/include', '-LPLACEHOLDER/build/buildroot/build/libgpiod-1.6.5/lib/.libs']
+
+[host_machine]
+system = 'linux'
+kernel = 'linux'
+cpu_family = 'arm'
+cpu = 'armv7hl'
+endian = 'little'
+

@@ -1,0 +1,13 @@
+zcat /proc/config.gz | grep CONFIG_DYNAMIC_DEBUG
+# should be CONFIG_DYNAMIC_DEBUG=y
+
+# SPI core
+echo 'file drivers/spi/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
+echo 'file drivers/spi/*/*/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
+
+# GPIO code
+echo 'file drivers/gpio/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
+echo 'file drivers/gpio/*/*/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
+
+# Sets in kernel cli:
+loglevel=8 ignore_loglevel initcall_debug

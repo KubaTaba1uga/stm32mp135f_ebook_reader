@@ -277,6 +277,40 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
         c.run("make BR2_DL_DIR=../../build/third_party")
 
     _pr_info(f"Building BSP completed")
+
+@task
+def build_display_driver(c):
+    driver_path = os.path.join(ROOT_PATH, "display_driver")
+    if not os.path.exists(driver_path):
+        return
+
+    _pr_info("Building display driver...")
+
+    cross_tpl_path = os.path.join(driver_path, "cross-compile.txt")
+
+    with c.cd(driver_path):
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
+        c.run(f"mkdir -p {build_dir}")
+        root = os.path.abspath(ROOT_PATH)        
+        with open(cross_tpl_path, "r", encoding="utf-8") as f:
+            cross_txt = f.read()
+            cross_txt = cross_txt.replace("PLACEHOLDER", root)
+            
+        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
+        with open(cross_out_path, "w", encoding="utf-8") as f:
+            f.write(cross_txt)
+
+        c.run(
+            f"meson setup --wipe --cross-file {cross_out_path} {build_dir}"
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"meson compile -v -C {build_dir}")
+
+    _pr_info("Building display driver completed")
+
     
 @task
 def serve_docs(c, port=8000):
@@ -298,15 +332,19 @@ def deploy_to_tftp(c, directory="/srv/tftp"):
     _pr_info(f"Deploy to TFTP completed")
 
 @task
-def deploy_to_nfs(c, directory="/srv/nfs"):
+def deploy_to_nfs(c, directory="/srv/nfs", rootfs=True):
     _pr_info(f"Deploying to NFS...")
 
     if not os.path.exists(directory):
         raise ValueError(f"{directory} does not exists")
 
-    with c.cd("build/buildroot/images"):
-        c.run(f"sudo tar xvf rootfs.tar -C {directory}")
-    
+    if rootfs:
+        with c.cd("build/buildroot/images"):
+            c.run(f"sudo tar xvf rootfs.tar -C {directory}")
+
+    with c.cd("build/display_driver"):
+        c.run(f"sudo cp display_driver {directory}/root")
+        
     _pr_info(f"Deploy to NFS completed")
 
 
