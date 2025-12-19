@@ -14,12 +14,20 @@ project('display_driver', 'c',
 # ******************************************************************************
 # *    Library
 # ******************************************************************************
-display_driver_inc = include_directories('include')
-subdir('src')
+display_driver_inc = include_directories(['include', 'src'])
+src = files('src/main.c',
+            'src/error.c',
+	    'src/gpio.c',
+	    'src/board.c',
+	    'src/stm32board.c',
+	    'src/utils/mem.c',
+)
 
 exe = executable('display_driver',
   sources: src,
   include_directories: display_driver_inc,
+  c_args: ['-lgpiod'],
+  link_args: ['-lgpiod'],  
 )
 
 

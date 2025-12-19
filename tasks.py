@@ -301,7 +301,7 @@ def build_display_driver(c):
             f.write(cross_txt)
 
         c.run(
-            f"meson setup --wipe --cross-file {cross_out_path} {build_dir}"
+            f"meson setup --wipe --cross-file {cross_out_path} -Dbuildtype=debug {build_dir}"
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
