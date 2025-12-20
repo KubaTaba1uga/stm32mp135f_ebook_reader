@@ -315,7 +315,7 @@ def build_display_driver(c, tests=True):
        with c.cd(tests_path):
            build_dir = os.path.join(BUILD_PATH, 'display_driver_tests')
            c.run(
-               f"meson setup --wipe -Dbuildtype=debug -Dtests=true {build_dir}"
+               f"meson setup --wipe -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
            )
            c.run(
                f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"

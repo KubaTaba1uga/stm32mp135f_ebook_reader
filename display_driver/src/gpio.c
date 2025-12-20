@@ -20,7 +20,7 @@ struct dd_gpio_pin {
 };
 
 int dd_gpio_bank_init(char bank, dd_gpio_bank_t *out) {
-  dd_gpio_bank_t gpio_bank = dd_malloc(sizeof(struct dd_gpio_bank));
+  dd_gpio_bank_t gpio_bank = *out = dd_malloc(sizeof(struct dd_gpio_bank));
   
   int bank_number = -1;
   if (isupper(bank)) {
@@ -40,14 +40,17 @@ int dd_gpio_bank_init(char bank, dd_gpio_bank_t *out) {
   sprintf(chip_path, "/dev/gpiochip%d", bank_number);
 
   gpio_bank->chip = gpiod_chip_open(chip_path);
-  if (*out == NULL) {
+  if (gpio_bank->chip == NULL) {
     dd_errno = dd_errnof(EINVAL, "Cannot open: %s", chip_path);
     goto error;
   }
 
+
+
   return 0;
 
 error:
+  *out = NULL;
   dd_free(gpio_bank);
   return dd_ereturn(-1);
 };
