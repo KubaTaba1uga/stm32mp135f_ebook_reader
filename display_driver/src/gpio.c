@@ -2,25 +2,26 @@
 #include <errno.h>
 #include <gpiod.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "error.h"
 #include "gpio.h"
 #include "utils/mem.h"
+#include "utils/err.h"
 
-struct gpio_bank {
+struct dd_gpio_bank {
   struct gpiod_chip *chip;
   char bank;
 };
 
-struct gpio_pin {
-  struct gpio_bank *bank;
+struct dd_gpio_pin {
   struct gpiod_line *line;
+  struct dd_gpio_bank *bank;
   int pin;
 };
 
-int gpio_bank_init(char bank, gpio_bank_t *out) {
-  gpio_bank_t gpio_bank = mem_alloc(sizeof(struct gpio_bank));
-
+int dd_gpio_bank_init(char bank, dd_gpio_bank_t *out) {
+  dd_gpio_bank_t gpio_bank = dd_malloc(sizeof(struct dd_gpio_bank));
+  
   int bank_number = -1;
   if (isupper(bank)) {
     bank_number = bank - 'A';
@@ -29,7 +30,7 @@ int gpio_bank_init(char bank, gpio_bank_t *out) {
   }
 
   if (bank_number == -1) {
-    cdk_errno = cdk_errnof(EINVAL, "Invalid bank: `%c`", bank);
+    dd_errno = dd_errnof(EINVAL, "Invalid bank: `%c`", bank);
     goto error;
   };
 
@@ -40,31 +41,32 @@ int gpio_bank_init(char bank, gpio_bank_t *out) {
 
   gpio_bank->chip = gpiod_chip_open(chip_path);
   if (*out == NULL) {
-    cdk_errno = cdk_errnof(EINVAL, "Cannot open: %s", chip_path);
+    dd_errno = dd_errnof(EINVAL, "Cannot open: %s", chip_path);
     goto error;
   }
 
   return 0;
 
 error:
-  mem_free(gpio_bank);
-  return cdk_ereturn(-1);
+  dd_free(gpio_bank);
+  return dd_ereturn(-1);
 };
 
-void gpio_bank_destroy(gpio_bank_t *out) {
+void dd_gpio_bank_destroy(dd_gpio_bank_t *out) {
   if (!out || !*out) {
     return;
   }
 
   gpiod_chip_close((*out)->chip);
-  mem_free(*out);
+  dd_free(*out);
   *out = NULL;
 };
 
-int gpio_pin_init(int pin, gpio_bank_t bank, gpio_pin_t *out) {  
-  gpio_pin_t gpio_pin = mem_alloc(sizeof(struct gpio_pin));
+
+int dd_gpio_pin_init(int pin, dd_gpio_bank_t bank, dd_gpio_pin_t *out) {  
+  dd_gpio_pin_t gpio_pin = dd_malloc(sizeof(struct dd_gpio_pin));
   
-  *gpio_pin = (struct gpio_pin){
+  *gpio_pin = (struct dd_gpio_pin){
       .bank = bank,
       .pin = pin,
   };
@@ -74,31 +76,31 @@ int gpio_pin_init(int pin, gpio_bank_t bank, gpio_pin_t *out) {
   return 0;
 };
 
-void gpio_pin_destroy(gpio_pin_t *out) {
+void dd_gpio_pin_destroy(dd_gpio_pin_t *out) {
   if (!out || !*out) {
     return;
   }
 
   if ((*out)->line) {
-    gpiod_line_release((struct gpiod_line *)out->line);
+    gpiod_line_release((*out)->line);
   }
 
   *out = NULL;
 };
 
-int gpio_pin_read( gpio_pin_t pin) {
-  struct gpiod_line *gpioline =
-      gpiod_chip_get_line((struct gpiod_chip *)pin->bank, pin->pin);
-  if (gpioline == NULL) {
-    cdk_errno = cdk_errnof(-1, "Unable to get line for %c%d", pin->bank->bank, pin->pin);
-    return -1;
-  }
+/* int dd_gpio_pin_read( dd_gpio_pin_t pin) { */
+/*   struct gpiod_line *gpioline = */
+/*       gpiod_chip_get_line((struct gpiod_chip *)pin->bank, pin->pin); */
+/*   if (gpioline == NULL) { */
+/*     dd_errno = dd_errnof(-1, "Unable to get line for %c%d", pin->bank->bank, pin->pin); */
+/*     return -1; */
+/*   } */
 
-  ret = gpiod_line_set_value(gpioline, value);
-  if (ret != 0) {
-    STM_GPIOD_Debug("failed to write value! : Pin%d\n", Pin);
-    return -1;
-  }
-}
+/*   ret = gpiod_line_set_value(gpioline, value); */
+/*   if (ret != 0) { */
+/*     STM_GPIOD_Debug("failed to write value! : Pin%d\n", Pin); */
+/*     return -1; */
+/*   } */
+/* } */
 
-int gpio_write(struct gpio *pin) {}
+/* int dd_gpio_write(struct gpio *pin) {} */

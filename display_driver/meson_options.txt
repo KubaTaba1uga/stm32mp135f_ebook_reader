@@ -1,0 +1,11 @@
+option('tests',
+  type: 'boolean',
+  value: false,
+  description: 'Build library tests'
+)
+
+option('lib',
+  type: 'boolean',
+  value: true,
+  description: 'Build library'
+)

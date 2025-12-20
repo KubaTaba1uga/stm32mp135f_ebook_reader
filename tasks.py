@@ -279,36 +279,51 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
     _pr_info(f"Building BSP completed")
 
 @task
-def build_display_driver(c):
+def build_display_driver(c, tests=True):
     driver_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(driver_path):
         return
 
     _pr_info("Building display driver...")
 
-    cross_tpl_path = os.path.join(driver_path, "cross-compile.txt")
+    if not tests:
+       cross_tpl_path = os.path.join(driver_path, "cross-compile.txt")
 
-    with c.cd(driver_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
-        c.run(f"mkdir -p {build_dir}")
-        root = os.path.abspath(ROOT_PATH)        
-        with open(cross_tpl_path, "r", encoding="utf-8") as f:
-            cross_txt = f.read()
-            cross_txt = cross_txt.replace("PLACEHOLDER", root)
-            
-        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
-        with open(cross_out_path, "w", encoding="utf-8") as f:
-            f.write(cross_txt)
+       with c.cd(driver_path):
+           build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
+           c.run(f"mkdir -p {build_dir}")
+           root = os.path.abspath(ROOT_PATH)        
+           with open(cross_tpl_path, "r", encoding="utf-8") as f:
+               cross_txt = f.read()
+               cross_txt = cross_txt.replace("PLACEHOLDER", root)
 
-        c.run(
-            f"meson setup --wipe --cross-file {cross_out_path} -Dbuildtype=debug {build_dir}"
-        )
-        c.run(
-            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
-        )
+           cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
+           with open(cross_out_path, "w", encoding="utf-8") as f:
+               f.write(cross_txt)
 
-        c.run(f"meson compile -v -C {build_dir}")
+           c.run(
+               f"meson setup --wipe --cross-file {cross_out_path} -Dbuildtype=debug {build_dir}"
+           )
+           c.run(
+               f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+           )
 
+           c.run(f"meson compile -v -C {build_dir}")
+
+    else:
+       tests_path = driver_path
+       with c.cd(tests_path):
+           build_dir = os.path.join(BUILD_PATH, 'display_driver_tests')
+           c.run(
+               f"meson setup --wipe -Dbuildtype=debug -Dtests=true {build_dir}"
+           )
+           c.run(
+               f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+           )
+
+           c.run(f"meson compile -v -C {build_dir}")
+        
+           
     _pr_info("Building display driver completed")
 
     

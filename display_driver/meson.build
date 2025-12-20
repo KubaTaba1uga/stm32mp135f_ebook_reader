@@ -15,32 +15,34 @@ project('display_driver', 'c',
 # *    Library
 # ******************************************************************************
 display_driver_inc = include_directories(['include', 'src'])
-src = files('src/main.c',
-            'src/error.c',
-	    'src/gpio.c',
-	    'src/board.c',
-	    'src/stm32board.c',
-	    'src/utils/mem.c',
+
+libgpiod_dep = dependency('libgpiod',
+  fallback: ['libgpiod', 'gpiod_dep'],
+  required: true,
+  static: true,
 )
 
+display_driver_src = files('src/main.c',
+	    'src/gpio.c',
+	    'src/utils/err.c',
+)
+
+display_driver_deps = [
+   libgpiod_dep,
+]
+
 exe = executable('display_driver',
-  sources: src,
+  sources: display_driver_src,
   include_directories: display_driver_inc,
   c_args: ['-lgpiod'],
-  link_args: ['-lgpiod'],  
+  link_args: ['-lgpiod'],
+  dependencies: display_driver_deps,
 )
 
 
 # ******************************************************************************
 # *    Tests
 # ******************************************************************************
-# if get_option('tests')
-#    subdir('test')
-# endif
-
-# ******************************************************************************
-# *    Example
-# ******************************************************************************
-# if get_option('examples')
-#     subdir('example')
-# endif
+if get_option('tests')
+   subdir('test')
+endif

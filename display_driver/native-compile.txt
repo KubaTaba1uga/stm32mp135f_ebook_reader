@@ -1,3 +1,0 @@
-[built-in options]
-c_args = ['-IPLACEHOLDER/../libgpiod-1.6.5/include', '-LPLACEHOLDER/../libgpiod-1.6.5/lib/.libs']
-

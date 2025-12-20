@@ -1,9 +1,20 @@
-#ifndef DISP_DRVER_MEM_H
-#define DISP_DRVER_MEM_H
+#ifndef DD_MEM_H
+#define DD_MEM_H
 
-#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 
-void * mem_alloc(size_t size);
-void mem_free(void *mem);
+static inline void *dd_malloc(size_t size) {
+  void *mem = malloc(size);
+  if (!mem) {
+    puts("ERROR: No memory");
+    _Exit(ENOMEM);
+  }
 
-#endif // DISP_DRVER_MEM_H
+  return mem;
+}
+
+static inline void dd_free(void *mem) { free(mem); }
+
+#endif
