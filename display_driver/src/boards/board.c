@@ -48,3 +48,7 @@ void dd_board_destroy(dd_board_t *out) {
   
   *out = NULL;
 };
+
+/* int dd_board_power_on(dd_board_t board){ */
+  
+/* }; */
