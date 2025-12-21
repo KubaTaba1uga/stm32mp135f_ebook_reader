@@ -1,4 +1,5 @@
 #include "board.h"
+#include "gpio.h"
 #include "utils/mem.h"
 
 struct dd_board {
@@ -11,6 +12,7 @@ struct dd_board {
   dd_gpio_pin_t pwr;
 };
 
+// dd_board takes ownership over pins memory.
 int dd_board_init(dd_gpio_pin_t din, dd_gpio_pin_t clk, dd_gpio_pin_t cs,
                   dd_gpio_pin_t dc, dd_gpio_pin_t rst, dd_gpio_pin_t bsy,
                   dd_gpio_pin_t pwr, dd_board_t *out) {
@@ -34,6 +36,15 @@ void dd_board_destroy(dd_board_t *out) {
     return;
   }
 
+  dd_gpio_pin_destroy(&(*out)->din);
+  dd_gpio_pin_destroy(&(*out)->clk);
+  dd_gpio_pin_destroy(&(*out)->cs);
+  dd_gpio_pin_destroy(&(*out)->dc);
+  dd_gpio_pin_destroy(&(*out)->rst);
+  dd_gpio_pin_destroy(&(*out)->bsy);
+  dd_gpio_pin_destroy(&(*out)->pwr);
+
   dd_free(*out);
+  
   *out = NULL;
 };

@@ -23,8 +23,10 @@ libgpiod_dep = dependency('libgpiod',
 )
 
 display_driver_src = files('src/main.c',
-	    'src/gpio.c',
-	    'src/utils/err.c',
+			   'src/gpio.c',
+			   'src/boards/board.c',
+			   'src/boards/stm32mp135f-dk.c',	    
+			   'src/utils/err.c',
 )
 
 display_driver_deps = [
@@ -34,8 +36,6 @@ display_driver_deps = [
 exe = executable('display_driver',
   sources: display_driver_src,
   include_directories: display_driver_inc,
-  c_args: ['-lgpiod'],
-  link_args: ['-lgpiod'],
   dependencies: display_driver_deps,
 )
 
