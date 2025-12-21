@@ -45,8 +45,6 @@ int dd_gpio_bank_init(char bank, dd_gpio_bank_t *out) {
     goto error;
   }
 
-
-
   return 0;
 
 error:
