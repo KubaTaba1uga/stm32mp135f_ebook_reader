@@ -84,8 +84,9 @@ int dd_gpio_pin_init(int pin, enum dd_gpio_dir dir, dd_gpio_bank_t bank,
 
   switch (dir) {
   case dd_gpio_dir_input:
-    ret = gpiod_line_request_input_flags(
-        (*out)->line, "gpio", GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN);
+    ret = gpiod_line_request_input((*out)->line, "gpio");
+    /* ret = gpiod_line_request_input_flags( */
+    /*     (*out)->line, "gpio", GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN); */
     if (ret != 0) {
       dd_errno = dd_errnof(-1, "Unable to set direction line for %c%d: input",
                            (*out)->bank->bank, (*out)->pin);

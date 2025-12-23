@@ -1198,37 +1198,37 @@
 };
 
 /* SPI config */
-&pinctrl{
-  spi5_pins: spi5-pins {
-      pins {
-	  pinmux = <STM32_PINMUX('H', 7, AF6)>,  /* SCK  */
-		   <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
-		   <STM32_PINMUX('A', 8, AF5)>;  /* MISO */
-	  bias-disable;
-	  drive-push-pull;
-	  slew-rate = <1>;
-      };
-  };
+// &pinctrl{
+//   spi5_pins: spi5-pins {
+//       pins {
+// 	  pinmux = <STM32_PINMUX('H', 7, AF6)>,  /* SCK  */
+// 		   <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
+// 		   <STM32_PINMUX('A', 8, AF5)>;  /* MISO */
+// 	  bias-disable;
+// 	  drive-push-pull;
+// 	  slew-rate = <1>;
+//       };
+//   };
 
-  spi5_ctrl_pins: spi5-ctrl-pins {
-      pins {
-	  pinmux = <STM32_PINMUX('G', 3, GPIO)>;  /* Busy  */
-	  bias-pull-down;
-      };
-  };
+//   spi5_ctrl_pins: spi5-ctrl-pins {
+//       pins {
+// 	  pinmux = <STM32_PINMUX('G', 3, GPIO)>;  /* Busy  */
+// 	  bias-pull-down;
+//       };
+//   };
 
-};
+// };
 
-&spi5 {
-    status = "okay";
-    pinctrl-names = "default";
-    pinctrl-0 = <&spi5_pins>;
+// &spi5 {
+//     status = "okay";
+//     pinctrl-names = "default";
+//     pinctrl-0 = <&spi5_pins>;
 
-    cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>;
+//     cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>;
 
-    spidev@0 {
-      compatible = "dh,dhcom-board";
-      reg = <0>;
-      spi-max-frequency = <20000000>;
-    };    
-};
+//     spidev@0 {
+//       compatible = "dh,dhcom-board";
+//       reg = <0>;
+//       spi-max-frequency = <10000000>; // 10MHz
+//     };    
+// };

@@ -1,7 +1,7 @@
-#include "stm32mp135f-dk.h"
-#include "board.h"
+#include "boards/stm32mp135f_dk.h"
+#include "boards/board.h"
 #include "gpio.h"
-#include "utils/_err.h"
+#include "utils/err.h"
 #include "utils/mem.h"
 
 struct dd_board_stm32mp135f_dk {
@@ -46,23 +46,11 @@ int dd_board_stm32mp135f_dk_init(dd_board_stm32mp135f_dk_t *out) {
     goto error;
   }
 
-  dd_gpio_pin_t din;
-  dd_gpio_pin_t clk;
   dd_gpio_pin_t cs;
   dd_gpio_pin_t dc;
   dd_gpio_pin_t rst;
   dd_gpio_pin_t bsy;
   dd_gpio_pin_t pwr;
-
-  if (dd_gpio_pin_init(3, dd_gpio_dir_output, gpioh, &din) != 0) {
-    dd_ewrap();
-    goto error;
-  }
-
-  if (dd_gpio_pin_init(7, dd_gpio_dir_output, gpioh, &clk) != 0) {
-    dd_ewrap();
-    goto error;
-  }
 
   if (dd_gpio_pin_init(11, dd_gpio_dir_output, gpioh, &cs) != 0) {
     dd_ewrap();
@@ -89,8 +77,15 @@ int dd_board_stm32mp135f_dk_init(dd_board_stm32mp135f_dk_t *out) {
     goto error;
   }
 
+  dd_spi_t spi;
+  if (dd_spi_init("/dev/spidev0.0", &spi) == -1) {
+    dd_ewrap();
+    goto error;
+  }
+
+  
   dd_board_t board;
-  if (dd_board_init(din, clk, cs, dc, rst, bsy, pwr, &board) != 0) {
+  if (dd_board_init(cs, dc, rst, bsy, pwr,spi, &board) != 0) {
     dd_ewrap();
     goto error;
   };
@@ -125,3 +120,7 @@ void dd_board_stm32mp135f_dk_destroy(dd_board_stm32mp135f_dk_t *out) {
 
   *out = NULL;
 };
+
+dd_board_t dd_board_stm32mp135f_dk_get_board(dd_board_stm32mp135f_dk_t board) {
+  return board->board;
+}

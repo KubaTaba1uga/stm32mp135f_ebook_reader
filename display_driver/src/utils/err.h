@@ -329,4 +329,12 @@ _Thread_local extern struct dd_Error dd_hidden_errno;
 #define dd_edumps(buf_size, buf)                                              \
   dd_error_dumps(&dd_hidden_errno, buf_size, buf)
 
+#define DD_TRY(expr)          \
+  do {                        \
+    if ((expr) == -1) {       \
+      dd_ewrap();             \
+      goto error;             \
+    }                         \
+  } while (0)
+
 #endif

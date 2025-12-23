@@ -22,23 +22,31 @@ libgpiod_dep = dependency('libgpiod',
   static: true,
 )
 
-display_driver_src = files('src/main.c',
+display_driver_src = [files(
 			   'src/gpio.c',
+			   'src/spi.c',			   
 			   'src/boards/board.c',
-			   'src/boards/stm32mp135f-dk.c',	    
+			   'src/boards/stm32mp135f_dk.c',
+			   'src/boards/raspberrypi_5.c',	    			   
 			   'src/utils/err.c',
-)
+			   'src/utils/time.c',			   
+)]
 
 display_driver_deps = [
    libgpiod_dep,
 ]
 
-exe = executable('display_driver',
-  sources: display_driver_src,
+exe = executable('dd_stm32',
+  sources: display_driver_src + [files('src/stm32.c')],
   include_directories: display_driver_inc,
   dependencies: display_driver_deps,
 )
 
+exe = executable('dd_rpi',
+  sources: display_driver_src + [files('src/rpi.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+)
 
 # ******************************************************************************
 # *    Tests

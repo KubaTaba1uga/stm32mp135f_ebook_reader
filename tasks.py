@@ -131,8 +131,6 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
     
     _pr_info(f"Building linux completed")
     
-import os
-from invoke import task
 
 @task
 def fbuild_linux_kernel(c):
@@ -190,7 +188,6 @@ def fbuild_linux_kernel(c):
         f'-C {linux_src} zImage'
     )
 
-    # keep your original behavior: run from inside linux_src, then copy from in-tree path
     with c.cd("build/buildroot/build/linux-custom"):
         c.run(cmd)
         c.run(f"cp arch/arm/boot/zImage ../../images/")

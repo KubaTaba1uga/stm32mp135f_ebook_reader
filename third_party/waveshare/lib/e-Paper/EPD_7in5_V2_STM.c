@@ -7,21 +7,21 @@ function :	Wait until the busy_pin goes LOW
 parameter:
 ******************************************************************************/
 static void EPD_WaitUntilIdle(void) {
-  Debug("e-Paper busy\r\n");
-  EPD_SendCommand(0x71);
-  int busy = DEV_Digital_Read(EPD_BUSY_PIN);
-  while (busy == 0) {
-    EPD_SendCommand(0x71);
-    busy = DEV_Digital_Read(EPD_BUSY_PIN);    
-  }
-  DEV_Delay_ms(20);
-  Debug("e-Paper busy release\r\n");  
-    /* Debug("e-Paper busy\r\n"); */
-    /* 	do{ */
-    /* 		DEV_Delay_ms(20); */
-    /* 	}while(!(DEV_Digital_Read(EPD_BUSY_PIN))); */
-    /* 	DEV_Delay_ms(5); */
-    /* Debug("e-Paper busy release\r\n"); */
+  /* Debug("e-Paper busy\r\n"); */
+  /* EPD_SendCommand(0x71); */
+  /* int busy = DEV_Digital_Read(EPD_BUSY_PIN); */
+  /* while (busy == 0) { */
+  /*   EPD_SendCommand(0x71); */
+  /*   busy = DEV_Digital_Read(EPD_BUSY_PIN);     */
+  /* } */
+  /* DEV_Delay_ms(20); */
+  /* Debug("e-Paper busy release\r\n");   */
+    Debug("e-Paper busy\r\n");
+	do{
+		DEV_Delay_ms(20);
+	}while(!(DEV_Digital_Read(EPD_BUSY_PIN)));
+	DEV_Delay_ms(5);
+    Debug("e-Paper busy release\r\n");
 }
 
 /******************************************************************************
@@ -105,7 +105,8 @@ UBYTE EPD_7IN5_V2_STM_Init(void) {
 	//Enhanced display drive(Add 0x06 command)
 
 	EPD_SendCommand(0x04); //POWER ON
-	DEV_Delay_ms(100); 
+        DEV_Delay_ms(200);
+        
 	EPD_WaitUntilIdle();        //waiting for the electronic paper IC to release the idl
 	return 0;
 }        
