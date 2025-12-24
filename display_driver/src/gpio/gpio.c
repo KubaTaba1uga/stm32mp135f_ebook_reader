@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
-#include <string.h>
 #include <gpiod.h>
+#include <string.h>
 
 #include "display_driver.h"
 #include "gpio.h"
@@ -8,8 +8,8 @@
 #include "utils/list.h"
 #include "utils/mem.h"
 
-static void dd_gpio_pin_destroy(void *data);
-static void dd_gpio_chip_destroy(void *data);
+static void dd_gpio_pin_cleanup(void *data);
+static void dd_gpio_chip_cleanup(void *data);
 
 dd_error_t dd_gpio_init(struct dd_Gpio *gpio) {
   if (!gpio) {
@@ -33,8 +33,8 @@ void dd_gpio_destroy(struct dd_Gpio *gpio) {
     return;
   }
 
-  dd_list_destroy(&gpio->pins, dd_gpio_pin_destroy);
-  dd_list_destroy(&gpio->chips, dd_gpio_chip_destroy);
+  dd_list_destroy(&gpio->pins, dd_gpio_pin_cleanup);
+  dd_list_destroy(&gpio->chips, dd_gpio_chip_cleanup);
 };
 
 static int dd_gpio_find_chip_by_path(void *node_data, void *data) {
@@ -93,29 +93,43 @@ error:
   return dd_errno;
 }
 
-dd_error_t dd_gpio_set_pin_direction(struct dd_GpioPin *pin, bool is_output) {
-  int ret;
+dd_error_t dd_gpio_set_pin_output(struct dd_GpioPin *pin, bool is_active_high) {
+  int flags = 0;
 
-  if (is_output) {
-    ret = gpiod_line_request_output(pin->private, "gpio", 0);
-    if (ret) {
-      dd_errno = dd_errnof(errno, "Unable to set direction for %c%d: output",
-                           pin->chip->path, pin->pin_no);
-      goto error;
-    }
-
-  } else {
-    ret = gpiod_line_request_input(pin->private, "gpio");
-    /* ret = gpiod_line_request_input_flags( */
-    /*     (*out)->line, "gpio", GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN); */
-    if (ret) {
-      dd_errno = dd_errnof(errno, "Unable to set direction for %c%d: input",
-                           pin->chip->path, pin->pin_no);
-      goto error;
-    }
+  if (!is_active_high) {
+    flags |= GPIOD_LINE_REQUEST_FLAG_ACTIVE_LOW;
+  }
+  
+  int ret =
+      gpiod_line_request_output_flags(pin->private, "display_driver", flags, 0);
+  if (ret) {
+    dd_errno = dd_errnof(errno, "Unable to set direction for %c%d: output",
+                         pin->chip->path, pin->pin_no);
+    goto error;
   }
 
-  pin->is_out = is_output;
+  pin->is_out = true;
+
+  return 0;
+
+error:
+  return dd_errno;
+};
+
+dd_error_t dd_gpio_set_pin_input(struct dd_GpioPin *pin) {
+  if (!pin) {
+    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
+    goto error;
+  }
+
+  int ret = gpiod_line_request_input(pin->private, "display_driver");
+  if (ret) {
+    dd_errno = dd_errnof(errno, "Unable to set input direction for %c%d",
+                         pin->chip->path, pin->pin_no);
+    goto error;
+  }
+
+  pin->is_out = false;
 
   return 0;
 
@@ -124,8 +138,13 @@ error:
 };
 
 int dd_gpio_read_pin(struct dd_GpioPin *pin, struct dd_Gpio *gpio) {
+  if (!pin || !gpio) {
+    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
+    goto error;
+  }
+
   int ret = gpiod_line_get_value(pin->private);
-  if (ret) {
+  if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to get value for: %c:%d",
                          pin->chip->path, pin->pin_no);
     goto error;
@@ -139,8 +158,13 @@ error:
 
 dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
                            struct dd_Gpio *gpio) {
+  if (!pin || !gpio) {
+    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
+    goto error;
+  }
+  
   int ret = gpiod_line_set_value(pin->private, value);
-  if (ret) {
+  if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to set value for: %c:%d=%d",
                          pin->chip->path, pin->pin_no, value);
     goto error;
@@ -152,7 +176,7 @@ error:
   return dd_errno;
 }
 
-static void dd_gpio_chip_destroy(void *data) {
+static void dd_gpio_chip_cleanup(void *data) {
   if (!data) {
     return;
   }
@@ -166,7 +190,7 @@ static void dd_gpio_chip_destroy(void *data) {
   dd_free(chip);
 }
 
-static void dd_gpio_pin_destroy(void *data) {
+static void dd_gpio_pin_cleanup(void *data) {
   if (!data) {
     return;
   }
@@ -177,4 +201,12 @@ static void dd_gpio_pin_destroy(void *data) {
   }
 
   dd_free(pin);
+}
+
+void dd_gpio_pin_destroy(struct dd_GpioPin *pin, struct dd_Gpio *gpio) {
+  if (!pin|| !gpio) {
+    return;
+  }
+
+  dd_list_pop(&gpio->pins, pin, dd_list_eq, dd_gpio_pin_cleanup);
 }

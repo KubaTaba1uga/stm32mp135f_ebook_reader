@@ -26,6 +26,7 @@ const char *dd_error_get_msg(dd_error_t err);
 struct dd_DisplayDriver;
 typedef struct dd_DisplayDriver *dd_display_driver_t;
 
+dd_error_t dd_global_init(void);
 
 enum dd_SupportedDisplayEnum {
   dd_SupportedDisplayEnum_Waveshare_7_5_inch_V2_b,
@@ -45,6 +46,8 @@ dd_error_t dd_display_driver_add_gpio_pin(dd_display_driver_t dd,
 
 dd_error_t dd_display_driver_add_spi_slave(dd_display_driver_t dd,
                                            const char *spi_chip);
+
+dd_error_t dd_display_driver_reset(dd_display_driver_t dd);
 
 void dd_display_driver_destroy(dd_display_driver_t *dd);
 

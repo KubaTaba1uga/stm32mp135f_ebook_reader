@@ -1,19 +1,14 @@
-#include "display/wvs75V2b.h"
+#include "display.h"
 #include "gpio/gpio.h"
 #include "utils/err.h"
-#include "utils/time.h"
-#include <stdio.h>
 
-#define DD_DISPLAY_IDLE 1
-#define DD_DISPLAY_BUSY 0
-
-dd_error_t dd_display_wvs75V2b_init(struct dd_DisplayWvs75V2b *display) {
+dd_error_t dd_display_init(struct dd_Display *display) {
   if (!display) {
     dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
     goto error;
   }
 
-  *display = (struct dd_DisplayWvs75V2b){0};
+  *display = (struct dd_Display){0};
 
   dd_errno = dd_gpio_init(&display->gpio);
   if (dd_errno) {
@@ -27,19 +22,16 @@ error:
   return dd_errno;
 }
 
-void dd_display_wvs75V2b_destroy(struct dd_DisplayWvs75V2b *display) {
+void dd_display_destroy(struct dd_Display *display) {
   if (!display) {
     return;
   }
 
-  dd_gpio_set_pin(0, display->pwr, &display->gpio);
-  dd_gpio_set_pin(0, display->rst, &display->gpio);
-  dd_gpio_set_pin(0, display->dc, &display->gpio);
   dd_gpio_destroy(&display->gpio);
 };
 
-dd_error_t dd_display_wvs75V2b_add_gpio_dc(const char *chip_path, int pin_no,
-                                           struct dd_DisplayWvs75V2b *display) {
+dd_error_t dd_display_add_gpio_dc(const char *chip_path, int pin_no,
+                                  struct dd_Display *display) {
   if (!chip_path || pin_no < 0 || !display) {
     dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
     goto error;
@@ -51,7 +43,10 @@ dd_error_t dd_display_wvs75V2b_add_gpio_dc(const char *chip_path, int pin_no,
   }
 
   dd_errno = dd_gpio_add_pin(chip_path, pin_no, &display->dc, &display->gpio);
-  DD_TRY(dd_errno);
+  if (dd_errno) {
+    dd_ewrap();
+    goto error;
+  }
 
   dd_errno = dd_gpio_set_pin_output(display->dc,
                                     true // Active-high
@@ -69,9 +64,8 @@ error:
   return dd_errno;
 }
 
-dd_error_t
-dd_display_wvs75V2b_add_gpio_rst(const char *chip_path, int pin_no,
-                                 struct dd_DisplayWvs75V2b *display) {
+dd_error_t dd_display_add_gpio_rst(const char *chip_path, int pin_no,
+                                   struct dd_Display *display) {
   if (!chip_path || pin_no < 0 || !display) {
     dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
     goto error;
@@ -83,7 +77,10 @@ dd_display_wvs75V2b_add_gpio_rst(const char *chip_path, int pin_no,
   }
 
   dd_errno = dd_gpio_add_pin(chip_path, pin_no, &display->rst, &display->gpio);
-  DD_TRY(dd_errno);
+  if (dd_errno) {
+    dd_ewrap();
+    goto error;
+  }
 
   dd_errno = dd_gpio_set_pin_output(display->rst,
                                     false // Active-low
@@ -101,9 +98,8 @@ error:
   return dd_errno;
 }
 
-dd_error_t
-dd_display_wvs75V2b_add_gpio_bsy(const char *chip_path, int pin_no,
-                                 struct dd_DisplayWvs75V2b *display) {
+dd_error_t dd_display_add_gpio_bsy(const char *chip_path, int pin_no,
+                                   struct dd_Display *display) {
   if (!chip_path || pin_no < 0 || !display) {
     dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
     goto error;
@@ -115,7 +111,10 @@ dd_display_wvs75V2b_add_gpio_bsy(const char *chip_path, int pin_no,
   }
 
   dd_errno = dd_gpio_add_pin(chip_path, pin_no, &display->bsy, &display->gpio);
-  DD_TRY(dd_errno);
+  if (dd_errno) {
+    dd_ewrap();
+    goto error;
+  }
 
   dd_errno = dd_gpio_set_pin_input(display->bsy);
   if (dd_errno) {
@@ -131,9 +130,8 @@ error:
   return dd_errno;
 }
 
-dd_error_t
-dd_display_wvs75V2b_add_gpio_pwr(const char *chip_path, int pin_no,
-                                 struct dd_DisplayWvs75V2b *display) {
+dd_error_t dd_display_add_gpio_pwr(const char *chip_path, int pin_no,
+                                   struct dd_Display *display) {
   if (!chip_path || pin_no < 0 || !display) {
     dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
     goto error;
@@ -145,7 +143,10 @@ dd_display_wvs75V2b_add_gpio_pwr(const char *chip_path, int pin_no,
   }
 
   dd_errno = dd_gpio_add_pin(chip_path, pin_no, &display->pwr, &display->gpio);
-  DD_TRY(dd_errno);
+  if (dd_errno) {
+    dd_ewrap();
+    goto error;
+  }
 
   dd_errno = dd_gpio_set_pin_output(display->pwr,
                                     true // Active-high
@@ -162,44 +163,3 @@ error_pin_cleanup:
 error:
   return dd_errno;
 }
-
-static void dd_display_wvs75V2b_wait(struct dd_DisplayWvs75V2b *display) {
-  puts("Busy waiting");
-  while (dd_gpio_read_pin(display->bsy, &display->gpio) != DD_DISPLAY_IDLE) {
-    dd_sleep_ms(10);
-  }
-  puts("Waiting done");
-}
-
-dd_error_t dd_display_wvs75V2b_reset(struct dd_DisplayWvs75V2b *display) {
-  if (!display || !display->pwr || !display->rst) {
-    dd_errno = dd_errnos(
-        EINVAL, "`display`, `display->pwr` and `display->rst` cannot be NULL");
-    goto error;
-  }
-
-  if (dd_gpio_read_pin(display->pwr, &display->gpio) != 1) {
-    dd_errno = dd_gpio_set_pin(1, display->pwr, &display->gpio);
-    DD_TRY(dd_errno);
-    dd_sleep_ms(100);
-  }
-
-  dd_errno = dd_gpio_set_pin(0, display->rst, &display->gpio);
-  DD_TRY(dd_errno);
-  dd_sleep_ms(100);
-
-  dd_errno = dd_gpio_set_pin(1, display->rst, &display->gpio);
-  DD_TRY(dd_errno);
-  dd_sleep_ms(100);
-
-  dd_errno = dd_gpio_set_pin(0, display->rst, &display->gpio);
-  DD_TRY(dd_errno);
-  dd_sleep_ms(100);
-
-  dd_display_wvs75V2b_wait(display); // Give chip time to reset itself
-
-  return 0;
-
-error:
-  return dd_errno;
-};

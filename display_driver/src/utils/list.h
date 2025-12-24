@@ -88,9 +88,9 @@ static inline void dd_list_destroy(dd_list_t list, void (*clean)(void *data)) {
 static inline void *dd_list_pop(dd_list_t list, void *data,
                                 int (*match)(void *node_data, void *data),
                                 void (*clean)(void *data)) {
+
   for (struct dd_ListNode *node = list->head, *prev = list->head; node != NULL;
        node = node->next) {
-
     if (match && match(node->data, data) == 0) {
       if (prev == node) { // This is first iteration
         list->head = node->next;
@@ -100,6 +100,12 @@ static inline void *dd_list_pop(dd_list_t list, void *data,
 
       void *value = node->data;
       dd_free(node);
+      
+      if (clean) {
+        clean(value);
+	return NULL;
+      }
+
       return value;
     }
 

@@ -6,7 +6,6 @@
 #include <stdbool.h>
 
 struct dd_GpioChip {
-  struct dd_GpioChip *next;
   const char *path;
   void *private;
 };
@@ -28,10 +27,11 @@ void dd_gpio_destroy(struct dd_Gpio *gpio);
 
 dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
                            struct dd_GpioPin **out, struct dd_Gpio *gpio);
-
-dd_error_t dd_gpio_set_pin_direction(struct dd_GpioPin *pin, bool is_output);
+dd_error_t dd_gpio_set_pin_output(struct dd_GpioPin *pin, bool is_active_high);
+dd_error_t dd_gpio_set_pin_input(struct dd_GpioPin *pin);
 int dd_gpio_read_pin(struct dd_GpioPin *pin, struct dd_Gpio *gpio);
 dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
                            struct dd_Gpio *gpio);
+void dd_gpio_pin_destroy(struct dd_GpioPin *pin, struct dd_Gpio *gpio);
 
 #endif // DISPLAY_DRIVER_H
