@@ -1,7 +1,10 @@
 #include "display/wvs75V2b.h"
+#include "display_driver.h"
 #include "gpio/gpio.h"
+#include "spi/spi.h"
 #include "utils/err.h"
 #include "utils/time.h"
+#include <stdint.h>
 #include <stdio.h>
 
 #define DD_DISPLAY_IDLE 1
@@ -186,15 +189,15 @@ dd_error_t dd_display_wvs75V2b_reset(struct dd_DisplayWvs75V2b *display) {
 
   dd_errno = dd_gpio_set_pin(0, display->rst, &display->gpio);
   DD_TRY(dd_errno);
-  dd_sleep_ms(100);
+  dd_sleep_ms(200);
 
   dd_errno = dd_gpio_set_pin(1, display->rst, &display->gpio);
   DD_TRY(dd_errno);
-  dd_sleep_ms(100);
+  dd_sleep_ms(5);
 
   dd_errno = dd_gpio_set_pin(0, display->rst, &display->gpio);
   DD_TRY(dd_errno);
-  dd_sleep_ms(100);
+  dd_sleep_ms(200);
 
   dd_display_wvs75V2b_wait(display); // Give chip time to reset itself
 
@@ -203,3 +206,70 @@ dd_error_t dd_display_wvs75V2b_reset(struct dd_DisplayWvs75V2b *display) {
 error:
   return dd_errno;
 };
+
+dd_error_t
+dd_display_wvs75V2b_add_spi_master(const char *spidev_path,
+                                   struct dd_DisplayWvs75V2b *display) {
+  if (!spidev_path || !display) {
+    dd_errno = dd_errnos(EINVAL, "`display` and `spidev_path` cannot be NULL");
+    goto error;
+  }
+
+  dd_errno = dd_spi_init(spidev_path, &display->spi);
+  DD_TRY(dd_errno);
+
+  return 0;
+
+error:
+  return dd_errno;
+};
+
+static dd_error_t
+dd_display_wvs75V2b_send_cmd(struct dd_DisplayWvs75V2b *display, uint8_t cmd) {
+  dd_errno = dd_gpio_set_pin(0, display->dc, &display->gpio);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_spi_send_byte(cmd, &display->spi);
+  DD_TRY(dd_errno);
+  
+  return 0;
+
+error:
+  return dd_errno;
+}
+
+static dd_error_t
+dd_display_wvs75V2b_send_data(struct dd_DisplayWvs75V2b *display, uint8_t*data, uint32_t len) {
+  dd_errno = dd_gpio_set_pin(1, display->dc, &display->gpio);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_spi_send_bytes(data,len, &display->spi);
+  DD_TRY(dd_errno);
+  
+  return 0;
+
+error:
+  return dd_errno;
+}
+
+
+static dd_error_t
+dd_display_wvs75V2b_power_on(struct dd_DisplayWvs75V2b *display) {
+  dd_errno =
+      dd_display_wvs75V2b_send_cmd(display, 0x01); // Write to pannel settings
+  DD_TRY(dd_errno);
+
+  /* dd_errno = */
+  /*   dd_display_wvs75V2b_send_data(display, (uint8_t *){0x01}); // Write to pannel settings */
+  /* DD_TRY(dd_errno); */
+  
+  
+
+  
+  return 0;
+
+error:
+  return dd_errno;
+  
+  
+}

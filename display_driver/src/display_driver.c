@@ -79,34 +79,22 @@ dd_error_t dd_display_driver_add_gpio_pin(dd_display_driver_t dd,
     case dd_GpioPinEnum_DC:
       dd_errno = dd_display_wvs75V2b_add_gpio_dc(gpio_chip, pin_no,
                                                  &dd->display_wvs_75v2b);
-      if (dd_errno) {
-        dd_ewrap();
-        goto error;
-      }
+      DD_TRY(dd_errno);
       break;
     case dd_GpioPinEnum_RST:
       dd_errno = dd_display_wvs75V2b_add_gpio_rst(gpio_chip, pin_no,
                                                   &dd->display_wvs_75v2b);
-      if (dd_errno) {
-        dd_ewrap();
-        goto error;
-      }
+      DD_TRY(dd_errno);
       break;
     case dd_GpioPinEnum_BSY:
       dd_errno = dd_display_wvs75V2b_add_gpio_bsy(gpio_chip, pin_no,
                                                   &dd->display_wvs_75v2b);
-      if (dd_errno) {
-        dd_ewrap();
-        goto error;
-      }
+      DD_TRY(dd_errno);
       break;
     case dd_GpioPinEnum_PWR:
       dd_errno = dd_display_wvs75V2b_add_gpio_pwr(gpio_chip, pin_no,
                                                   &dd->display_wvs_75v2b);
-      if (dd_errno) {
-        dd_ewrap();
-        goto error;
-      }
+      DD_TRY(dd_errno);
       break;
     }
   } else {
@@ -121,23 +109,22 @@ error:
   return dd_errno;
 }
 
-dd_error_t dd_display_driver_add_spi_slave(dd_display_driver_t dd,
-                                           const char *spi_chip) {
-  /* if (dd->display_model == dd_SupportedDisplayEnum_Waveshare_7_5_inch_V2_b) {
-   */
-  /*   dd_errno = */
-  /*       dd_display_wvs75V2b_add_spi_slave(spi_chip, &dd->display_wvs_75v2b);
-   */
-  /*   if (dd_errno) { */
-  /*     dd_ewrap(); */
-  /*     goto error; */
-  /*   } */
-  /* } */
+dd_error_t dd_display_driver_add_spi_master(dd_display_driver_t dd,
+                                            const char *spidev_path) {
+  if (dd->display_model == dd_SupportedDisplayEnum_Waveshare_7_5_inch_V2_b) {
+    dd_errno =
+        dd_display_wvs75V2b_add_spi_master(spidev_path, &dd->display_wvs_75v2b);
+    DD_TRY(dd_errno);
+  } else {
+    dd_errno = dd_errnos(
+        EINVAL, "This operation is not supported on this display model");
+    goto error;
+  }
 
   return 0;
 
-  /* error: */
-  /* return dd_errno; */
+error:
+  return dd_errno;
 }
 
 void dd_display_driver_destroy(dd_display_driver_t *dd) {
@@ -205,6 +192,22 @@ static dd_error_t dd_display_driver_set_up_signals(void) {
                                   " for display driver");
       goto error;
     }
+  }
+
+  return 0;
+
+error:
+  return dd_errno;
+}
+
+dd_error_t dd_display_driver_read_temp(dd_display_driver_t dd, int *temp) {
+  if (dd->display_model == dd_SupportedDisplayEnum_Waveshare_7_5_inch_V2_b) {
+    dd_errno = dd_display_wvs75V2b_read_temp(temp, &dd->display_wvs_75v2b);
+    DD_TRY(dd_errno);
+  } else {
+    dd_errno = dd_errnos(
+        EINVAL, "This operation is not supported on this display model");
+    goto error;
   }
 
   return 0;
