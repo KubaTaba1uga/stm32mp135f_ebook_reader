@@ -2,10 +2,10 @@
 #include <errno.h>
 #include <signal.h>
 
-#include "utils/list.h"
 #include "display_driver.h"
 #include "gpio/gpio.h"
 #include "utils/err.h"
+#include "utils/list.h"
 #include "utils/mem.h"
 
 struct dd_DisplayDriver {
@@ -16,9 +16,8 @@ struct dd_DisplayDriver {
 // We need this list for cleanup in handler.
 static struct dd_List dd_display_drivers; // dd_display_driver_t
 
-static void dd_display_driver_signal_handler(int signum) {
-
-}
+static void dd_display_driver_cleanup(void *data);
+static void dd_display_driver_signal_handler(int signum);
 
 dd_error_t dd_display_driver_init(dd_display_driver_t *dd,
                                   enum dd_SupportedDisplayEnum display) {
@@ -54,7 +53,7 @@ dd_error_t dd_display_driver_init(dd_display_driver_t *dd,
     dd_ewrap();
     goto error;
   }
-  
+
   return NULL;
 
 error:
@@ -71,24 +70,32 @@ dd_error_t dd_display_driver_add_gpio_pin(dd_display_driver_t dd,
 
 dd_error_t dd_display_driver_add_spi_slave(dd_display_driver_t dd,
                                            const char *spi_chip) {
-
   return NULL;
 }
-
-static int dd_display_driver_find_by_ptr(void *rval, void *lval) {
-  return rval == lval;
-}  
 
 void dd_display_driver_destroy(dd_display_driver_t *dd) {
   if (!dd || !*dd) {
     return;
   }
 
-  dd_list_pop(&dd_display_drivers, *dd, dd_display_driver_find_by_ptr);
-  dd_gpio_destroy(&(*dd)->gpio);
-  dd_free(*dd);
+  dd_list_pop(&dd_display_drivers, *dd, dd_list_eq, dd_display_driver_cleanup);
+  *dd = NULL;
 }
 
 int dd_error_get_code(dd_error_t err) { return err->code; }
 
 const char *dd_error_get_msg(dd_error_t err) { return err->msg; }
+
+static void dd_display_driver_signal_handler(int signum) {
+  dd_list_destroy(&dd_display_drivers, dd_display_driver_cleanup);
+}
+
+static void dd_display_driver_cleanup(void *data) {
+  if (!data) {
+    return;
+  }
+
+  dd_display_driver_t dd = data;
+  dd_gpio_destroy(&dd->gpio);
+  dd_free(dd);
+}

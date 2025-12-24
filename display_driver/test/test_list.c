@@ -90,19 +90,19 @@ void test_dd_list_get_value_not_found_returns_null(void) {
   TEST_ASSERT_NULL(out);
 }
 
-void test_dd_list_pop_empty_returns_null(void) {
+void test_dd_list_pop_nc_empty_returns_null(void) {
   int key = 1;
-  void *out = dd_list_pop(&list, &key, int_ptr_cmp);
+  void *out = dd_list_pop_nc(&list, &key, int_ptr_cmp);
   TEST_ASSERT_NULL(out);
 }
 
-void test_dd_list_pop_removes_head_node_and_returns_value(void) {
+void test_dd_list_pop_nc_removes_head_node_and_returns_value(void) {
   int a = 1, b = 2, c = 3;
 
   list.head = mk_node(&a, mk_node(&b, mk_node(&c, NULL)));
 
   int key = 1;
-  void *out = dd_list_pop(&list, &key, int_ptr_cmp);
+  void *out = dd_list_pop_nc(&list, &key, int_ptr_cmp);
 
   TEST_ASSERT_EQUAL_PTR(&a, out);
 
@@ -114,13 +114,13 @@ void test_dd_list_pop_removes_head_node_and_returns_value(void) {
   TEST_ASSERT_NULL(list.head->next->next);
 }
 
-void test_dd_list_pop_removes_middle_node_and_returns_value(void) {
+void test_dd_list_pop_nc_removes_middle_node_and_returns_value(void) {
   int a = 1, b = 2, c = 3;
 
   list.head = mk_node(&a, mk_node(&b, mk_node(&c, NULL)));
 
   int key = 2;
-  void *out = dd_list_pop(&list, &key, int_ptr_cmp);
+  void *out = dd_list_pop_nc(&list, &key, int_ptr_cmp);
 
   TEST_ASSERT_EQUAL_PTR(&b, out);
 
@@ -131,13 +131,13 @@ void test_dd_list_pop_removes_middle_node_and_returns_value(void) {
   TEST_ASSERT_NULL(list.head->next->next);
 }
 
-void test_dd_list_pop_removes_last_node_and_returns_value(void) {
+void test_dd_list_pop_nc_removes_last_node_and_returns_value(void) {
   int a = 1, b = 2, c = 3;
 
   list.head = mk_node(&a, mk_node(&b, mk_node(&c, NULL)));
 
   int key = 3;
-  void *out = dd_list_pop(&list, &key, int_ptr_cmp);
+  void *out = dd_list_pop_nc(&list, &key, int_ptr_cmp);
 
   TEST_ASSERT_EQUAL_PTR(&c, out);
 
