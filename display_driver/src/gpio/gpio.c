@@ -1,11 +1,15 @@
 #define _GNU_SOURCE
-#include "gpio.h"
+#include <string.h>
+#include <gpiod.h>
+
 #include "display_driver.h"
-#include "gpiod.h"
+#include "gpio.h"
 #include "utils/err.h"
 #include "utils/list.h"
 #include "utils/mem.h"
-#include <string.h>
+
+static void dd_gpio_pin_destroy(void *data);
+static void dd_gpio_chip_destroy(void *data);
 
 dd_error_t dd_gpio_init(struct dd_Gpio *gpio) {
   if (!gpio) {
@@ -23,36 +27,6 @@ dd_error_t dd_gpio_init(struct dd_Gpio *gpio) {
 error:
   return dd_errno;
 };
-
-static void dd_gpio_chip_destroy(void *data) {
-  if (!data) {
-
-    return;
-  }
-
-  struct dd_GpioChip *chip = data;
-  if (chip->private) {
-    gpiod_chip_close(chip->private);
-  }
-  if (chip->path) {
-    dd_free((void *)chip->path);
-  }
-
-  dd_free(chip);
-}
-
-static void dd_gpio_pin_destroy(void *data) {
-  if (!data) {
-    return;
-  }
-
-  struct dd_GpioPin *pin = data;
-  if (pin->private) {
-    gpiod_line_release(pin->private);
-  }
-
-  dd_free(pin);
-}
 
 void dd_gpio_destroy(struct dd_Gpio *gpio) {
   if (!gpio) {
@@ -176,4 +150,31 @@ dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
 
 error:
   return dd_errno;
+}
+
+static void dd_gpio_chip_destroy(void *data) {
+  if (!data) {
+    return;
+  }
+
+  struct dd_GpioChip *chip = data;
+  if (chip->private) {
+    gpiod_chip_close(chip->private);
+  }
+
+  dd_free((void *)chip->path);
+  dd_free(chip);
+}
+
+static void dd_gpio_pin_destroy(void *data) {
+  if (!data) {
+    return;
+  }
+
+  struct dd_GpioPin *pin = data;
+  if (pin->private) {
+    gpiod_line_release(pin->private);
+  }
+
+  dd_free(pin);
 }
