@@ -1,3 +1,7 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdint.h>
+
 #include "waveshare_7in5_V2b.h"
 #include "display_driver.h"
 #include "gpio/gpio.h"
@@ -5,6 +9,7 @@
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
+
 
 #define DD_WVS75V2B_WIDTH 480
 #define DD_WVS75V2B_HEIGTH 800
@@ -165,7 +170,7 @@ error:
 
 dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd,
                                          const char *spidev_path) {
-  if (!dd || spidev_path) {
+  if (!dd || !spidev_path) {
     dd_errno = dd_errnos(EINVAL, "`dd` and `spidev_path` cannot be NULL");
     goto error;
   }
@@ -185,6 +190,7 @@ error:
 }
 
 dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd) {
+  puts(__func__);
   if (!dd || !dd->pwr || !dd->rst) {
     dd_errno =
         dd_errnos(EINVAL, "`dd`, `dd->pwr` and `dd->rst` cannot be NULL");
@@ -195,7 +201,6 @@ dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd) {
     dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
     DD_TRY(dd_errno);
     dd_sleep_ms(200);
-    dd_wvs75V2b_wait(dd);
   }
 
   dd_errno = dd_gpio_set_pin(0, dd->rst, &dd->gpio);
@@ -218,6 +223,7 @@ error:
 };
 
 dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
+  puts(__func__);  
   if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
     dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
                                  "`dd->pwr` and `dd->spi.path` cannot be NULL");
@@ -228,7 +234,6 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
     DD_TRY(dd_errno);
     dd_sleep_ms(200);
-    dd_wvs75V2b_wait(dd);
   }
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_SETTING);
@@ -242,7 +247,7 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
                                    },
                                    4);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_BOOSTER_SOFT_START);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -256,14 +261,14 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
                                    },
                                    4);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_ON);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_sleep_ms(100);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
-  dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_PANNEL_SETTING);
+  dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_PANEL_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_errno = dd_wvs75V2b_send_data(
       dd,
@@ -273,7 +278,7 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
       },
       1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_RESOLUTION_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -295,10 +300,10 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
                                    },
                                    1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
   dd_errno =
-      dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_VCOM_AND_DATA_INTERNAL_SETTING);
+      dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_VCOM_AND_DATA_INTERVAL_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_errno = dd_wvs75V2b_send_data(dd,
                                    (uint8_t[]){
@@ -307,7 +312,7 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
                                    },
                                    2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_wvs75V2b_wait(dd);
+  /* dd_wvs75V2b_wait(dd); */
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_TCON_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -328,6 +333,7 @@ error:
 }
 
 dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd) {
+  puts(__func__);  
   if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
     dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
                                  "`dd->pwr` and `dd->spi.path` cannot be NULL");
@@ -372,7 +378,9 @@ error:
 }
 
 dd_error_t dd_wvs75v2b_ops_clear_black(dd_wvs75v2b_t dd) { return 0; }
+
 dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
+  puts(__func__);  
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_OFF);
   DD_TRY(dd_errno);
   dd_wvs75V2b_wait(dd);
@@ -386,7 +394,6 @@ dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
                                    1);
   DD_TRY(dd_errno);
   dd_sleep_ms(300);
-  dd_wvs75V2b_wait(dd);
   
   return 0;
 

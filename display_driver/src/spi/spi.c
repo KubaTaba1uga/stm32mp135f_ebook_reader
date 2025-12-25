@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <linux/spi/spi.h>
 #include <linux/spi/spidev.h>
 #include <linux/types.h>
 #include <stdint.h>

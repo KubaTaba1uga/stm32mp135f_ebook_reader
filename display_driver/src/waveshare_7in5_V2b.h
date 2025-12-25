@@ -26,22 +26,24 @@ enum dd_Wvs75V2bBusy {
 };
 
 enum dd_Wvs75V2bCmd {
-  dd_Wvs75V2bCmd_PANNEL_SETTING = 0,
-  dd_Wvs75V2bCmd_POWER_SETTING,
-  dd_Wvs75V2bCmd_POWER_OFF,
-  dd_Wvs75V2bCmd_POWER_OFF_SEQUENCE_SETTING,
-  dd_Wvs75V2bCmd_POWER_ON,
-  dd_Wvs75V2bCmd_POWER_ON_MEASURE,
-  dd_Wvs75V2bCmd_BOOSTER_SOFT_START,
-  dd_Wvs75V2bCmd_DEEP_SLEEP,
-  dd_Wvs75V2bCmd_START_TRANSMISSION1 = 10,
-  dd_Wvs75V2bCmd_DATA_STOP,
-  dd_Wvs75V2bCmd_DISPLAY_REFRESH,
-  dd_Wvs75V2bCmd_START_TRANSMISSION2,
-  dd_Wvs75V2bCmd_DUAL_SPI_MODE = 15,
-  dd_Wvs75V2bCmd_VCOM_AND_DATA_INTERNAL_SETTING = 50,
-  dd_Wvs75V2bCmd_TCON_SETTING = 60,
-  dd_Wvs75V2bCmd_RESOLUTION_SETTING,      
+  dd_Wvs75V2bCmd_PANEL_SETTING                      = 0x00,
+  dd_Wvs75V2bCmd_POWER_SETTING                      = 0x01,
+  dd_Wvs75V2bCmd_POWER_OFF                          = 0x02,
+  dd_Wvs75V2bCmd_POWER_OFF_SEQUENCE_SETTING         = 0x03,
+  dd_Wvs75V2bCmd_POWER_ON                           = 0x04,
+  dd_Wvs75V2bCmd_POWER_ON_MEASURE                   = 0x05,
+  dd_Wvs75V2bCmd_BOOSTER_SOFT_START                 = 0x06,
+  dd_Wvs75V2bCmd_DEEP_SLEEP                         = 0x07,
+
+  dd_Wvs75V2bCmd_START_TRANSMISSION1                = 0x10,
+  dd_Wvs75V2bCmd_DATA_STOP                          = 0x11,
+  dd_Wvs75V2bCmd_DISPLAY_REFRESH                    = 0x12,
+  dd_Wvs75V2bCmd_START_TRANSMISSION2                = 0x13,
+  dd_Wvs75V2bCmd_DUAL_SPI_MODE                      = 0x15,
+
+  dd_Wvs75V2bCmd_VCOM_AND_DATA_INTERVAL_SETTING     = 0x50,
+  dd_Wvs75V2bCmd_TCON_SETTING                       = 0x60,
+  dd_Wvs75V2bCmd_RESOLUTION_SETTING                 = 0x61,
 };
 
 static inline dd_error_t dd_wvs75V2b_send_cmd(struct dd_Wvs75V2b *dd, uint8_t cmd) {
