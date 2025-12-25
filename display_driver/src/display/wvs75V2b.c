@@ -1,3 +1,5 @@
+// TO-DO: use enum fo commands names
+//        use different enums for different commands values
 #include "display/wvs75V2b.h"
 #include "display_driver.h"
 #include "gpio/gpio.h"
@@ -6,6 +8,7 @@
 #include "utils/time.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DD_DISPLAY_IDLE 1
 #define DD_DISPLAY_BUSY 0
@@ -231,7 +234,7 @@ dd_display_wvs75V2b_send_cmd(struct dd_DisplayWvs75V2b *display, uint8_t cmd) {
 
   dd_errno = dd_spi_send_byte(cmd, &display->spi);
   DD_TRY(dd_errno);
-  
+
   return 0;
 
 error:
@@ -239,37 +242,197 @@ error:
 }
 
 static dd_error_t
-dd_display_wvs75V2b_send_data(struct dd_DisplayWvs75V2b *display, uint8_t*data, uint32_t len) {
+dd_display_wvs75V2b_send_data(struct dd_DisplayWvs75V2b *display, uint8_t *data,
+                              uint32_t len) {
   dd_errno = dd_gpio_set_pin(1, display->dc, &display->gpio);
   DD_TRY(dd_errno);
 
-  dd_errno = dd_spi_send_bytes(data,len, &display->spi);
+  dd_errno = dd_spi_send_bytes(data, len, &display->spi);
   DD_TRY(dd_errno);
-  
+
   return 0;
 
 error:
   return dd_errno;
 }
 
+dd_error_t dd_display_wvs75V2b_power_on(struct dd_DisplayWvs75V2b *display) {
+  if (dd_gpio_read_pin(display->pwr, &display->gpio) != 1) {
+    dd_errno = dd_gpio_set_pin(1, display->pwr, &display->gpio);
+    DD_TRY(dd_errno);
+    dd_sleep_ms(100);
+  }
 
-static dd_error_t
-dd_display_wvs75V2b_power_on(struct dd_DisplayWvs75V2b *display) {
   dd_errno =
-      dd_display_wvs75V2b_send_cmd(display, 0x01); // Write to pannel settings
+      dd_display_wvs75V2b_send_cmd(display, 0x01); // Write to power settings
   DD_TRY(dd_errno);
 
-  /* dd_errno = */
-  /*   dd_display_wvs75V2b_send_data(display, (uint8_t *){0x01}); // Write to pannel settings */
-  /* DD_TRY(dd_errno); */
-  
-  
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x07, // LDO disabled, VDHR
+                                               0x07, // VGH=20V,VGL=-20V
+                                               0x3F, // VDH=15V
+                                               0x3F, // VDL=-15V
+                                           },
+                                           4);
+  DD_TRY(dd_errno);
 
-  
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x06); // Write to booster soft start
+  DD_TRY(dd_errno);
+
+  // I'm not sure what this part does but it is in mainline driver
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x17,
+                                               0x17,
+                                               0x28,
+                                               0x17,
+                                           },
+                                           4);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x04); // Power on the screen
+  DD_TRY(dd_errno);
+  dd_sleep_ms(100);
+  dd_display_wvs75V2b_wait(display);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x00); // Write to panel settings
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_display_wvs75V2b_send_data(
+      display,
+      (uint8_t[]){
+          0x0F, // Gate scan direction up, Source Shift Direction Rigth, Booster
+                // on, Do not perform soft reset
+      },
+      1);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x61); // Write to resolution settings
+  DD_TRY(dd_errno);
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x03,
+                                               0x20,
+                                               0x01,
+                                               0xE0,
+                                           },
+                                           4);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x15); // Write to resolution settings
+  DD_TRY(dd_errno);
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x00,
+                                           },
+                                           1);
+  DD_TRY(dd_errno);
+
+  dd_errno =
+      dd_display_wvs75V2b_send_cmd(display,
+                                   0x50); // VCOM AND D ATA INTERVAL SETTING
+  DD_TRY(dd_errno);
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x11,
+                                               0x07,
+                                           },
+                                           2);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x60); // TCON SETTING
+  DD_TRY(dd_errno);
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0x22,
+                                           },
+                                           1);
+  DD_TRY(dd_errno);
+
   return 0;
 
 error:
   return dd_errno;
-  
-  
+}
+
+dd_error_t dd_display_wvs75V2b_clear(struct dd_DisplayWvs75V2b *display) {
+  const int width = 800;
+  const int heigth = 480;
+  uint8_t
+      buf[(width / 8) * heigth]; // width/8 cause we send in bytes not in bits
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x10); // DATA START TRANSMISSION
+  DD_TRY(dd_errno);
+  memset(buf, 0xFF, sizeof(buf));
+  for (int i = 0; i < sizeof(buf); i++) {
+    dd_errno = dd_display_wvs75V2b_send_data(display,
+                                             (uint8_t[]){
+                                                 buf[i],
+                                             },
+                                             1);
+    DD_TRY(dd_errno);
+  }
+
+  /* dd_errno = dd_display_wvs75V2b_send_data(display, buf, sizeof(buf)); */
+  /* DD_TRY(dd_errno); */
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(
+      display,
+      0x13); // DATA START TRANSMISSION 2
+             // How version 1 differ from version 2?
+  DD_TRY(dd_errno);
+  memset(buf, 0x00, sizeof(buf));
+  for (int i = 0; i < sizeof(buf); i++) {
+    dd_errno = dd_display_wvs75V2b_send_data(display,
+                                             (uint8_t[]){
+                                                 buf[i],
+                                             },
+                                             1);
+    DD_TRY(dd_errno);
+  }
+
+  /* dd_errno = dd_display_wvs75V2b_send_data(display, buf, sizeof(buf)); */
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x12); // DISPLAY REFRESH
+  DD_TRY(dd_errno);
+  dd_sleep_ms(100);
+  dd_display_wvs75V2b_wait(display);
+
+  return 0;
+
+error:
+  return dd_errno;
+}
+
+dd_error_t dd_display_wvs75V2b_power_off(struct dd_DisplayWvs75V2b *display) {
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x02); // POWER OFF
+  DD_TRY(dd_errno);
+  dd_display_wvs75V2b_wait(display);
+
+  dd_errno = dd_display_wvs75V2b_send_cmd(display,
+                                          0x07); // DEEP SLEEP
+  DD_TRY(dd_errno);
+  dd_errno = dd_display_wvs75V2b_send_data(display,
+                                           (uint8_t[]){
+                                               0xA5,
+                                           },
+                                           1);
+  DD_TRY(dd_errno);
+
+  dd_sleep_ms(2000);
+
+  return 0;
+
+error:
+  return dd_errno;
 }

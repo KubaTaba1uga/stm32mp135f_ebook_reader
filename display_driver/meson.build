@@ -44,6 +44,14 @@ rpi_rst_example = executable('rpi_rst_example',
   # c_args: ['-D_GNU_SOURCE'],
 )
 
+rpi_clear_example = executable('rpi_clear_example',
+  sources: display_driver_src + [files('examples/rpi4b/rpi_clear_example.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+  # c_args: ['-D_GNU_SOURCE'],
+)
+
+
 # ******************************************************************************
 # *    Tests
 # ******************************************************************************

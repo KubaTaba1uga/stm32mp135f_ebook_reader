@@ -34,7 +34,9 @@ dd_error_t dd_display_wvs75V2b_add_spi_master(const char *spidev_path, struct dd
 
 dd_error_t dd_display_wvs75V2b_reset(struct dd_DisplayWvs75V2b *display);
 
-dd_error_t dd_display_wvs75V2b_read_temp(int *temp,
-                                         struct dd_DisplayWvs75V2b *display);
+dd_error_t dd_display_wvs75V2b_power_on(struct dd_DisplayWvs75V2b *display);
+dd_error_t dd_display_wvs75V2b_power_off(struct dd_DisplayWvs75V2b *display);
+dd_error_t dd_display_wvs75V2b_clear(struct dd_DisplayWvs75V2b *display);
+
 
 #endif // DISPLAY_DRIVER_DISPLAY_WVS75V2B

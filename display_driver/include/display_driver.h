@@ -45,12 +45,14 @@ dd_error_t dd_display_driver_add_gpio_pin(dd_display_driver_t dd,
                                           const char *gpio_chip, int pin_no);
 
 dd_error_t dd_display_driver_add_spi_master(dd_display_driver_t dd,
-                                           const char *spidev_path);
+                                            const char *spidev_path);
 
 dd_error_t dd_display_driver_reset(dd_display_driver_t dd);
 
 void dd_display_driver_destroy(dd_display_driver_t *dd);
 
-dd_error_t dd_display_driver_read_temp(dd_display_driver_t dd, int *temp);
+dd_error_t dd_display_driver_power_on(dd_display_driver_t dd);
+dd_error_t dd_display_driver_clear(dd_display_driver_t dd);
+dd_error_t dd_display_driver_power_off(dd_display_driver_t dd);
 
 #endif // DISPLAY_DRIVER_H
