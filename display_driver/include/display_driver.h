@@ -1,5 +1,6 @@
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H
+#include <stddef.h>
 
 /*
 
@@ -8,51 +9,44 @@ that we may use for the ebook reader.
 
 The prefix for all the code is `dd` abbrevation from display driver.
 
+Currently supported screens:
+- waveshare 7.5 inch V2 tri color (red, black, white)
+
 */
 
 /******************************************************************
- *                            Errors                              *
+ *                            Errors
  ******************************************************************
  */
 struct dd_Error;
 typedef struct dd_Error *dd_error_t;
+
 int dd_error_get_code(dd_error_t err);
 const char *dd_error_get_msg(dd_error_t err);
+int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
 
 /******************************************************************
- *                       Display Driver                           *
+ *              Waveshare 7.5 inch V2b Display Driver
  ******************************************************************
  */
-struct dd_DisplayDriver;
-typedef struct dd_DisplayDriver *dd_display_driver_t;
+struct dd_Wvs75V2b;
+typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
 
-dd_error_t dd_global_init(void);
-
-enum dd_SupportedDisplayEnum {
-  dd_SupportedDisplayEnum_Waveshare_7_5_inch_V2_b,
-};
-dd_error_t dd_display_driver_init(dd_display_driver_t *dd,
-                                  enum dd_SupportedDisplayEnum display);
-
-enum dd_GpioPinEnum {
-  dd_GpioPinEnum_DC,
-  dd_GpioPinEnum_RST,
-  dd_GpioPinEnum_BSY,
-  dd_GpioPinEnum_PWR,
-};
-dd_error_t dd_display_driver_add_gpio_pin(dd_display_driver_t dd,
-                                          enum dd_GpioPinEnum pin_cls,
-                                          const char *gpio_chip, int pin_no);
-
-dd_error_t dd_display_driver_add_spi_master(dd_display_driver_t dd,
-                                            const char *spidev_path);
-
-dd_error_t dd_display_driver_reset(dd_display_driver_t dd);
-
-void dd_display_driver_destroy(dd_display_driver_t *dd);
-
-dd_error_t dd_display_driver_power_on(dd_display_driver_t dd);
-dd_error_t dd_display_driver_clear(dd_display_driver_t dd);
-dd_error_t dd_display_driver_power_off(dd_display_driver_t dd);
+dd_error_t dd_wvs75v2b_init(dd_wvs75v2b_t *dd);
+void dd_wvs75v2b_destroy(dd_wvs75v2b_t *dd);
+dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t dd, const char *gpio_chip_path,
+                                      int pin_no);
+dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t dd, const char *gpio_chip_path,
+                                       int pin_no);
+dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t dd, const char *gpio_chip_path,
+                                       int pin_no);
+dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t dd,
+                                       const char *gpio_chip_path, int pin_no);
+dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd, const char *spidev_path);
+dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd);
+dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd);
+dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd);
+dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd);
+dd_error_t dd_wvs75v2b_ops_clear_black(dd_wvs75v2b_t dd);
 
 #endif // DISPLAY_DRIVER_H

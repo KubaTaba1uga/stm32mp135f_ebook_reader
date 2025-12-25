@@ -22,10 +22,9 @@ libgpiod_dep = dependency('libgpiod',
 
 display_driver_inc = include_directories(['include', 'src'])
 
-display_driver_src = [files('src/display_driver.c',
+display_driver_src = [files('src/waveshare_7in5_V2b.c',
 		            'src/gpio/gpio.c',
 		            'src/spi/spi.c',		    
-		            'src/display/wvs75V2b.c',
 			    'src/utils/err.c',
 			    'src/utils/time.c',			   
 )]

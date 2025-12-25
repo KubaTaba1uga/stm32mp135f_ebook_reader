@@ -381,8 +381,6 @@ dd_error_t dd_display_wvs75V2b_clear(struct dd_DisplayWvs75V2b *display) {
     DD_TRY(dd_errno);
   }
 
-  /* dd_errno = dd_display_wvs75V2b_send_data(display, buf, sizeof(buf)); */
-  /* DD_TRY(dd_errno); */
 
   dd_errno = dd_display_wvs75V2b_send_cmd(
       display,
@@ -398,8 +396,6 @@ dd_error_t dd_display_wvs75V2b_clear(struct dd_DisplayWvs75V2b *display) {
                                              1);
     DD_TRY(dd_errno);
   }
-
-  /* dd_errno = dd_display_wvs75V2b_send_data(display, buf, sizeof(buf)); */
 
   dd_errno = dd_display_wvs75V2b_send_cmd(display,
                                           0x12); // DISPLAY REFRESH
