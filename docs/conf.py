@@ -77,3 +77,5 @@ html_theme_options = {
 html_short_title = "eBook Reader"
 pygments_style = "monokai"
 pygments_dark_style = "monokai"
+
+copyright = "2025, Jakub Buczynski"
