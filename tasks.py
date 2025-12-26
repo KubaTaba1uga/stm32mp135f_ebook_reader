@@ -327,7 +327,14 @@ def build_display_driver(c, tests=True):
 @task
 def serve_docs(c, port=8000):
     build_docs(c)
-    c.run(f"sphinx-autobuild --port {port} docs build/docs/html", pty=True)
+    c.run(
+        f"sphinx-autobuild "
+        f"--port {port} "
+        f"--watch display_driver/include "
+        f"--watch src "
+        f"docs build/docs/html",
+        pty=True,
+    )
 
 @task
 def deploy_to_tftp(c, directory="/srv/tftp"):
