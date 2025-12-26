@@ -11,7 +11,7 @@ I hope you find the code and docs clear, high quality, and informative, this pro
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Summary:
 
    development
    display_driver
