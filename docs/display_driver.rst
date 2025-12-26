@@ -2,7 +2,7 @@ Display driver
 ==============
 
 We had issues sourcing and ordering multiple e-paper screens of the same model, so the project
-needs to support multiple displays and variants without changing application code.
+needs to support multiple displays and variants without changing much of application code.
 
 The vendor **Waveshare** reference driver was difficult to integrate into our
 project. For this reason we implemented our own driver layer with a clean, consistent API.
