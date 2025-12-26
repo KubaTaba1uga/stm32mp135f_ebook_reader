@@ -35,8 +35,14 @@ int main(void) {
   /*   goto error_dd_cleanup; */
   /* } */
 
+  /* err = */
+  /*     dd_image_init(&img, (unsigned char *)turtle_7in5_v2, sizeof(image_7in5_v2), */
+  /*                   (struct dd_ImagePoint){.x = 480, .y = 800}); */
+  /* if (err) { */
+  /*   goto error_dd_cleanup; */
+  /* } */
   err =
-      dd_image_init(&img, (unsigned char *)turtle_7in5_v2, sizeof(image_7in5_v2),
+      dd_image_init(&img, (unsigned char *)super, sizeof(image_7in5_v2),
                     (struct dd_ImagePoint){.x = 480, .y = 800});
   if (err) {
     goto error_dd_cleanup;
