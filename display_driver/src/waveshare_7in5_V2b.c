@@ -1,13 +1,14 @@
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
-#include "waveshare_7in5_V2b.h"
 #include "display_driver.h"
 #include "gpio/gpio.h"
+#include "image.h"
 #include "spi/spi.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
+#include "waveshare_7in5_V2b.h"
 
 #define DD_WVS75V2B_WIDTH 480
 #define DD_WVS75V2B_HEIGTH 800
@@ -221,7 +222,7 @@ error:
 };
 
 dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
-  puts(__func__);  
+  puts(__func__);
   if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
     dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
                                  "`dd->pwr` and `dd->spi.path` cannot be NULL");
@@ -292,11 +293,7 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_DUAL_SPI_MODE);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75V2b_send_data(dd,
-                                   (uint8_t[]){
-                                       0x00,
-                                   },
-                                   1);
+  dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0x00}, 1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   /* dd_wvs75V2b_wait(dd); */
 
@@ -314,11 +311,7 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_TCON_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75V2b_send_data(dd,
-                                   (uint8_t[]){
-                                       0x22,
-                                   },
-                                   1);
+  dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0x22}, 1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_wvs75V2b_wait(dd);
 
@@ -330,9 +323,8 @@ error:
   return dd_errno;
 }
 
-
-dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {  
-  puts(__func__);  
+dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {
+  puts(__func__);
   if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
     dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
                                  "`dd->pwr` and `dd->spi.path` cannot be NULL");
@@ -344,7 +336,7 @@ dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {
   for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
     dd_errno = dd_wvs75V2b_send_data(dd,
                                      (uint8_t[]){
-				       white ? 0xFF : 0x00 ,
+                                         white ? 0xFF : 0x00,
                                      },
                                      1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -354,11 +346,7 @@ dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
-    dd_errno = dd_wvs75V2b_send_data(dd,
-                                     (uint8_t[]){
-				       0x00
-                                     },
-                                     1);
+    dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0x00}, 1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
   dd_wvs75V2b_wait(dd);
@@ -377,24 +365,77 @@ error:
 }
 
 dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
-  puts(__func__);  
+  puts(__func__);
+  if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
+    dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
+                                 "`dd->pwr` and `dd->spi.path` cannot be NULL");
+    goto error;
+  }
+  
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_OFF);
-  DD_TRY(dd_errno);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_wvs75V2b_wait(dd);
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_DEEP_SLEEP);
-  DD_TRY(dd_errno);
-  dd_errno = dd_wvs75V2b_send_data(dd,
-                                   (uint8_t[]){
-                                       0xA5,
-                                   },
-                                   1);
-  DD_TRY(dd_errno);
-  dd_sleep_ms(300);
-  
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0xA5}, 1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_sleep_ms(300); // In deep sleep busy does not work so we need to estimate
+                    // time required display perform deep sleep ops
+
   return 0;
 
+error_dd_cleanup:
+  dd_wvs75v2b_ops_reset(dd);  
 error:
   return dd_errno;
 }
 
+dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
+  puts(__func__);
+  if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path ||
+      !image) {
+    dd_errno = dd_errnos(
+        EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
+                "`dd->pwr`, `dd->spi.path` and `image` cannot be NULL");
+    goto error;
+  }
+
+  struct dd_ImagePoint *img_res = dd_image_get_resolution(image);
+  unsigned char *img_data = dd_image_get_data(image);
+  uint32_t img_data_len = dd_image_get_data_len(image);
+  
+  if (img_res->x != DD_WVS75V2B_WIDTH || img_res->y != DD_WVS75V2B_HEIGTH) {
+    dd_errno = dd_errnos(EINVAL, "To display picture on full screen it's resolution has to "
+                                 "match display's resolution");
+    goto error;
+  }
+
+  dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  for (int i = 0; i < img_data_len; i++) {
+    dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){img_data[i]}, 1);
+    DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  }
+  dd_wvs75V2b_wait(dd);
+
+  dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION2);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
+    dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0x00}, 1);
+    DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  }
+  dd_wvs75V2b_wait(dd);
+  
+  dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_DISPLAY_REFRESH);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_sleep_ms(100);
+  dd_wvs75V2b_wait(dd);
+  
+  return 0;
+
+error_dd_cleanup:
+  dd_wvs75v2b_ops_reset(dd);
+error:
+  return dd_errno;
+};

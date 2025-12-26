@@ -22,11 +22,12 @@ libgpiod_dep = dependency('libgpiod',
 
 display_driver_inc = include_directories(['include', 'src'])
 
-display_driver_src = [files('src/waveshare_7in5_V2b.c',
+display_driver_src = [files('src/image.c',
+                            'src/waveshare_7in5_V2b.c',
 		            'src/gpio/gpio.c',
 		            'src/spi/spi.c',		    
 			    'src/utils/err.c',
-			    'src/utils/time.c',			   
+			    'src/utils/time.c',
 )]
 
 display_driver_deps = [
@@ -50,6 +51,12 @@ rpi_clear_example = executable('rpi_clear_example',
   # c_args: ['-D_GNU_SOURCE'],
 )
 
+rpi_full_example = executable('rpi_display_full_example',
+  sources: display_driver_src + [files('examples/rpi4b/rpi_display_full_example.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+  # c_args: ['-D_GNU_SOURCE'],
+)
 
 # ******************************************************************************
 # *    Tests

@@ -25,6 +25,7 @@
  */
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H
+#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -65,6 +66,47 @@ const char *dd_error_get_msg(dd_error_t err);
  */
 int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
 
+/******************************************************************
+ *                            Image
+ ******************************************************************
+ */
+/**
+ * \brief An image representation. 
+ *
+ * Image can be used to draw picture of any resolution.
+ */
+struct dd_Image;
+
+/**
+ * \brief Image type. 
+ */
+typedef struct dd_Image *dd_image_t;
+
+/**
+ * \brief An point on the image representation. 
+ *
+ * Image point represent anything that can be desribed by offset on X and Y axis.
+ */
+struct dd_ImagePoint {
+  uint32_t x;
+  uint32_t y;
+};
+
+/**
+ * \brief Initialize image object.
+ * \param img Pointer to image wich will be filled with by the function.
+ * \param data Data encoded to display driver format.
+ * \param resolution Resolution of the image encoded into data.
+ * \return Error on failure, NULL on success.
+ */
+dd_error_t dd_image_init(dd_image_t *img, unsigned char *data, uint32_t data_len,
+                  struct dd_ImagePoint resolution);
+
+/**
+ * \brief Destroy image object.
+ * \param img Pointer to image wich will be destroyed by the function.
+ */
+void dd_image_destroy(dd_image_t *img);
 
 /******************************************************************
  *              Waveshare 7.5 inch V2b Display Driver
@@ -168,5 +210,14 @@ dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd);
  * \return Error on failure, NULL on success.
  */
 dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white);
+
+/**
+ * \brief Display picture on whole screen.
+ * \param dd Driver instance.
+ * \param image Image to displayed.
+ * \return Error on failure, NULL on success.
+ */
+dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image);
+
 
 #endif // DISPLAY_DRIVER_H
