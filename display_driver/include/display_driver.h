@@ -1,6 +1,7 @@
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
 
@@ -46,7 +47,7 @@ dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd, const char *spidev_pa
 dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd);
 dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd);
 dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd);
-dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd);
-dd_error_t dd_wvs75v2b_ops_clear_black(dd_wvs75v2b_t dd);
+dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white);
+
 
 #endif // DISPLAY_DRIVER_H

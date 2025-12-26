@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -9,7 +8,6 @@
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
-
 
 #define DD_WVS75V2B_WIDTH 480
 #define DD_WVS75V2B_HEIGTH 800
@@ -332,7 +330,8 @@ error:
   return dd_errno;
 }
 
-dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd) {
+
+dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {  
   puts(__func__);  
   if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path) {
     dd_errno = dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
@@ -345,7 +344,7 @@ dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd) {
   for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
     dd_errno = dd_wvs75V2b_send_data(dd,
                                      (uint8_t[]){
-                                         0xFF,
+				       white ? 0xFF : 0x00 ,
                                      },
                                      1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -357,7 +356,7 @@ dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd) {
   for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
     dd_errno = dd_wvs75V2b_send_data(dd,
                                      (uint8_t[]){
-                                         0x00,
+				       0x00
                                      },
                                      1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -376,8 +375,6 @@ error_dd_cleanup:
 error:
   return dd_errno;
 }
-
-dd_error_t dd_wvs75v2b_ops_clear_black(dd_wvs75v2b_t dd) { return 0; }
 
 dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
   puts(__func__);  
@@ -400,3 +397,4 @@ dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
 error:
   return dd_errno;
 }
+
