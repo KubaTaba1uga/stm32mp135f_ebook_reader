@@ -41,22 +41,38 @@ rpi_rst_example = executable('rpi_rst_example',
   sources: display_driver_src + [files('examples/rpi4b/rpi_rst_example.c')],
   include_directories: display_driver_inc,
   dependencies: display_driver_deps,
-  # c_args: ['-D_GNU_SOURCE'],
 )
 
 rpi_clear_example = executable('rpi_clear_example',
   sources: display_driver_src + [files('examples/rpi4b/rpi_clear_example.c')],
   include_directories: display_driver_inc,
   dependencies: display_driver_deps,
-  # c_args: ['-D_GNU_SOURCE'],
 )
 
 rpi_full_example = executable('rpi_display_full_example',
   sources: display_driver_src + [files('examples/rpi4b/rpi_display_full_example.c')],
   include_directories: display_driver_inc,
   dependencies: display_driver_deps,
-  # c_args: ['-D_GNU_SOURCE'],
 )
+
+stm_rst_example = executable('stm_rst_example',
+  sources: display_driver_src + [files('examples/stm32mp135f/stm_rst_example.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+)
+
+stm_clear_example = executable('stm_clear_example',
+  sources: display_driver_src + [files('examples/stm32mp135f/stm_clear_example.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+)
+
+stm_full_example = executable('stm_display_full_example',
+  sources: display_driver_src + [files('examples/stm32mp135f/stm_display_full_example.c')],
+  include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
+)
+
 
 # ******************************************************************************
 # *    Tests

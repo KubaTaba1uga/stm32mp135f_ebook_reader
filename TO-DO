@@ -1,13 +1,5 @@
-zcat /proc/config.gz | grep CONFIG_DYNAMIC_DEBUG
-# should be CONFIG_DYNAMIC_DEBUG=y
-
-# SPI core
-echo 'file drivers/spi/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
-echo 'file drivers/spi/*/*/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
-
-# GPIO code
-echo 'file drivers/gpio/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
-echo 'file drivers/gpio/*/*/* +p' | sudo tee /sys/kernel/debug/dynamic_debug/control
-
-# Sets in kernel cli:
-loglevel=8 ignore_loglevel initcall_debug
+1. add ImageMagisk so ebook reader can generate images from ebook pdfs.
+2. create manual showing how to convert any image to format understandable by the screen.
+# Note: the generation script should have some indication that it is meant for waveshare.
+#       alse similiar indication is needed in examples.
+3. Test whether switchng screen to white/black mode make it faster.

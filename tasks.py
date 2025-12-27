@@ -362,7 +362,7 @@ def deploy_to_nfs(c, directory="/srv/nfs", rootfs=True):
             c.run(f"sudo tar xvf rootfs.tar -C {directory}")
 
     with c.cd("build/display_driver"):
-        c.run(f"sudo cp display_driver {directory}/root")
+        c.run(f"sudo cp *example {directory}/root/")
         
     _pr_info(f"Deploy to NFS completed")
 
