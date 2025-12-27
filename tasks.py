@@ -9,6 +9,7 @@ DOCS_PATH = os.path.join(ROOT_PATH, "docs")
 
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 
+
 @task
 def add_repo(c, name, tag, url):
     c.run("mkdir -p third_party")
@@ -23,60 +24,110 @@ def add_repo(c, name, tag, url):
     c.run(f'git remote add "{name}" "{url}"')
     c.run(f'git subtree add --prefix="third_party/{name}" "{name}" "{tag}" --squash')
 
+
 @task
 def install(c):
     _pr_info(f"Installing dependencies...")
 
-    try: 
-       c.run("sudo apt-get install -y doxygen virtualenv \
+    try:
+        c.run(
+            "sudo apt-get install -y doxygen virtualenv \
               which sed make binutils build-essential diffutils \
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk wget \
-              git libncurses5-dev python3")
-       c.run("virtualenv .venv")
-       c.run("pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25 sphinx-autobuild==2025.08.25")
+              git libncurses5-dev python3"
+        )
+        c.run("virtualenv .venv")
+        c.run(
+            "pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25 sphinx-autobuild==2025.08.25"
+        )
     except Exception:
         _pr_error("Installing failed")
         raise
 
     _pr_info(f"Installing dependencies completed")
 
+
+@task
+def build_docs(c):
+    _pr_info("Building docs...")
+
+    docs_path = os.path.join(BUILD_PATH, "docs", "html")
+
+    try:
+        c.run("doxygen docs/Doxyfile")
+        with c.cd(DOCS_PATH):
+            c.run(f"sphinx-build -b html . {docs_path}")
+    except Exception:
+        _pr_error(f"Building docs failed")
+        raise
+
+    _pr_info("Building docs completed")
+
+
+@task
+def serve_docs(c, port=8000):
+    _pr_info("Serving docs...")
+
+    build_docs(c)
+
+    c.run(
+        " ".join(
+            [
+                f"sphinx-autobuild",
+                f"--port {port}",
+                f"--watch dummy_app/include",
+                f"docs build/docs/html",
+            ]
+        ),
+        pty=True,
+    )
+
+    _pr_info("Serving docs completed")
+
+
 @task
 def configure(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Configuring buildroot...")    
+    _pr_info(f"Configuring buildroot...")
 
     with c.cd("third_party/buildroot"):
-        flags = ["O=../../build/buildroot", "BR2_EXTERNAL=../../buildroot_external_tree", config]
-        
+        flags = [
+            "O=../../build/buildroot",
+            "BR2_EXTERNAL=../../br2_external_tree",
+            config,
+        ]
+
         c.run(f"make " + " ".join(flags))
-        
+
     _pr_info(f"Configuring buildroot completed")
+
 
 @task
 def download(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Downloading dependencies...")    
+    _pr_info(f"Downloading dependencies...")
 
     if config:
         configure(c, config)
-    
+
     with c.cd("build/buildroot"):
-         c.run("make BR2_DL_DIR=../../build/third_party source")
-         
+        c.run("make BR2_DL_DIR=../../build/third_party source")
+
     _pr_info(f"Downloading dependencies completed")
+
 
 @task
 def build_bsp(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Building BSP...")    
+    _pr_info(f"Building BSP...")
 
     if config:
-       configure(c, config)
-           
+        configure(c, config)
+
     with c.cd("build/buildroot"):
         c.run("make BR2_DL_DIR=../../build/third_party")
 
     _pr_info(f"Building BSP completed")
 
-    
+
 ###############################################
 #                Private API                  #
 ###############################################
@@ -94,4 +145,3 @@ def _pr_debug(message: str):
 
 def _pr_error(message: str):
     print(f"\033[91m[ERROR] {message}\033[0m")
-
