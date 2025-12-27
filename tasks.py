@@ -21,7 +21,7 @@ def add_repo(c, name, tag, url):
         return 1
 
     c.run( f"git remote add \"{name}\" \"{url}\"")
-    c.run( f"git subtree add --prefix=\"{name}\" \"{name}\" \"{tag}\" --squash")
+    c.run( f"git subtree add --prefix=\"third_party/{name}\" \"{name}\" \"{tag}\" --squash")
 
 
 ###############################################
