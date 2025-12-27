@@ -13,6 +13,7 @@ test_link_args = [
       '-Wl,--wrap=gpiod_chip_close',
       '-Wl,--wrap=gpiod_chip_get_line',
       '-Wl,--wrap=gpiod_line_request_output',
+      '-Wl,--wrap=gpiod_line_request_output_flags',      
       '-Wl,--wrap=gpiod_line_request_input',
       '-Wl,--wrap=gpiod_line_release',
       # Add more mocks via: '-Wl,--wrap=<func name>'

@@ -129,3 +129,23 @@ void __wrap_gpiod_line_release(struct gpiod_line *line) {
   gpiod_line_release_mock_called++;
   printf("%s mocked\n", __func__);
 }
+
+bool enable_gpiod_line_request_output_flags_mock = false;
+int gpiod_line_request_output_flags_mock_called = 0;
+int __real_gpiod_line_request_output_flags(struct gpiod_line *line,
+                                           const char *consumer,
+                                           int flags,
+                                           int default_val);
+
+int __wrap_gpiod_line_request_output_flags(struct gpiod_line *line,
+                                           const char *consumer,
+                                           int flags,
+                                           int default_val) {
+  if (!enable_gpiod_line_request_output_flags_mock) {
+    return __real_gpiod_line_request_output_flags(line, consumer, flags, default_val);
+  }
+
+  gpiod_line_request_output_flags_mock_called++;
+  if (line) line->requested_out = true;
+  return 0;
+}

@@ -12,27 +12,19 @@ static void dd_gpio_pin_cleanup(void *data);
 static void dd_gpio_chip_cleanup(void *data);
 
 dd_error_t dd_gpio_init(struct dd_Gpio *gpio) {
-  if (!gpio) {
-    dd_errno = dd_errnos(EINVAL, "`gpio` cannot be NULL");
-    goto error;
-  }
-
   *gpio = (struct dd_Gpio){
       .chips = DD_LIST_INITIALIZER,
       .pins = DD_LIST_INITIALIZER,
   };
 
   return 0;
-
-error:
-  return dd_errno;
 };
 
 void dd_gpio_destroy(struct dd_Gpio *gpio) {
   if (!gpio) {
     return;
   }
-
+  
   dd_list_destroy(&gpio->pins, dd_gpio_pin_cleanup);
   dd_list_destroy(&gpio->chips, dd_gpio_chip_cleanup);
 };
@@ -43,17 +35,12 @@ static int dd_gpio_find_chip_by_path(void *node_data, void *data) {
 
 dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
                            struct dd_GpioPin **out, struct dd_Gpio *gpio) {
-  if (!chip_path || pin_no < 0 || !out || !gpio) {
-    dd_errno = dd_errnos(EINVAL, "At leat one of func args is invalid");
-    goto error;
-  }
-
   struct dd_GpioChip *chip = dd_list_get_value(&gpio->chips, (void *)chip_path,
                                                dd_gpio_find_chip_by_path);
 
   if (!chip) {
     chip = dd_malloc(sizeof(struct dd_GpioChip));
-    chip->path = strdup(chip_path);
+    *chip = (struct dd_GpioChip){.path=strdup(chip_path)};
     dd_list_append(&gpio->chips, chip);
   }
 
@@ -117,11 +104,6 @@ error:
 };
 
 dd_error_t dd_gpio_set_pin_input(struct dd_GpioPin *pin) {
-  if (!pin) {
-    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
-    goto error;
-  }
-
   int ret = gpiod_line_request_input(pin->private, "display_driver");
   if (ret) {
     dd_errno = dd_errnof(errno, "Unable to set input direction for %c%d",
@@ -138,11 +120,6 @@ error:
 };
 
 int dd_gpio_read_pin(struct dd_GpioPin *pin, struct dd_Gpio *gpio) {
-  if (!pin || !gpio) {
-    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
-    goto error;
-  }
-
   int ret = gpiod_line_get_value(pin->private);
   if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to get value for: %c:%d",
@@ -157,12 +134,7 @@ error:
 }
 
 dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
-                           struct dd_Gpio *gpio) {
-  if (!pin || !gpio) {
-    dd_errno = dd_errnos(errno, "`pin` and `gpio` cannot be NULL");
-    goto error;
-  }
-  
+                           struct dd_Gpio *gpio) {  
   int ret = gpiod_line_set_value(pin->private, value);
   if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to set value for: %c:%d=%d",
