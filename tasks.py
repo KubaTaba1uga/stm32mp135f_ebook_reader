@@ -12,6 +12,8 @@ os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PA
 
 @task
 def add_repo(c, name, tag, url):
+    _pr_info("Adding repo...")
+
     c.run("mkdir -p third_party")
     c.run("git status")
     c.run("git add . || true")
@@ -23,6 +25,8 @@ def add_repo(c, name, tag, url):
 
     c.run(f'git remote add "{name}" "{url}"')
     c.run(f'git subtree add --prefix="third_party/{name}" "{name}" "{tag}" --squash')
+
+    _pr_info("Adding repo completed")
 
 
 @task
@@ -142,7 +146,7 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
         c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
 
     # TO-DO get compile_commands and copy to third_party/linux
-        
+
     _pr_info(f"Building linux completed")
 
 
@@ -196,19 +200,18 @@ def build_optee(c, config="ebook_reader_dev_defconfig", target=None):
 
 @task
 def fbuild_linux_kernel(c):
-    cmd = _br2_create_linux_env("zImage")
+    _pr_info("Fast building linux kernel...")
 
     with c.cd("build/buildroot/build/linux-custom"):
         c.run(cmd)
         c.run(f"cp arch/arm/boot/zImage ../../images/")
 
+    _pr_info("Linux kernel fast build completed")
+
 
 @task
 def fbuild_linux_dt(c):
-    os.environ["CROSS_COMPILE"] = os.path.join(
-        ROOT_PATH, "build", "buildroot", "host", "bin", "arm-linux-"
-    )
-    os.environ["ARCH"] = "arm"
+    _pr_info("Fast building linux device tree...")
 
     dtb = None
     with open("br2_external_tree/configs/ebook_reader_dev_defconfig", "r") as fp:
@@ -217,6 +220,7 @@ def fbuild_linux_dt(c):
                 dtb = line.removeprefix("BR2_LINUX_KERNEL_INTREE_DTS_NAME=").rstrip(
                     "\n"
                 )
+                dtb = dtb.replace('"', "").replace("'", "")
             if line.startswith("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR="):
                 dts_dirs = line.removeprefix("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR=")
                 sanitized_dts_dirs = dts_dirs.replace(
@@ -228,12 +232,17 @@ def fbuild_linux_dt(c):
                     )
 
     if not dtb:
-        _pr_err("No dtb file found in br2_external_tree/configs/ebook_reader_dev_defconfig")
+        _pr_err(
+            "No dtb file found in br2_external_tree/configs/ebook_reader_dev_defconfig"
+        )
         return 1
 
+    cmd = _br2_create_linux_env(f"{dtb}.dtb")
     with c.cd("build/buildroot/build/linux-custom"):
-        c.run(f"make {dtb}.dtb")
+        c.run(cmd)
         c.run(f"cp arch/arm/boot/dts/{dtb}.dtb ../../images/")
+
+    _pr_info("Linux device tree fast build completed")
 
 
 @task
@@ -309,9 +318,9 @@ def _pr_debug(message: str):
 def _pr_error(message: str):
     print(f"\033[91m[ERROR] {message}\033[0m")
 
+
 def _br2_create_linux_env(targets):
-    proj = "/home/taba1uga/Github/stm32mp135f_ebook_reader"
-    br = os.path.join(proj, "build", "buildroot")
+    br = os.path.join(ROOT_PATH, "build", "buildroot")
 
     host_bin = os.path.join(br, "host", "bin")
     host_sbin = os.path.join(br, "host", "sbin")
