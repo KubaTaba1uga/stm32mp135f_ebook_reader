@@ -202,6 +202,7 @@ def build_optee(c, config="ebook_reader_dev_defconfig", target=None):
 def fbuild_linux_kernel(c):
     _pr_info("Fast building linux kernel...")
 
+    cmd = _br2_create_linux_env("zImage")    
     with c.cd("build/buildroot/build/linux-custom"):
         c.run(cmd)
         c.run(f"cp arch/arm/boot/zImage ../../images/")
