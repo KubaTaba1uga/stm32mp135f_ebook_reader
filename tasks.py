@@ -39,7 +39,7 @@ def install(c):
         )
         c.run("virtualenv .venv")
         c.run(
-            "pip install sphinx==8.2.3 breathe==4.36.0 furo==2025.9.25 sphinx-autobuild==2025.08.25"
+            "pip install sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
     except Exception:
         _pr_error("Installing failed")
@@ -128,6 +128,169 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
     _pr_info(f"Building BSP completed")
 
 
+@task
+def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
+    _pr_info(f"Building linux...")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "linux"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
+
+    # TO-DO get compile_commands and copy to third_party/linux
+        
+    _pr_info(f"Building linux completed")
+
+
+@task
+def build_uboot(c, config="ebook_reader_dev_defconfig", target=None):
+    _pr_info(f"Building u-boot...")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "uboot"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
+
+    _pr_info(f"Building u-boot completed")
+
+
+@task
+def build_tfa(c, config="ebook_reader_dev_defconfig", target=None):
+    _pr_info(f"Building tf-a...")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "arm-trusted-firmware"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
+
+    _pr_info(f"Building tf-a completed")
+
+
+@task
+def build_optee(c, config="ebook_reader_dev_defconfig", target=None):
+    _pr_info(f"Building optee...")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        cmd = "optee-os"
+        if target:
+            cmd = f"{cmd}-{target}"
+        c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
+
+    _pr_info(f"Building optee completed")
+
+
+@task
+def fbuild_linux_kernel(c):
+    cmd = _br2_create_linux_env("zImage")
+
+    with c.cd("build/buildroot/build/linux-custom"):
+        c.run(cmd)
+        c.run(f"cp arch/arm/boot/zImage ../../images/")
+
+
+@task
+def fbuild_linux_dt(c):
+    os.environ["CROSS_COMPILE"] = os.path.join(
+        ROOT_PATH, "build", "buildroot", "host", "bin", "arm-linux-"
+    )
+    os.environ["ARCH"] = "arm"
+
+    dtb = None
+    with open("br2_external_tree/configs/ebook_reader_dev_defconfig", "r") as fp:
+        for line in fp.readlines():
+            if line.startswith("BR2_LINUX_KERNEL_INTREE_DTS_NAME="):
+                dtb = line.removeprefix("BR2_LINUX_KERNEL_INTREE_DTS_NAME=").rstrip(
+                    "\n"
+                )
+            if line.startswith("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR="):
+                dts_dirs = line.removeprefix("BR2_LINUX_KERNEL_CUSTOM_DTS_DIR=")
+                sanitized_dts_dirs = dts_dirs.replace(
+                    "$(BR2_EXTERNAL_ST_PATH)", "br2_external_tree"
+                )
+                for dts in sanitized_dts_dirs.split(" "):
+                    c.run(
+                        f"cp -r {dts.rstrip('\n')}/* build/buildroot/build/linux-custom/arch/arm/boot/dts"
+                    )
+
+    if not dtb:
+        _pr_err("No dtb file found in br2_external_tree/configs/ebook_reader_dev_defconfig")
+        return 1
+
+    with c.cd("build/buildroot/build/linux-custom"):
+        c.run(f"make {dtb}.dtb")
+        c.run(f"cp arch/arm/boot/dts/{dtb}.dtb ../../images/")
+
+
+@task
+def deploy_tftp(c, directory="/srv/tftp"):
+    _pr_info(f"Deploying to TFTP...")
+
+    if not os.path.exists(directory):
+        raise ValueError(f"{directory} does not exists")
+
+    with c.cd("build/buildroot/images"):
+        c.run(f"sudo -u dnsmasq cp zImage stm32mp135f-dk-ebook_reader.dtb {directory}")
+
+    _pr_info(f"Deploy to TFTP completed")
+
+
+@task
+def deploy_nfs(c, directory="/srv/nfs", rootfs=True):
+    _pr_info(f"Deploying to NFS...")
+
+    if not os.path.exists(directory):
+        raise ValueError(f"{directory} does not exists")
+
+    if rootfs:
+        with c.cd("build/buildroot/images"):
+            c.run(f"sudo tar xvf rootfs.tar -C {directory}")
+
+    with c.cd("build/display_driver"):
+        c.run(f"sudo cp *example {directory}/root/")
+
+    _pr_info(f"Deploy to NFS completed")
+
+
+@task
+def deploy_sdcard(c, dev="sda"):
+    _pr_info(f"Deploying to sdcard...")
+
+    if not os.path.exists("/dev/disk/by-partlabel/fsbl1"):
+        raise ValueError("No /dev/disk/by-partlabel/fsbl1")
+    if not os.path.exists("/dev/disk/by-partlabel/fsbl2"):
+        raise ValueError("No /dev/disk/by-partlabel/fsbl2")
+    if not os.path.exists("/dev/disk/by-partlabel/fip"):
+        raise ValueError("No /dev/disk/by-partlabel/fip")
+
+    with c.cd("build/buildroot/images"):
+        c.run(
+            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl1 bs=1K conv=fsync"
+        )
+        c.run(
+            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl2 bs=1K conv=fsync"
+        )
+        c.run("sudo dd if=fip.bin of=/dev/disk/by-partlabel/fip bs=1K conv=fsync")
+
+    c.run("sudo sync")
+
+    _pr_info(f"Deploy to sdcard completed")
+
+
 ###############################################
 #                Private API                  #
 ###############################################
@@ -145,3 +308,63 @@ def _pr_debug(message: str):
 
 def _pr_error(message: str):
     print(f"\033[91m[ERROR] {message}\033[0m")
+
+def _br2_create_linux_env(targets):
+    proj = "/home/taba1uga/Github/stm32mp135f_ebook_reader"
+    br = os.path.join(proj, "build", "buildroot")
+
+    host_bin = os.path.join(br, "host", "bin")
+    host_sbin = os.path.join(br, "host", "sbin")
+    host_lib = os.path.join(br, "host", "lib")
+    host_inc = os.path.join(br, "host", "include")
+    images = os.path.join(br, "images")
+    target = os.path.join(br, "target")
+    linux_src = os.path.join(br, "build", "linux-custom")
+
+    os.environ.update(
+        {
+            "ARCH": "arm",
+            "CROSS_COMPILE": os.path.join(host_bin, "arm-linux-"),
+            "PATH": ":".join(
+                [
+                    host_bin,
+                    host_sbin,
+                    os.environ["PATH"],
+                ]
+            ),
+            "PKG_CONFIG": os.path.join(host_bin, "pkg-config"),
+            "PKG_CONFIG_SYSROOT_DIR": "/",
+            "PKG_CONFIG_ALLOW_SYSTEM_CFLAGS": "1",
+            "PKG_CONFIG_ALLOW_SYSTEM_LIBS": "1",
+            "PKG_CONFIG_LIBDIR": ":".join(
+                [
+                    os.path.join(host_lib, "pkgconfig"),
+                    os.path.join(br, "host", "share", "pkgconfig"),
+                ]
+            ),
+            "BR_BINARIES_DIR": images,
+        }
+    )
+
+    hostcc = (
+        f"{os.path.join(host_bin, 'ccache')} /usr/bin/gcc -O2 "
+        f"-isystem {host_inc} "
+        f"-L{host_lib} "
+        f"-Wl,-rpath,{host_lib}"
+    )
+
+    cmd = (
+        f"/usr/bin/make -j5 "
+        f'HOSTCC="{hostcc}" '
+        f"ARCH=arm "
+        f'KCFLAGS="-Wno-attribute-alias" '
+        f"INSTALL_MOD_PATH={target} "
+        f'CROSS_COMPILE="{os.path.join(host_bin, "arm-linux-")}" '
+        f"WERROR=0 "
+        f"REGENERATE_PARSERS=1 "
+        f"DEPMOD={os.path.join(host_sbin, 'depmod')} "
+        f"INSTALL_MOD_STRIP=1 "
+        f"-C {linux_src} {targets}"
+    )
+
+    return cmd

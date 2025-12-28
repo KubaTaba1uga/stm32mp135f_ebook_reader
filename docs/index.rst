@@ -37,11 +37,11 @@ Each part is described in the sections below, but start with **Getting Started**
 
 .. warning::
    
-   This doccumentation was tested only on Debian Trixie
+   This documentation was tested only on Debian Trixie
 
 .. toctree::
    :maxdepth: 1
-   :caption: Summary:
+   :caption: Contents:
 
    getting_started
    buildroot   

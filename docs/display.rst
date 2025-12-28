@@ -1,4 +1,5 @@
 Display
 =======
 
-TO-DO: write this page!
+.. warning::
+   TO-DO: write this page!

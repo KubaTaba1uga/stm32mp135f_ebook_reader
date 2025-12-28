@@ -1,7 +1,14 @@
 Getting started
 ===============
 
-Before we can build all elements of the device (operating system, bootloader ...) we need to install all required dependencies:
+Obtain source code required to orchestrate the build:
+
+.. code-block:: console
+
+   $ git clone http://github.com/KubaTaba1uga/stm32mp135f_ebook_reader.git
+   $ cd stm32mp135f_ebook_reader
+
+To build all elements of the device (operating system, bootloader, libraries ...) we need to install required dependencies:
 
 .. code-block:: console
 
@@ -11,7 +18,7 @@ Before we can build all elements of the device (operating system, bootloader ...
 Build the SD card image
 -----------------------
 
-The operating system, bootloader, and application are stored on the SD card. Before making any changes, verify that you can rebuild the SD card image and boot the device successfully.
+The firmware is on the SD card. Before making any changes, verify that you can rebuild the SD card image and boot the device successfully.
 
 To build the BSP (Board Support Package) image do:
 
@@ -45,3 +52,6 @@ Boot the device
 
 Insert the SD card back into the eBook reader and power it on.
 The device should boot normally using the freshly built firmware.
+
+Once you confirmed that device is working properly, we can talk about how to modify the ebook's firmware.
+
