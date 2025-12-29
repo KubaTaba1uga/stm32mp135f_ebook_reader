@@ -14,7 +14,7 @@ Because the exact display model may vary between devices, we developed a display
 
 The display driver includes examples located in ``build/display_driver/``. These are a convenient way to test display functionality on the device without integrating changes into the main application.
 
-If you need to work on the display driver itself, the source code is in the ``display_driver/src`` directory, while examples are in ``display_driver/examples/stm``.
+If you need to work on the display driver itself, the source code is in the ``display_driver/src`` directory, while examples are in ``display_driver/examples/stm32mp135f``.
 
 Build system support also runing unit tests on the host. This is useful because host-based tests can enable sanitizers, which speeds up debugging (e.g., segfaults, memory leaks). To build the display driver unit tests:
 
@@ -37,6 +37,92 @@ The first display we started with was the **Waveshare 7.5-inch tri-color V2** pa
 This panel has drawbacks: refresh times are long, and it lacks grayscale support, so images are effectively limited to black and white. However, it is inexpensive, which matters for a hobby project. It is also often easier to source than the two-color equivalent, which helps when you need a replacement quickly.
 
 The display comes with a prebuilt driver board, `e-paper driver hat Rev2.3`, which works well. Most example drivers we found only support **4-wire mode**. It would be useful to read data back from the display (e.g., temperature or firmware/version information), so it is worth considering adding **3-wire capability** to our driver.
+
+.. list-table:: e-Paper HAT pinout
+   :header-rows: 1
+
+   * - Connector pin
+     - GPIO bank
+     - GPIO pin
+     - Alternate func (T/F)
+     - Alt func settings
+     - GPIO Settings
+     - Role
+   * - 1
+     - —
+     - —
+     - F
+     - —
+     - —
+     - 3.3V
+   * - 6
+     - —
+     - —
+     - F
+     - —
+     - —
+     - Ground
+   * - 19
+     - H
+     - 3
+     - T
+     - SPI5_MOSI
+     - Output, Active high
+     - DIN (SPI data to device)
+   * - 23
+     - H
+     - 7
+     - T
+     - SPI5_SCK
+     - Output, Active high
+     - CLK (SPI clock)
+   * - 24
+     - H
+     - 11
+     - T
+     - SPI5_NSS
+     - Output, Active low
+     - CS (SPI chip select; active low)
+   * - 22
+     - I
+     - 0
+     - F
+     - —
+     - Output, Active high
+     - DC (data/command select)
+   * - 11
+     - C
+     - 2
+     - F
+     - —
+     - Output, Active low
+     - RST (reset)
+   * - 18
+     - G
+     - 3
+     - F
+     - —
+     - Input, Active Low
+     - BUSY (device ready/busy)
+   * - 12
+     - A
+     - 4
+     - F
+     - —
+     - Output, Active high       
+     - PWR (power enable)
+
+.. note::
+   Connector pin stands for the pin's number on 40 pin hardware header.       
+
+.. note::
+   When the pin `DC` is pulled HIGH, the data will be interpreted as data. When the pin is pulled Low, the data
+   will be interpreted as command.
+
+.. note::
+   When the pin `BUSY` is pulled HIGH, the device is idle. When the pin is pulled Low, the device is busy
+   processing a command and shouldn't be talked to.
+   
 
 Driver API
 ----------
