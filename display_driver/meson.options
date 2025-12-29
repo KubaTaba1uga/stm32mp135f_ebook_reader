@@ -1,0 +1,11 @@
+option('tests',
+  type: 'boolean',
+  value: false,
+  description: 'Build library tests'
+)
+
+option('examples',
+  type: 'string',
+  value: '',
+  description: 'Examples showing how to use the library'
+)

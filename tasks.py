@@ -231,7 +231,7 @@ def fbuild_linux_dt(c):
                     c.run(
                         f"cp -r {dts.rstrip('\n')}/* build/buildroot/build/linux-custom/arch/arm/boot/dts"
                     )
-
+                    
     if not dtb:
         _pr_err(
             "No dtb file found in br2_external_tree/configs/ebook_reader_dev_defconfig"
@@ -246,6 +246,78 @@ def fbuild_linux_dt(c):
     _pr_info("Linux device tree fast build completed")
 
 
+@task
+def fbuild_display_driver(c):
+    driver_path = os.path.join(ROOT_PATH, "display_driver")
+    if not os.path.exists(driver_path):
+        return
+
+    _pr_info("Fast building display driver...")
+
+
+    cross_tpl_path = os.path.join(driver_path, "cross-compile.txt")
+
+    with c.cd(driver_path):
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
+        c.run(f"mkdir -p {build_dir}")
+        root = os.path.abspath(ROOT_PATH)        
+        with open(cross_tpl_path, "r", encoding="utf-8") as f:
+            cross_txt = f.read()
+            cross_txt = cross_txt.replace("PLACEHOLDER", root)
+
+        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
+        with open(cross_out_path, "w", encoding="utf-8") as f:
+            f.write(cross_txt)
+
+        c.run(
+            f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug {build_dir}"
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"meson compile -v -C {build_dir}")        
+           
+    _pr_info("Fast building display driver completed")
+
+    
+@task
+def fbuild_display_driver_test(c):
+    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Fast building display driver tests...")
+
+    with c.cd(tests_path):
+       build_dir = os.path.join(BUILD_PATH, 'test_display_driver')
+       c.run(
+           f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+       )
+       c.run(
+           f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+       )
+
+       c.run(f"meson compile -v -C {build_dir}")
+
+    _pr_info("Fast building display driver tests completed")
+
+    
+@task
+def test_display_driver(c):
+    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Testing display driver...")
+    
+    build_dir = os.path.join(BUILD_PATH, 'test_display_driver')
+
+    c.run(f"meson test -v -C {build_dir}")       
+           
+    _pr_info("Testing display driver completed")    
+
+    
 @task
 def deploy_tftp(c, directory="/srv/tftp"):
     _pr_info(f"Deploying to TFTP...")
