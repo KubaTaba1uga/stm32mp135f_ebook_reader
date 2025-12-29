@@ -5,11 +5,12 @@ The e-book reader uses an **e-ink** display. Unlike LCDs, e-ink does not require
 
 Our goal is to **minimize refresh operations** in response to a user button press. All state transitions in the e-book reader are triggered by button events, so the UI should be designed to avoid unnecessary screen changes.
 
-Because the exact display model may vary between devices, we developed a display driver that supports all required displays. Build it with:
+Because the exact display model may vary between devices, we developed a display driver that supports all required displays. Build and deploy it with:
 
 .. code-block:: console
 
 		$ inv fbuild-display-driver
+		$ inv deploy-nfs --no-rootfs
 
 The display driver includes examples located in ``build/display_driver/``. These are a convenient way to test display functionality on the device without integrating changes into the main application.
 

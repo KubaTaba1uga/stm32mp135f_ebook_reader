@@ -235,6 +235,8 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     dd_sleep_ms(200);
   }
 
+
+  
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_errno = dd_wvs75V2b_send_data(dd,
@@ -272,8 +274,8 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
   dd_errno = dd_wvs75V2b_send_data(
       dd,
       (uint8_t[]){
-          0x0F, // Gate scan direction up, Source Shift Direction Rigth, Booster
-                // on, Do not perform soft reset
+          0x0F, // Gate scan direction UP, Source Shift Direction Rigth, Booster
+                // on, Do not perform soft reset, Red/White/black mode, White/black works very slow
       },
       1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -411,6 +413,8 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
     goto error;
   }
 
+  // The display does full refresh in about 18 seconds so sending
+  // byte by byte does not affect this time much. Real bottleneck is in screen.
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   for (int i = 0; i < img_data_len; i++) {
@@ -421,7 +425,7 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  for (int i = 0; i < DD_WVS75V2B_HEIGTH * (DD_WVS75V2B_WIDTH / 8); i++) {
+  for (int i = 0; i < img_data_len; i++) {
     dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){0x00}, 1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
@@ -429,7 +433,6 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_sleep_ms(100);
   dd_wvs75V2b_wait(dd);
   
   return 0;
