@@ -1,36 +1,31 @@
 #include <lvgl.h>
 #include <stdio.h>
-bool terminated = false;
-static void on_close_cb(lv_event_t *e) {
-  puts("Exiting");
 
-  terminated = true;
-}
+#include "gui/gui.h"
+#include "utils/error.h"
+#include "utils/log.h"
+
+struct EbookReader {
+  gui_t gui;
+};
+
+static struct EbookReader ereader;
+
 int main(void) {
-  puts("Hello world!");
+  log_info("Hello world!");
+  ereader = (struct EbookReader){0};
 
-  lv_init();
+  cdk_errno = gui_init(&ereader.gui);
+  CDK_TRY(cdk_errno);
+
+  cdk_errno = gui_start(ereader.gui);
+  CDK_TRY_CATCH(cdk_errno, error_gui_cleanup);
   
-  /* initialize X11 display driver */
-  lv_display_t *disp = lv_x11_window_create("LVGL X11 Simulation", 480, 800);
-
-
-  lv_display_add_event_cb(disp, on_close_cb, LV_EVENT_DELETE, disp);
-
-  /* initialize X11 input drivers (for keyboard, mouse & mousewheel) */
-  lv_x11_inputs_create(disp, NULL);
-
-#if !LV_X11_DIRECT_EXIT
-  /* set optional window close callback to enable application cleanup and exit
-   */
-  lv_x11_window_set_close_cb(disp, on_close_cb, disp);
-#endif
-
-  while (!terminated) {
-    /* Periodically call the lv_timer handler */
-    lv_timer_handler();
-    lv_sleep_ms(100);
-  }
-
   return 0;
+
+error_gui_cleanup:
+  gui_destroy(&ereader.gui);
+error:
+  log_error(cdk_errno);
+  return cdk_errno->code;
 }

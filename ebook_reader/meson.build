@@ -11,9 +11,6 @@ project('ebook_reader', 'c',
          ],
 )
 
-add_project_arguments('-D_DEFAULT_SOURCE', language: 'c')
-# add_project_arguments('-D_GNU_SOURCE', language: ['c'])
-
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
@@ -35,11 +32,18 @@ ebook_reader_deps = [
 
 if get_option('display') == 'x11'
    ebook_reader_deps += [dependency('x11', required: true)]
+   add_project_arguments('-DEBOOK_READER_X11_ENABLED', language: 'c')   
 endif
 
 ebook_reader_inc = include_directories(['src', 'subprojects'])
 
-ebook_reader_src = files('src/main.c')
+ebook_reader_src = files('src/main.c',
+                         'src/utils/error.c',			 
+			 'src/gui/gui.c',
+ 			 'src/gui/lv/lv.c',
+			 'src/gui/lv/display.c',
+ 			 'src/gui/view/view.c',
+			 )
 
 # ******************************************************************************
 # *    App

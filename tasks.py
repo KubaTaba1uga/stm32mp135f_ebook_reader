@@ -266,7 +266,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
     cross_tpl_path = os.path.join(
         "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
     )
-    
+
     with c.cd(ereader_path):
         build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
         c.run(f"mkdir -p {build_dir}")
@@ -278,9 +278,15 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
-            
+
         c.run(
-            f"meson setup -Dbuildtype=debug {build_dir}" + (" --wipe" if recompile else "") + (f" --cross-file {cross_out_path}" if not local else " -Db_sanitize=address,undefined -Db_lundef=false")
+            f"meson setup -Dbuildtype=debug {build_dir}"
+            + (" --wipe" if recompile else "")
+            + (
+                f" --cross-file {cross_out_path}"
+                if not local
+                else " -Db_sanitize=address,undefined -Db_lundef=false"
+            )
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
@@ -290,7 +296,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
 
     _pr_info("Fast building ebook reader completed")
 
-    
+
 @task
 def fbuild_display_driver(c):
     driver_path = os.path.join(ROOT_PATH, "display_driver")
@@ -315,7 +321,6 @@ def fbuild_display_driver(c):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        
         c.run(
             f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug {build_dir}"
         )
