@@ -41,10 +41,16 @@ def install(c):
               unzip rsync file bc findutils gawk wget \
               git libncurses5-dev python3"
         )
+
         c.run("virtualenv .venv")
         c.run(
             "pip install sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
+
+        _pr_info("Super duper", "sada")
+
+        _pr_error("asdjhasdjha")
+
     except Exception:
         _pr_error("Installing failed")
         raise
@@ -144,7 +150,10 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
         if target:
             cmd = f"{cmd}-{target}"
         c.run(f"make BR2_DL_DIR=../../build/third_party {cmd}")
-
+    with c.cd("build/buildroot/build/linux-custom"):
+        c.run(
+            "python scripts/clang-tools/gen_compile_commands.py && cp compile_commands.json ../../../../third_party/linux"
+        )
     # TO-DO get compile_commands and copy to third_party/linux
 
     _pr_info(f"Building linux completed")
@@ -202,7 +211,7 @@ def build_optee(c, config="ebook_reader_dev_defconfig", target=None):
 def fbuild_linux_kernel(c):
     _pr_info("Fast building linux kernel...")
 
-    cmd = _br2_create_linux_env("zImage")    
+    cmd = _br2_create_linux_env("zImage")
     with c.cd("build/buildroot/build/linux-custom"):
         c.run(cmd)
         c.run(f"cp arch/arm/boot/zImage ../../images/")
@@ -231,9 +240,9 @@ def fbuild_linux_dt(c):
                     c.run(
                         f"cp -r {dts.rstrip('\n')}/* build/buildroot/build/linux-custom/arch/arm/boot/dts"
                     )
-                    
+
     if not dtb:
-        _pr_err(
+        _pr_error(
             "No dtb file found in br2_external_tree/configs/ebook_reader_dev_defconfig"
         )
         return 1
@@ -247,6 +256,42 @@ def fbuild_linux_dt(c):
 
 
 @task
+def fbuild_ebook_reader(c, recompile=False):
+    ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(ereader_path):
+        return
+
+    _pr_info("Fast building ebook reader...")
+
+    cross_tpl_path = os.path.join(
+        "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
+    )
+    
+    with c.cd(ereader_path):
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
+        c.run(f"mkdir -p {build_dir}")
+        root = os.path.abspath(ROOT_PATH)
+        with open(cross_tpl_path, "r", encoding="utf-8") as f:
+            cross_txt = f.read()
+            cross_txt = cross_txt.replace("PLACEHOLDER", root)
+
+        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
+        with open(cross_out_path, "w", encoding="utf-8") as f:
+            f.write(cross_txt)
+            
+        c.run(
+            f"meson setup --cross-file {cross_out_path} -Dbuildtype=debug {build_dir}" + (" --wipe" if recompile else "")
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"meson compile -v -C {build_dir}")
+
+    _pr_info("Fast building ebook reader completed")
+
+    
+@task
 def fbuild_display_driver(c):
     driver_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(driver_path):
@@ -254,13 +299,14 @@ def fbuild_display_driver(c):
 
     _pr_info("Fast building display driver...")
 
-
-    cross_tpl_path = os.path.join(driver_path, "cross-compile.txt")
+    cross_tpl_path = os.path.join(
+        "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
+    )
 
     with c.cd(driver_path):
         build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
         c.run(f"mkdir -p {build_dir}")
-        root = os.path.abspath(ROOT_PATH)        
+        root = os.path.abspath(ROOT_PATH)
         with open(cross_tpl_path, "r", encoding="utf-8") as f:
             cross_txt = f.read()
             cross_txt = cross_txt.replace("PLACEHOLDER", root)
@@ -276,11 +322,11 @@ def fbuild_display_driver(c):
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )
 
-        c.run(f"meson compile -v -C {build_dir}")        
-           
+        c.run(f"meson compile -v -C {build_dir}")
+
     _pr_info("Fast building display driver completed")
 
-    
+
 @task
 def fbuild_display_driver_test(c):
     tests_path = os.path.join(ROOT_PATH, "display_driver")
@@ -290,19 +336,19 @@ def fbuild_display_driver_test(c):
     _pr_info("Fast building display driver tests...")
 
     with c.cd(tests_path):
-       build_dir = os.path.join(BUILD_PATH, 'test_display_driver')
-       c.run(
-           f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
-       )
-       c.run(
-           f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
-       )
+        build_dir = os.path.join(BUILD_PATH, "test_display_driver")
+        c.run(
+            f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
 
-       c.run(f"meson compile -v -C {build_dir}")
+        c.run(f"meson compile -v -C {build_dir}")
 
     _pr_info("Fast building display driver tests completed")
 
-    
+
 @task
 def test_display_driver(c):
     tests_path = os.path.join(ROOT_PATH, "display_driver")
@@ -310,14 +356,14 @@ def test_display_driver(c):
         return
 
     _pr_info("Testing display driver...")
-    
-    build_dir = os.path.join(BUILD_PATH, 'test_display_driver')
 
-    c.run(f"meson test -v -C {build_dir}")       
-           
-    _pr_info("Testing display driver completed")    
+    build_dir = os.path.join(BUILD_PATH, "test_display_driver")
 
-    
+    c.run(f"meson test -v -C {build_dir}")
+
+    _pr_info("Testing display driver completed")
+
+
 @task
 def deploy_tftp(c, directory="/srv/tftp"):
     _pr_info(f"Deploying to TFTP...")
