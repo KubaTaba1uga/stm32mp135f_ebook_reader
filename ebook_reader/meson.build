@@ -23,9 +23,9 @@ lvgl_dep = dependency('lvgl',
   required: true,
   static: true,
   default_options: [
+     'CONFIG_LV_BUILD_EXAMPLES=false',
+     'CONFIG_LV_BUILD_DEMOS=false',
      'werror=false',
-     'c_args=-D_DEFAULT_SOURCE',
-     'cpp_args=-D_DEFAULT_SOURCE',     
   ],
 )
 
