@@ -256,7 +256,7 @@ def fbuild_linux_dt(c):
 
 
 @task
-def fbuild_ebook_reader(c, recompile=False):
+def fbuild_ebook_reader(c, recompile=False, local=False):
     ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
     if not os.path.exists(ereader_path):
         return
@@ -280,7 +280,7 @@ def fbuild_ebook_reader(c, recompile=False):
             f.write(cross_txt)
             
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dbuildtype=debug {build_dir}" + (" --wipe" if recompile else "")
+            f"meson setup -Dbuildtype=debug {build_dir}" + (" --wipe" if recompile else "") + (f" --cross-file {cross_out_path}" if not local else "")
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
@@ -315,6 +315,7 @@ def fbuild_display_driver(c):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
+        
         c.run(
             f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug {build_dir}"
         )

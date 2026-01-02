@@ -11,6 +11,9 @@ project('ebook_reader', 'c',
          ],
 )
 
+add_project_arguments('-D_DEFAULT_SOURCE', language: 'c')
+# add_project_arguments('-D_GNU_SOURCE', language: ['c'])
+
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
@@ -20,14 +23,19 @@ lvgl_dep = dependency('lvgl',
   required: true,
   static: true,
   default_options: [
-     # 'werror=false',
-     # 'LV_BUILD_CONF_PATH="lv_conf.h"',
+     'werror=false',
+     'c_args=-D_DEFAULT_SOURCE',
+     'cpp_args=-D_DEFAULT_SOURCE',     
   ],
 )
 
 ebook_reader_deps = [
    lvgl_dep,
 ]
+
+if get_option('display') == 'x11'
+   ebook_reader_deps += [dependency('x11', required: true)]
+endif
 
 ebook_reader_inc = include_directories(['src', 'subprojects'])
 

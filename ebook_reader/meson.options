@@ -1,11 +1,11 @@
 option('tests',
   type: 'boolean',
   value: false,
-  description: 'Build library tests'
+  description: 'Build tests'
 )
 
-option('examples',
+option('display',
   type: 'string',
-  value: '',
-  description: 'Examples showing how to use the library'
+  value: 'x11',
+  description: 'Choose display backend'
 )
