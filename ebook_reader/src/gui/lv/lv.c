@@ -1,9 +1,11 @@
 #include <assert.h>
 #include <lvgl.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-#include "gui/lv/display.h"
+#include "gui/lv/display/display.h"
 #include "gui/lv/lv.h"
 #include "lv_init.h"
 #include "misc/lv_event.h"
@@ -11,15 +13,15 @@
 #include "misc/lv_types.h"
 #include "utils/error.h"
 #include "utils/log.h"
+#include "utils/time.h"
 
 static void lvgl_event_cb(lv_event_t *e);
-static uint32_t lvgl_clock(void);
 
 cdk_error_t lvgl_init(lvgl_t out,
                       cdk_error_t (*callback)(enum LvglEvent event, void *data),
                       void *data) {
   lv_init();
-  lv_tick_set_cb(lvgl_clock);
+  lv_tick_set_cb(time_now);
 
   out->callback = callback;
   out->callback_data = data;
@@ -42,10 +44,7 @@ void lvgl_destroy(lvgl_t out) {
   lv_deinit();
 };
 
-uint32_t lvgl_process(lvgl_t out) {
-  return lv_timer_handler();
-  }
-
+uint32_t lvgl_process(lvgl_t out) { return lv_timer_handler(); }
 
 static void lvgl_event_cb(lv_event_t *e) {
   lvgl_t lvgl = lv_event_get_user_data(e);
@@ -72,15 +71,8 @@ static void lvgl_event_cb(lv_event_t *e) {
 
 error_dump:
   log_error(cdk_errno);
-/* error: */
+  /* error: */
   /* assert(false); */
 skip:
-  assert(true);  
+  assert(true);
 };
-
-static uint32_t lvgl_clock(void) {
-  struct timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
-}
-

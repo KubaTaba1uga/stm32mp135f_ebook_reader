@@ -74,3 +74,8 @@ _Thread_local struct dd_Error dd_hidden_errno = {0};
 
   return 0;
 }
+
+int dd_error_get_code(dd_error_t err){return err->code;}
+
+const char *dd_error_get_msg(dd_error_t err){return err->msg;}
+

@@ -1,11 +1,13 @@
 #ifndef EBOOK_READER_LVGL_DISPLAY_H
 #define EBOOK_READER_LVGL_DISPLAY_H
-#include "misc/lv_types.h"
-#include "utils/error.h"
 #include <lvgl.h>
 
+#include "utils/error.h"
+#include "gui/lv/display/driver.h"
+
 struct LvglDisplay {
-  lv_display_t* display;
+  lv_display_t *display;
+  struct LvglDisplayDriver driver;  
 };
 
 typedef struct LvglDisplay *lvgl_display_t;

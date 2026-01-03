@@ -8,7 +8,7 @@ BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
 
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
-
+os.chdir(ROOT_PATH)
 
 @task
 def add_repo(c, name, tag, url):
@@ -283,21 +283,22 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        src, dst = (
-             "#define LV_USE_X11              1",
-             "#define LV_USE_X11              0",
-        )
-        if local:
-            src, dst = (
-                "#define LV_USE_X11              0",
-                "#define LV_USE_X11              1",
-            )
-        with open(lv_conf_path, "r", encoding="utf-8") as f:
-            cross_txt = f.read()
-            cross_txt = cross_txt.replace(src, dst)
+        # src, dst = (
+        #     "#define LV_USE_X11              1",
+        #     "#define LV_USE_X11              0",
+        # )
+        # if local:
+        #     src, dst = (
+        #         "#define LV_USE_X11              0",
+        #         "#define LV_USE_X11              1",
+        #     )
+        # with open(lv_conf_path, "r", encoding="utf-8") as f:
+        #     cross_txt = f.read()
+        #     new_cross_txt = cross_txt.replace(src, dst)
 
-        with open(lv_conf_path, "w", encoding="utf-8") as f:
-            f.write(cross_txt)
+        # with open(lv_conf_path, "w", encoding="utf-8") as f:
+        #     if cross_txt != new_cross_txt:
+        #         f.write(new_cross_txt)
 
         c.run(
             f"rm subprojects/display_driver && "

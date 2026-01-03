@@ -29,32 +29,33 @@ ebook_reader_deps = [
    lvgl_dep,
 ]
 
+ebook_reader_inc = include_directories(['src'])
+
+ebook_reader_src = [files('src/main.c',
+                         'src/utils/error.c',
+                         'src/utils/time.c',
+			 'src/gui/gui.c',
+ 			 'src/gui/lv/lv.c',
+			 'src/gui/lv/display/display.c',
+ 			 'src/gui/view/view.c',
+			 )]
+
 if get_option('display') == 'x11'
-   debug('myX11')
+   ebook_reader_src += [files('src/gui/lv/display/x11.c')]
    ebook_reader_deps += [dependency('x11', required: true)]
-   add_project_arguments('-DEBOOK_READER_X11_ENABLED', language: 'c')   
+   add_project_arguments('-DEBOOK_READER_X11_ENABLED', language: 'c')
 endif
 
 if get_option('display') == 'waveshare7in5v2b'
-   debug('myWVS')
+   ebook_reader_src += [files('src/gui/lv/display/wvs7in5v2b.c')]
    ebook_reader_deps += [dependency('display_driver',
                                     fallback: ['display_driver', 'display_driver_dep'],
 				    required: true,
 				    static: true,
 				    )]
-   add_project_arguments('-DEBOOK_READER_WVS7IN5V2B_ENABLED', language: 'c')   
+   add_project_arguments('-DEBOOK_READER_WVS7IN5V2B_ENABLED', language: 'c')
 endif
 
-
-ebook_reader_inc = include_directories(['src'])
-
-ebook_reader_src = files('src/main.c',
-                         'src/utils/error.c',			 
-			 'src/gui/gui.c',
- 			 'src/gui/lv/lv.c',
-			 'src/gui/lv/display.c',
- 			 'src/gui/view/view.c',
-			 )
 
 # ******************************************************************************
 # *    App

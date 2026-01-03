@@ -3,7 +3,6 @@
 #include <time.h>
 
 #include "gui/gui.h"
-#include "gui/lv/display.h"
 #include "gui/lv/lv.h"
 #include "gui/view/view.h"
 #include "utils/error.h"

@@ -3,7 +3,7 @@
 #include <lvgl.h>
 #include <stdint.h>
 
-#include "gui/lv/display.h"
+#include "gui/lv/display/display.h"
 #include "utils/error.h"
 
 enum LvglEvent {
