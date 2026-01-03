@@ -34,6 +34,17 @@ display_driver_deps = [
    libgpiod_dep,
 ]
 
+display_driver_lib = library('display_driver',
+     sources: display_driver_src,
+     include_directories: display_driver_inc,
+     dependencies: display_driver_deps,
+)
+
+display_driver_dep = declare_dependency(
+  link_with: display_driver_lib,
+  include_directories: display_driver_inc,
+)
+
 # ******************************************************************************
 # *    Examples
 # ******************************************************************************
@@ -41,19 +52,19 @@ if get_option('examples') == 'rpi'
    rpi_rst_example = executable('rpi_rst_example',
      sources: display_driver_src + [files('examples/rpi4b/rpi_rst_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 
    rpi_clear_example = executable('rpi_clear_example',
      sources: display_driver_src + [files('examples/rpi4b/rpi_clear_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 
    rpi_full_example = executable('rpi_display_full_example',
      sources: display_driver_src + [files('examples/rpi4b/rpi_display_full_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 endif
 
@@ -62,19 +73,19 @@ if get_option('examples') == 'stm'
    stm_rst_example = executable('stm_rst_example',
      sources: display_driver_src + [files('examples/stm32mp135f/stm_rst_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 
    stm_clear_example = executable('stm_clear_example',
      sources: display_driver_src + [files('examples/stm32mp135f/stm_clear_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 
    stm_full_example = executable('stm_display_full_example',
      sources: display_driver_src + [files('examples/stm32mp135f/stm_display_full_example.c')],
      include_directories: display_driver_inc,
-     dependencies: display_driver_deps,
+     dependencies: display_driver_dep,
    )
 endif
 

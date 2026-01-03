@@ -14,7 +14,6 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
-# LV_BUILD_LVGL_H_SIMPLE_INCLUDE
 lvgl_dep = dependency('lvgl',
   fallback: ['lvgl', 'lvgl_dep'],
   required: true,
@@ -35,7 +34,17 @@ if get_option('display') == 'x11'
    add_project_arguments('-DEBOOK_READER_X11_ENABLED', language: 'c')   
 endif
 
-ebook_reader_inc = include_directories(['src', 'subprojects'])
+if get_option('display') == 'waveshare7in5v2b'
+   ebook_reader_deps += [dependency('display_driver',
+                                    fallback: ['display_driver', 'display_driver_dep'],
+				    required: true,
+				    static: true,
+				    )]
+   add_project_arguments('-DEBOOK_READER_WVS7IN5V2B_ENABLED', language: 'c')   
+endif
+
+
+ebook_reader_inc = include_directories(['src'])
 
 ebook_reader_src = files('src/main.c',
                          'src/utils/error.c',			 

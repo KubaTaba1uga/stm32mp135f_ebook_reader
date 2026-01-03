@@ -9,5 +9,6 @@ compile_commands.json
 ebook_reader/subprojects/Unity-2.6.1
 ebook_reader/subprojects/lvgl-9.4.0
 ebook_reader/subprojects/packagecache
+ebook_reader/subprojects/display_driver
 old*
 
