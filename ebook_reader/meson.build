@@ -30,11 +30,13 @@ ebook_reader_deps = [
 ]
 
 if get_option('display') == 'x11'
+   debug('myX11')
    ebook_reader_deps += [dependency('x11', required: true)]
    add_project_arguments('-DEBOOK_READER_X11_ENABLED', language: 'c')   
 endif
 
 if get_option('display') == 'waveshare7in5v2b'
+   debug('myWVS')
    ebook_reader_deps += [dependency('display_driver',
                                     fallback: ['display_driver', 'display_driver_dep'],
 				    required: true,
