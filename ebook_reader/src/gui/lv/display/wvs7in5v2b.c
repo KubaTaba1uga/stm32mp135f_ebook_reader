@@ -30,7 +30,7 @@ static void wvs7in5v2b_flush_dd_callback(lv_display_t *display,
                                          const lv_area_t *area,
                                          uint8_t *px_map);
 
-bool lvgl_display_driver_wvs7in5v2b_probe(struct LvglDisplayDriver *out){
+bool lvgl_display_driver_wvs7in5v2b_probe(struct LvglDisplayDriver *out) {
   out->init = wvs7in5v2b_init;
   out->destroy = wvs7in5v2b_destroy;
   return true;
@@ -42,7 +42,7 @@ static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
   if (!disp) {
     goto error;
   }
-
+  
   dd_wvs75v2b_t dd;
   dd_error_t err;
 

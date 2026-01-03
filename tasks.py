@@ -267,10 +267,6 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
     )
 
-    lv_conf_path = os.path.join(
-        "ebook_reader", "subprojects", "lvgl-9.4.0", "src", "lv_conf.h"
-    )
-
     with c.cd(ereader_path):
         build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
         c.run(f"mkdir -p {build_dir}")
@@ -283,23 +279,6 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        # src, dst = (
-        #     "#define LV_USE_X11              1",
-        #     "#define LV_USE_X11              0",
-        # )
-        # if local:
-        #     src, dst = (
-        #         "#define LV_USE_X11              0",
-        #         "#define LV_USE_X11              1",
-        #     )
-        # with open(lv_conf_path, "r", encoding="utf-8") as f:
-        #     cross_txt = f.read()
-        #     new_cross_txt = cross_txt.replace(src, dst)
-
-        # with open(lv_conf_path, "w", encoding="utf-8") as f:
-        #     if cross_txt != new_cross_txt:
-        #         f.write(new_cross_txt)
-
         c.run(
             f"rm subprojects/display_driver && "
             f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
@@ -307,11 +286,11 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         )
         c.run(
             f"meson setup -Dbuildtype=debug {build_dir} "
-            + (" --wipe " if recompile else "")
+            + (" --wipe " if recompile else " ")
             + (
-                f"--cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b "
+                f" --cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b "
                 if not local
-                else "-Db_sanitize=address,undefined -Db_lundef=false "
+                else " -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
             )
         )
         c.run(

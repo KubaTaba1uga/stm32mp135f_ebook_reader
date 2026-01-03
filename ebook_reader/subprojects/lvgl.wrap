@@ -8,7 +8,7 @@ patch_filename = lvgl_9.4.0-1_patch.zip
 patch_url = https://wrapdb.mesonbuild.com/v2/lvgl_9.4.0-1/get_patch
 patch_hash = c1470a1e3a6415f25dbdd47b775b76d9d9febce7cd3ed2800f21d6761cd68c60
 wrapdb_version = 9.4.0-1
-diff_files = lvgl/lv_conf.h.patch
+diff_files = lvgl/lv_conf.h.patch, lvgl/src_meson.build.patch
 
 [provide]
 dependency_names = lvgl, lvgl_demos, lvgl_examples, lvgl_thorvg

@@ -1,16 +1,17 @@
-#include <display_driver.h>
 #include <lvgl.h>
 #include <stdint.h>
 
 #include "display/lv_display.h"
 #include "gui/lv/display/display.h"
+#include "utils/config.h"
+#include "utils/error.h"
+
 #if defined(EBOOK_READER_X11_ENABLED)
 #include "gui/lv/display/x11.h"
 #elif defined(EBOOK_READER_WVS7IN5V2B_ENABLED)
+#include <display_driver.h>
 #include "gui/lv/display/wvs7in5v2b.h"
 #endif
-#include "utils/config.h"
-#include "utils/error.h"
 
 cdk_error_t lvgl_display_init(lvgl_display_t out,
                               void (*callback)(lv_event_t *e), void *data) {
