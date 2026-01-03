@@ -1,5 +1,8 @@
 #include <lvgl.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "gui/gui.h"
 #include "utils/error.h"
@@ -11,8 +14,16 @@ struct EbookReader {
 
 static struct EbookReader ereader;
 
+static int configure_main(void);
+static void signal_handler(int);
+static void exit_handler(void);
+
 int main(void) {
-  log_info("Hello world!");
+  puts(__func__);
+  if (!configure_main()) {
+    return EXIT_FAILURE;
+  }
+  
   ereader = (struct EbookReader){0};
 
   cdk_errno = gui_init(&ereader.gui);
@@ -20,7 +31,7 @@ int main(void) {
 
   cdk_errno = gui_start(ereader.gui);
   CDK_TRY_CATCH(cdk_errno, error_gui_cleanup);
-  
+
   return 0;
 
 error_gui_cleanup:
@@ -28,4 +39,36 @@ error_gui_cleanup:
 error:
   log_error(cdk_errno);
   return cdk_errno->code;
+}
+
+static int configure_main(void) {
+  puts(__func__);  
+  struct sigaction sa = {0};
+  sa.sa_handler = signal_handler;
+  sigemptyset(&sa.sa_mask);
+  int signals[] = {SIGINT, SIGTERM, SIGHUP};
+  for (size_t i = 0; i < sizeof(signals) / sizeof(signals[0]); i++) {
+    if (sigaction(signals[i], &sa, NULL) == -1) {
+      log_warn("Cannot sonfigure signal handler for %d", signals[i]);
+      return 1;
+    }
+  }
+  if (atexit(exit_handler) != 0) {
+    log_warn("Cannot set exit handler");
+    return EXIT_FAILURE;
+  };
+
+  return 2;
+}
+
+static void signal_handler(int signum) {
+  puts(__func__);
+  gui_stop(ereader.gui);
+  /* _exit(1); */
+}
+
+static void exit_handler(void) {
+  puts(__func__);
+  /* gui_destroy(&ereader.gui); */
+  /* exit(0); */
 }

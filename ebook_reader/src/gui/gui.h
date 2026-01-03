@@ -6,6 +6,7 @@ typedef struct Gui *gui_t;
 
 cdk_error_t gui_init(gui_t *);
 cdk_error_t gui_start(gui_t);
+void gui_stop(gui_t);
 void gui_destroy(gui_t *);
 
 #endif // EBOOK_READER_GUI_H

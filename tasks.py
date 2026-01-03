@@ -10,6 +10,7 @@ DOCS_PATH = os.path.join(ROOT_PATH, "docs")
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
 
+
 @task
 def add_repo(c, name, tag, url):
     _pr_info("Adding repo...")
@@ -46,10 +47,6 @@ def install(c):
         c.run(
             "pip install sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
-
-        _pr_info("Super duper", "sada")
-
-        _pr_error("asdjhasdjha")
 
     except Exception:
         _pr_error("Installing failed")
@@ -288,7 +285,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
             f"meson setup -Dbuildtype=debug {build_dir} "
             + (" --wipe " if recompile else " ")
             + (
-                f" --cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b "
+                f" --cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b  -Db_sanitize=address,undefined -Db_lundef=false "
                 if not local
                 else " -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
             )
@@ -389,7 +386,7 @@ def deploy_tftp(c, directory="/srv/tftp"):
 
 
 @task
-def deploy_nfs(c, directory="/srv/nfs", rootfs=True):
+def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
     _pr_info(f"Deploying to NFS...")
 
     if not os.path.exists(directory):
@@ -399,6 +396,10 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True):
         with c.cd("build/buildroot/images"):
             c.run(f"sudo tar xvf rootfs.tar -C {directory}")
 
+    if sanitizers:
+        with c.cd("build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"):
+            c.run(f"sudo cp lib*san* {directory}/lib")
+            
     with c.cd("build/display_driver"):
         c.run(f"sudo cp *example {directory}/root/")
 
@@ -418,10 +419,10 @@ def deploy_sdcard(c, dev="sda"):
 
     with c.cd("build/buildroot/images"):
         c.run(
-            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl1 bs=1K conv=fsync"
+            "sudo dd if=tf-a-stm32mp135f-dk-ebook_reader.stm32 of=/dev/disk/by-partlabel/fsbl1 bs=1K conv=fsync"
         )
         c.run(
-            "sudo dd if=tf-a-stm32mp135f-dk.stm32 of=/dev/disk/by-partlabel/fsbl2 bs=1K conv=fsync"
+            "sudo dd if=tf-a-stm32mp135f-dk-ebook_reader.stm32 of=/dev/disk/by-partlabel/fsbl2 bs=1K conv=fsync"
         )
         c.run("sudo dd if=fip.bin of=/dev/disk/by-partlabel/fip bs=1K conv=fsync")
 

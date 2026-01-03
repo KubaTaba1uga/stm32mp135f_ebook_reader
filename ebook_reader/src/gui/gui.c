@@ -65,12 +65,16 @@ error:
   return cdk_errno;
 };
 
-cdk_error_t gui_ev_callback(enum LvglEvent event, void *data) {
+void gui_stop(gui_t gui) {
+    gui->in_progress = false;  
+}
+
+static cdk_error_t gui_ev_callback(enum LvglEvent event, void *data) {
   gui_t gui = data;
 
   switch (event) {
   case LvglEvent_APP_CLOSED:
-    gui->in_progress = false;
+    gui_stop(gui);
     break;
   default:
     cdk_errno = cdk_errnof(ENOENT, "Unsupported event: %d", event);

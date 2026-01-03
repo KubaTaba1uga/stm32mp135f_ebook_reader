@@ -8,6 +8,7 @@ project('display_driver', 'c',
 	 default_options: [
             'werror=true',
             'c_std=c11',
+	    'default_library=static',
          ],
 )
 

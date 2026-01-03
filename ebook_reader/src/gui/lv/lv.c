@@ -42,6 +42,7 @@ void lvgl_destroy(lvgl_t out) {
   };
 
   lv_deinit();
+  lvgl_display_destroy(&out->display);
 };
 
 uint32_t lvgl_process(lvgl_t out) { return lv_timer_handler(); }

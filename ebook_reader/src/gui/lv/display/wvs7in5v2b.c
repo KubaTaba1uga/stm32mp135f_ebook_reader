@@ -69,7 +69,7 @@ static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
 
   struct LvglWvs7In5V2b *driver = out->data =
       mem_malloc(sizeof(struct LvglWvs7In5V2b));
-  uint32_t buf_len = (width + heigth) * BYTES_PER_PIXEL;
+  uint32_t buf_len = (width * heigth) * BYTES_PER_PIXEL;
   *driver = (struct LvglWvs7In5V2b){
       .dd = dd,
       .buf = {.data = mem_malloc(buf_len), .len = buf_len},
@@ -107,7 +107,7 @@ static void wvs7in5v2b_flush_dd_callback(lv_display_t *display,
 }
 
 static void wvs7in5v2b_destroy(struct LvglDisplayDriver *out) {
-
+  log_info("Destroyed");
   if (!out) {
     return;
   }

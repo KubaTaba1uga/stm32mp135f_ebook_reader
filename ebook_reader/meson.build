@@ -56,6 +56,11 @@ if get_option('display') == 'waveshare7in5v2b'
    add_project_arguments('-DEBOOK_READER_WVS7IN5V2B_ENABLED', language: 'c')
 endif
 
+buildtype = get_option('buildtype')
+if buildtype == 'debug' or buildtype == 'debugoptimized'
+  add_project_arguments('-DDEBUG', language: 'c')
+endif
+
 
 # ******************************************************************************
 # *    App

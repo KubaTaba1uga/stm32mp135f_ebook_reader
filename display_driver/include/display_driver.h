@@ -129,6 +129,7 @@ dd_error_t dd_wvs75v2b_init(dd_wvs75v2b_t *dd);
 
 /**
  * \brief Destroy the driver instance and release resources.
+ *        This function resets display to default state.
  * \param dd Pointer to the driver. Set to NULL on return.
  */
 void dd_wvs75v2b_destroy(dd_wvs75v2b_t *dd);
