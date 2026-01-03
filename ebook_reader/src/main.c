@@ -23,26 +23,28 @@ int main(void) {
   if (!configure_main()) {
     return EXIT_FAILURE;
   }
-  
+
   ereader = (struct EbookReader){0};
 
+  // We do not need to destroy gui here, cause it is destroyed in exit handler.
+  // Thanks to cleaning up in exit handler we can be sure that on every `exit`
+  // call all gui is cleanud up, so it won't leave display in some wierd state
+  // like epaper powered on. Epaper if powered on for long time stops working.  
   cdk_errno = gui_init(&ereader.gui);
   CDK_TRY(cdk_errno);
 
   cdk_errno = gui_start(ereader.gui);
-  CDK_TRY_CATCH(cdk_errno, error_gui_cleanup);
+  CDK_TRY(cdk_errno);
 
   return 0;
-
-error_gui_cleanup:
-  gui_destroy(&ereader.gui);
+  
 error:
   log_error(cdk_errno);
   return cdk_errno->code;
 }
 
 static int configure_main(void) {
-  puts(__func__);  
+  puts(__func__);
   struct sigaction sa = {0};
   sa.sa_handler = signal_handler;
   sigemptyset(&sa.sa_mask);
@@ -64,11 +66,10 @@ static int configure_main(void) {
 static void signal_handler(int signum) {
   puts(__func__);
   gui_stop(ereader.gui);
-  /* _exit(1); */
+  _exit(1);
 }
 
 static void exit_handler(void) {
   puts(__func__);
-  /* gui_destroy(&ereader.gui); */
-  /* exit(0); */
+  gui_destroy(&ereader.gui);
 }

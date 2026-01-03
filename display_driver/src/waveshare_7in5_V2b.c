@@ -20,6 +20,7 @@ dd_error_t dd_wvs75v2b_init(dd_wvs75v2b_t *dd) {
   }
 
   *dd = dd_malloc(sizeof(struct dd_Wvs75V2b));
+  **dd = (struct dd_Wvs75V2b){0};
 
   dd_errno = dd_gpio_init(&(*dd)->gpio);
   if (dd_errno) {
@@ -41,10 +42,19 @@ void dd_wvs75v2b_destroy(dd_wvs75v2b_t *dd) {
     return;
   }
 
-  dd_gpio_set_pin(0, (*dd)->pwr, &(*dd)->gpio);
-  dd_gpio_set_pin(0, (*dd)->rst, &(*dd)->gpio);
-  dd_gpio_set_pin(0, (*dd)->dc, &(*dd)->gpio);
+  if ((*dd)->pwr) {
+    dd_gpio_set_pin(0, (*dd)->pwr, &(*dd)->gpio);
+  }
+  if ((*dd)->rst) {
+    dd_gpio_set_pin(0, (*dd)->rst, &(*dd)->gpio);
+  }
+  if ((*dd)->dc) {
+    dd_gpio_set_pin(0, (*dd)->dc, &(*dd)->gpio);
+  }
+
+  dd_spi_destroy(&(*dd)->spi)  ;
   dd_gpio_destroy(&(*dd)->gpio);
+
   dd_free(*dd);
   *dd = NULL;
 }
@@ -235,8 +245,6 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     dd_sleep_ms(200);
   }
 
-
-  
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_SETTING);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_errno = dd_wvs75V2b_send_data(dd,
@@ -275,7 +283,8 @@ dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
       dd,
       (uint8_t[]){
           0x0F, // Gate scan direction UP, Source Shift Direction Rigth, Booster
-                // on, Do not perform soft reset, Red/White/black mode, White/black works very slow
+                // on, Do not perform soft reset, Red/White/black mode,
+                // White/black works very slow
       },
       1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -373,7 +382,7 @@ dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
                                  "`dd->pwr` and `dd->spi.path` cannot be NULL");
     goto error;
   }
-  
+
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_POWER_OFF);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_wvs75V2b_wait(dd);
@@ -388,7 +397,7 @@ dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd) {
   return 0;
 
 error_dd_cleanup:
-  dd_wvs75v2b_ops_reset(dd);  
+  dd_wvs75v2b_ops_reset(dd);
 error:
   return dd_errno;
 }
@@ -406,10 +415,11 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   struct dd_ImagePoint *img_res = dd_image_get_resolution(image);
   unsigned char *img_data = dd_image_get_data(image);
   uint32_t img_data_len = dd_image_get_data_len(image);
-  
+
   if (img_res->x != DD_WVS75V2B_WIDTH || img_res->y != DD_WVS75V2B_HEIGTH) {
-    dd_errno = dd_errnos(EINVAL, "To display picture on full screen it's resolution has to "
-                                 "match display's resolution");
+    dd_errno = dd_errnos(
+        EINVAL, "To display picture on full screen it's resolution has to "
+                "match display's resolution");
     goto error;
   }
 
@@ -430,11 +440,11 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
   dd_wvs75V2b_wait(dd);
-  
+
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_wvs75V2b_wait(dd);
-  
+
   return 0;
 
 error_dd_cleanup:

@@ -3,7 +3,7 @@
 _Thread_local cdk_error_t cdk_errno = NULL;
 _Thread_local struct cdk_Error cdk_hidden_errno = {0};
 
- int cdk_error_dumps(cdk_error_t err, size_t buf_size, char *buf) {
+int cdk_error_dumps(cdk_error_t err, size_t buf_size, char *buf) {
   size_t offset = 0;
   int written;
 

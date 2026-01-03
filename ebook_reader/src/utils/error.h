@@ -27,7 +27,6 @@
    SOFTWARE.
  */
 
-
 #ifdef __STDC_NO_THREADS__
 #error "Threads extension is required to compile this library"
 #endif
@@ -60,8 +59,8 @@
  Each type exists for performance reasons. Integer errors are the fastest,
  string errors add only a little overhead, and formatted errors are the slowest
  because of formatting work. Since C is often chosen for performance, you can
- trim down to only what you need. Defining `EBOOK_READER_ERROR_OPTIMIZE` removes the
- formatted string buffer to save bytes.
+ trim down to only what you need. Defining `EBOOK_READER_ERROR_OPTIMIZE` removes
+the formatted string buffer to save bytes.
 
  Another key feature is backtraces. Every error can store its own trace, making
  debugging far easier. Trace collection is manual, which might feel verbose,
@@ -119,14 +118,15 @@ struct cdk_EFrame {
  * Common error object.
  */
 struct cdk_Error {
-  enum cdk_ErrorType type;                         // Error type
-  uint16_t code;                                   // Status code
-  const char *msg;                                 // String msg, can be NULL
+  enum cdk_ErrorType type; // Error type
+  uint16_t code;           // Status code
+  const char *msg;         // String msg, can be NULL
   struct cdk_EFrame eframes[EBOOK_READER_ERROR_BTRACE_MAX]; // Backtrace frames
-  size_t eframes_len;                              // Backtrace frames length
+  size_t eframes_len; // Backtrace frames length
 
 #ifndef EBOOK_READER_ERROR_OPTIMIZE
-  char _msg_buf[EBOOK_READER_ERROR_FSTR_MAX]; // Internal storage for formatted string
+  char _msg_buf[EBOOK_READER_ERROR_FSTR_MAX]; // Internal storage for formatted
+                                              // string
 #endif
 };
 
@@ -144,6 +144,7 @@ static inline cdk_error_t cdk_error_int(struct cdk_Error *err, uint16_t code,
   *err = (struct cdk_Error){
       .type = cdk_ErrorType_INT,
       .code = code,
+      .msg = "",
       .eframes = {{.file = file, .func = func, .line = line}},
       .eframes_len = 1,
   };
@@ -202,7 +203,7 @@ static inline cdk_error_t cdk_error_fstr(struct cdk_Error *err, uint16_t code,
  */
 int cdk_error_dumps(cdk_error_t err, size_t buf_size, char *buf);
 static inline void cdk_error_acdk_frame(cdk_error_t err,
-                                       struct cdk_EFrame *frame) {
+                                        struct cdk_EFrame *frame) {
   if (err->eframes_len >= EBOOK_READER_ERROR_BTRACE_MAX) {
     return;
   }
@@ -212,9 +213,9 @@ static inline void cdk_error_acdk_frame(cdk_error_t err,
 #ifndef EBOOK_READER_ERROR_OPTIMIZE
 #define cdk_error_wrap(err)                                                    \
   ({                                                                           \
-    cdk_error_acdk_frame(err, &(struct cdk_EFrame){.file = __FILE_NAME__,       \
-                                                  .func = __func__,            \
-                                                  .line = __LINE__});          \
+    cdk_error_acdk_frame(err, &(struct cdk_EFrame){.file = __FILE_NAME__,      \
+                                                   .func = __func__,           \
+                                                   .line = __LINE__});         \
     err;                                                                       \
   })
 #else
@@ -259,15 +260,14 @@ _Thread_local extern struct cdk_Error cdk_hidden_errno;
 #define cdk_edumps(buf_size, buf)                                              \
   cdk_error_dumps(&cdk_hidden_errno, buf_size, buf)
 
-#define CDK_TRY_CATCH(err, golabel)    \
-  do {                        \
-    if ((err)) {       \
-      cdk_ewrap();             \
-      goto golabel;             \
-    }                         \
+#define CDK_TRY_CATCH(err, golabel)                                            \
+  do {                                                                         \
+    if ((err)) {                                                               \
+      cdk_ewrap();                                                             \
+      goto golabel;                                                            \
+    }                                                                          \
   } while (0)
 
 #define CDK_TRY(err) CDK_TRY_CATCH(err, error)
-
 
 #endif

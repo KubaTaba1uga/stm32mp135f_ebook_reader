@@ -71,10 +71,9 @@ void gui_stop(gui_t gui) {
 
 static cdk_error_t gui_ev_callback(enum LvglEvent event, void *data) {
   gui_t gui = data;
-
+  (void)gui;
   switch (event) {
   case LvglEvent_APP_CLOSED:
-    gui_stop(gui);
     break;
   default:
     cdk_errno = cdk_errnof(ENOENT, "Unsupported event: %d", event);

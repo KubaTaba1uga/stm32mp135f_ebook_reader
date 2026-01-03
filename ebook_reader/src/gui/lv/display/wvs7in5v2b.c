@@ -107,11 +107,14 @@ static void wvs7in5v2b_flush_dd_callback(lv_display_t *display,
 }
 
 static void wvs7in5v2b_destroy(struct LvglDisplayDriver *out) {
-  log_info("Destroyed");
+
   if (!out) {
     return;
   }
 
   struct LvglWvs7In5V2b *driver = out->data;
   dd_wvs75v2b_destroy(&driver->dd);
+  mem_free(driver->buf.data);
+  mem_free(driver);
+  out->data = NULL;
 }

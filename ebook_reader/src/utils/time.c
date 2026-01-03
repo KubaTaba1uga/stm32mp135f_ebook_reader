@@ -1,8 +1,10 @@
 #define _POSIX_C_SOURCE 199309L
 
-#include "utils/error.h"
+#include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+
+#include "utils/error.h"
 
 cdk_error_t time_sleep_ms(uint32_t ms) {
   int err = nanosleep(
@@ -12,8 +14,8 @@ cdk_error_t time_sleep_ms(uint32_t ms) {
       },
       NULL);
 
-  if (err) {
-    return cdk_errnoi(EINVAL);
+  if (err == -1) {
+    return cdk_errnos(errno, "Cannot sleep");
   }
 
   return 0;

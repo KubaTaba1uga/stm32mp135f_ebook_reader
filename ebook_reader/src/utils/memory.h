@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "utils/log.h"
+
 static inline void *mem_malloc(size_t size) {
   void *mem = malloc(size);
   if (!mem) {
-    puts("ERROR: No memory");
+    log_warn("No memory");
     exit(ENOMEM);
   }
 

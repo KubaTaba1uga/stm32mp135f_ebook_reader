@@ -40,9 +40,9 @@ void lvgl_destroy(lvgl_t out) {
   if (!out || !out->callback) {
     return;
   };
-
-  lv_deinit();
+  
   lvgl_display_destroy(&out->display);
+  lv_deinit();
 };
 
 uint32_t lvgl_process(lvgl_t out) { return lv_timer_handler(); }
@@ -56,8 +56,6 @@ static void lvgl_event_cb(lv_event_t *e) {
 
   switch (code) {
   case LV_EVENT_DELETE:
-    event = LvglEvent_APP_CLOSED;
-    break;
   case LV_EVENT_REFR_REQUEST:
     goto skip;
   default:
