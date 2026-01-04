@@ -416,10 +416,10 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   unsigned char *img_data = dd_image_get_data(image);
   uint32_t img_data_len = dd_image_get_data_len(image);
 
-  if (img_res->x != DD_WVS75V2B_WIDTH || img_res->y != DD_WVS75V2B_HEIGTH) {
-    dd_errno = dd_errnos(
+  if (img_res->x != DD_WVS75V2B_WIDTH-1 || img_res->y != DD_WVS75V2B_HEIGTH-1) {
+    dd_errno = dd_errnof(
         EINVAL, "To display picture on full screen it's resolution has to "
-                "match display's resolution");
+	"match display's resolution: x=%d, y=%d", img_res->x, img_res->y);
     goto error;
   }
 

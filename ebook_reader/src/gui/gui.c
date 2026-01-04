@@ -42,6 +42,7 @@ void gui_destroy(gui_t *out) {
     return;
   }
 
+  gui_stop(*out);
   view_destroy(&(*out)->view);
   lvgl_destroy(&(*out)->lvgl);
   mem_free(*out);
@@ -66,8 +67,15 @@ error:
 };
 
 void gui_stop(gui_t gui) {
-    gui->in_progress = false;  
+  gui->in_progress = false;
+  
 }
+
+void gui_panic(gui_t gui) {
+  lvgl_panic(&gui->lvgl);
+  
+}
+
 
 static cdk_error_t gui_ev_callback(enum LvglEvent event, void *data) {
   gui_t gui = data;

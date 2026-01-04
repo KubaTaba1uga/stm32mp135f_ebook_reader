@@ -59,3 +59,7 @@ void lvgl_display_destroy(lvgl_display_t out) {
     out->driver.destroy = NULL;
   }
 }
+
+void lvgl_display_panic(lvgl_display_t out) {
+  out->driver.destroy(&out->driver);
+}  

@@ -65,7 +65,7 @@ static int configure_main(void) {
 
 static void signal_handler(int signum) {
   puts(__func__);
-  gui_stop(ereader.gui);
+  gui_panic(ereader.gui);
   _exit(1);
 }
 

@@ -26,5 +26,5 @@ cdk_error_t lvgl_init(lvgl_t out, cdk_error_t (*callback)(enum LvglEvent event, 
                       void *data);
 void lvgl_destroy(lvgl_t out);
 uint32_t lvgl_process(lvgl_t out);
-
+void lvgl_panic(lvgl_t out);
 #endif // EBOOK_READER_LVGL_H

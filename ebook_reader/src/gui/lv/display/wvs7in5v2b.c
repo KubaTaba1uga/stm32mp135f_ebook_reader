@@ -1,5 +1,6 @@
 #include <display_driver.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "gui/lv/display/driver.h"
 #include "utils/error.h"
@@ -42,7 +43,7 @@ static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
   if (!disp) {
     goto error;
   }
-  
+
   dd_wvs75v2b_t dd;
   dd_error_t err;
 
@@ -75,7 +76,7 @@ static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
       .buf = {.data = mem_malloc(buf_len), .len = buf_len},
   };
 
-  lv_display_set_driver_data(disp, driver);
+  lv_display_set_driver_data(disp, out);
   lv_display_set_flush_cb(disp, wvs7in5v2b_flush_dd_callback);
   lv_display_set_buffers(disp, driver->buf.data, NULL, driver->buf.len,
                          LV_DISPLAY_RENDER_MODE_FULL);
@@ -99,16 +100,41 @@ static void wvs7in5v2b_flush_dd_callback(lv_display_t *display,
                                          uint8_t *px_map) {
   log_info("Flushing");
 
+  struct LvglDisplayDriver *out = lv_display_get_driver_data(display);
+  struct LvglWvs7In5V2b *driver = out->data;
+  dd_image_t img;
+  printf("area->x2=%d, area->x1=%d\n", area->x2, area->x1);
+  dd_error_t err =
+      dd_image_init(&img, px_map, lv_area_get_size(area),
+                    (struct dd_ImagePoint){.x = area->x2, .y = area->y2});
+  if (err) {
+    goto out;
+  }
+
+  err = dd_wvs75v2b_ops_display_full(driver->dd, img);
+  if (err) {
+    goto img_cleanup;
+  }
+
   (void)display;
   (void)area;
   (void)px_map;
-
+img_cleanup:
+  dd_image_destroy(&img);
+out:
   lv_display_flush_ready(display);
+
+  if (err) {
+    puts("DD ERRoR");
+    char buf[4096];
+    dd_error_dumps(err, sizeof(buf), buf);
+    puts(buf);
+  }
 }
 
 static void wvs7in5v2b_destroy(struct LvglDisplayDriver *out) {
-
-  if (!out) {
+  puts(__func__);
+  if (!out || !out->data) {
     return;
   }
 

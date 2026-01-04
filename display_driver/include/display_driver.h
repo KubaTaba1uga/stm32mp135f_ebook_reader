@@ -96,6 +96,7 @@ struct dd_ImagePoint {
  * \brief Initialize image object.
  * \param img Pointer to image wich will be filled with by the function.
  * \param data Data encoded to display driver format.
+ * \param data Length of encoded data.
  * \param resolution Resolution of the image encoded into data.
  * \return Error on failure, NULL on success.
  */

@@ -40,9 +40,8 @@ void lvgl_destroy(lvgl_t out) {
   if (!out || !out->callback) {
     return;
   };
-  
+
   lvgl_display_destroy(&out->display);
-  lv_deinit();
 };
 
 uint32_t lvgl_process(lvgl_t out) { return lv_timer_handler(); }
@@ -75,3 +74,5 @@ error_dump:
 skip:
   assert(true);
 };
+
+void lvgl_panic(lvgl_t out) { lvgl_display_panic(&out->display); }

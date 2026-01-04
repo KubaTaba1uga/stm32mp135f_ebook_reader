@@ -3,7 +3,7 @@
 _Thread_local dd_error_t dd_errno = NULL;
 _Thread_local struct dd_Error dd_hidden_errno = {0};
 
- int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf) {
+int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf) {
   size_t offset = 0;
   int written;
 
@@ -75,7 +75,6 @@ _Thread_local struct dd_Error dd_hidden_errno = {0};
   return 0;
 }
 
-int dd_error_get_code(dd_error_t err){return err->code;}
+int dd_error_get_code(dd_error_t err) { return err->code; }
 
-const char *dd_error_get_msg(dd_error_t err){return err->msg;}
-
+const char *dd_error_get_msg(dd_error_t err) { return err->msg; }
