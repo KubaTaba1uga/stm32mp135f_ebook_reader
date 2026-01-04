@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -52,7 +53,7 @@ void dd_wvs75v2b_destroy(dd_wvs75v2b_t *dd) {
     dd_gpio_set_pin(0, (*dd)->dc, &(*dd)->gpio);
   }
 
-  dd_spi_destroy(&(*dd)->spi)  ;
+  dd_spi_destroy(&(*dd)->spi);
   dd_gpio_destroy(&(*dd)->gpio);
 
   dd_free(*dd);
@@ -416,10 +417,13 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   unsigned char *img_data = dd_image_get_data(image);
   uint32_t img_data_len = dd_image_get_data_len(image);
 
-  if (img_res->x != DD_WVS75V2B_WIDTH-1 || img_res->y != DD_WVS75V2B_HEIGTH-1) {
-    dd_errno = dd_errnof(
-        EINVAL, "To display picture on full screen it's resolution has to "
-	"match display's resolution: x=%d, y=%d", img_res->x, img_res->y);
+  if (img_res->x != DD_WVS75V2B_WIDTH - 1 ||
+      img_res->y != DD_WVS75V2B_HEIGTH - 1) {
+    dd_errno =
+        dd_errnof(EINVAL,
+                  "To display picture on full screen it's resolution has to "
+                  "match display's resolution: x=%d, y=%d",
+                  img_res->x, img_res->y);
     goto error;
   }
 
@@ -427,6 +431,7 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   // byte by byte does not affect this time much. Real bottleneck is in screen.
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
 
   /* for (int i = 0; i < 800 * 480 / 8; i++) { */
   /*   if (i % 60){ // this is end of the row */
