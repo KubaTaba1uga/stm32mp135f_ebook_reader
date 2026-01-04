@@ -31,7 +31,8 @@ def main():
     ap.add_argument("input", help="Input image path (png, jpg, ...)")
     ap.add_argument("output", help="Output .c file path")
     ap.add_argument("--bit-order", default="MSB", help="Output bit order")
-    ap.add_argument("--threshold", default=128, help="When pixel should be considered black and when white")        
+    ap.add_argument("--threshold", default=128, help="When pixel should be considered black and when white")
+    ap.add_argument("--name", default="output", help="Name of generated variable")            
     args = ap.parse_args()
     
     img = Image.open(args.input).convert("RGBA")
@@ -51,7 +52,7 @@ def main():
         raise Exception("Unsupported image resolution: %d x %d" % (width, heigth))
     
     with open(args.output, "w") as fp:
-        fp.write("unsigned char output[] = {")
+        fp.write(f"unsigned char {args.name}[] = {{")
         fp.write(" ".join("0x%.2X," % byte for byte in convert_points(points, args.bit_order)))
         fp.write("};")
 

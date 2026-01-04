@@ -4,7 +4,8 @@ unity_test_runner = unity_subproject.get_variable('gen_test_runner')
 
 test_files = [
   'test_gpio.c',
-  'test_list.c',  
+  'test_list.c',
+  'test_rotate.c',    
   # add other test_*.c files here
 ]
 
