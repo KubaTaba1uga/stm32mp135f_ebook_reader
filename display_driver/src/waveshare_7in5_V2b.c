@@ -427,6 +427,12 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   // byte by byte does not affect this time much. Real bottleneck is in screen.
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  /* for (int i = 0; i < 800 * 480 / 8; i++) { */
+  /*   if (i % 60){ // this is end of the row */
+  /*     puts("ROW"); */
+  /*   }; */
+  /* } */
   for (int i = 0; i < img_data_len; i++) {
     dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){img_data[i]}, 1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);

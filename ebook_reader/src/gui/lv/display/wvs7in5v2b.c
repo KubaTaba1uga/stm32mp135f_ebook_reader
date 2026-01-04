@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "draw/lv_draw_buf.h"
 #include "gui/lv/display/driver.h"
 #include "utils/error.h"
 #include "utils/log.h"
@@ -13,7 +14,6 @@
     goto label;                                                                \
   }
 #define DD_TRY(err) DD_TRY_CATCH(err, error)
-#define BYTES_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(LV_COLOR_FORMAT_I1))
 
 struct LvglWvs7In5V2b {
   dd_wvs75v2b_t dd;
@@ -39,7 +39,8 @@ bool lvgl_display_driver_wvs7in5v2b_probe(struct LvglDisplayDriver *out) {
 
 static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
                                      struct LvglDisplayDriver *out) {
-  lv_display_t *disp = lv_display_create(width, heigth);
+  /* lv_display_t *disp = lv_display_create(width,heigth);   */
+  lv_display_t *disp = lv_display_create(heigth, width);
   if (!disp) {
     goto error;
   }
@@ -70,17 +71,26 @@ static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
 
   struct LvglWvs7In5V2b *driver = out->data =
       mem_malloc(sizeof(struct LvglWvs7In5V2b));
-  uint32_t buf_len = (width * heigth) * BYTES_PER_PIXEL;
+  /* uint32_t stride  = (width + 7) / 8; */
+  uint32_t buf_len = (width * heigth / 8) + 8; // 1 pixel per color and + colour palette size
   *driver = (struct LvglWvs7In5V2b){
       .dd = dd,
       .buf = {.data = mem_malloc(buf_len), .len = buf_len},
   };
 
+  printf("buf_len: %d\n", buf_len);
+  lv_display_set_color_format(disp, LV_COLOR_FORMAT_I1);
   lv_display_set_driver_data(disp, out);
   lv_display_set_flush_cb(disp, wvs7in5v2b_flush_dd_callback);
   lv_display_set_buffers(disp, driver->buf.data, NULL, driver->buf.len,
                          LV_DISPLAY_RENDER_MODE_FULL);
 
+printf("disp cf: %d\n", lv_display_get_color_format(disp));
+printf("bpp: %d\n", lv_color_format_get_bpp(lv_display_get_color_format(disp)));
+
+
+ /* printf("draw size: %d\n", lv_draw_buf_get_size(width, heigth, LV_COLOR_FORMAT_I1)); */
+/* ) */
   return disp;
 
 error_dd_cleanup:
@@ -103,18 +113,29 @@ static void wvs7in5v2b_flush_dd_callback(lv_display_t *display,
   struct LvglDisplayDriver *out = lv_display_get_driver_data(display);
   struct LvglWvs7In5V2b *driver = out->data;
   dd_image_t img;
-  printf("area->x2=%d, area->x1=%d\n", area->x2, area->x1);
+  printf("area->x2=%d, area->x1=%d, area->size=%d\n", area->x2, area->x1,
+         lv_area_get_size(area));
   dd_error_t err =
-      dd_image_init(&img, px_map, lv_area_get_size(area),
-                    (struct dd_ImagePoint){.x = area->x2, .y = area->y2});
+      dd_image_init(&img, px_map, 48000,
+                    (struct dd_ImagePoint){.x = 479, .y = 799});
   if (err) {
     goto out;
+  }
+  err = dd_wvs75v2b_ops_power_on(driver->dd);
+  if (err) {
+    goto img_cleanup;
   }
 
   err = dd_wvs75v2b_ops_display_full(driver->dd, img);
   if (err) {
     goto img_cleanup;
   }
+
+  err = dd_wvs75v2b_ops_power_off(driver->dd);
+  if (err) {
+    goto img_cleanup;
+  }
+  
 
   (void)display;
   (void)area;
