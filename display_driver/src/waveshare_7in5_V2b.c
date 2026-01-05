@@ -402,6 +402,148 @@ error_dd_cleanup:
 error:
   return dd_errno;
 }
+/* int get_bit(int i, unsigned char *buf, uint32_t buf_len) { */
+/*   if (i < 0 || (uint32_t)i >= buf_len * 8) return -1; */
+/*   int byte_number = i >> 3; */
+/*   int bit_number  = 7 - (i % 7); */
+/*   return (buf[byte_number] & (1u << bit_number)) != 0; */
+/* } */
+
+
+/* int get_bit(int i, unsigned char *buf, uint32_t buf_len) { */
+/*   int byte_number = i / 8; */
+
+/*   if (byte_number < 0 || byte_number >= buf_len) { */
+/*     return -1; */
+/*   } */
+
+/*   // If MSB */
+/*   int bit_number = 7 - (i % 8); */
+/*   // If LSB */
+/*   /\* int bit_number = ((i) % 8) - 1; *\/ */
+/*   if (bit_number < 0) { */
+/*     bit_number = 0; */
+/*   } */
+
+/*   return (buf[byte_number] & (1 << bit_number)) > 0; */
+/* } */
+
+/* void set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) { */
+/*   int byte_number = i / 8; */
+
+/*   if (byte_number < 0 || byte_number >= buf_len) { */
+/*     return; */
+/*   } */
+
+/*   // If MSB */
+/*   int bit_number = 7 - (i & 7); */
+/*   /\* int bit_number = 7 - (i % 8); *\/ */
+/*   // If LSB */
+/*   /\* int bit_number = ((i) % 8) - 1; *\/ */
+/*   if (bit_number < 0) { */
+/*     bit_number = 0; */
+/*   } */
+
+/*   if (val == 0) { */
+/*     buf[byte_number] &= ~(1 << bit_number); */
+/*   } else { */
+/*     buf[byte_number] |= (1 << bit_number); */
+/*   } */
+/* } */
+
+int get_bit(int i, unsigned char *buf, uint32_t buf_len) {
+  if (i < 0 || (uint32_t)i >= buf_len * 8) return -1;
+  int byte = i / 8;
+  int bit  = 7 - (i % 8);
+  return (buf[byte] >> bit) & 1;
+}
+
+void set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) {
+  if (i < 0 || (uint32_t)i >= buf_len * 8) return;
+  int byte = i / 8;
+  int bit  = 7 - (i % 8);
+  if (val) buf[byte] |=  (1u << bit);
+  else     buf[byte] &= ~(1u << bit);
+}
+
+int get_pixel(int x, int y, int width, unsigned char *buf, uint32_t buf_len) {
+  if (x < 0 || y < 0) {
+    return -1;
+  }
+
+  int bit = width * y + x;
+
+  return get_bit(bit, buf, buf_len);
+}
+void set_pixel(int x, int y, int width, int val, unsigned char *buf,
+               uint32_t buf_len) {
+  if (x < 0 || y < 0) {
+    return;
+  }
+
+  int bit = width * y + x;
+
+  set_bit(bit, val, buf, buf_len);
+}
+
+/*  unsigned char * rotate(int width, int heigth,unsigned char *buf, uint32_t buf_len) { */
+/*   const int src_w = 800, src_h = 480; */
+/*   const int dst_w = 480; */
+
+/*   unsigned char *out = dd_malloc(buf_len); */
+/*   memset(out, 0, buf_len); */
+
+/*   for (int y = 0; y < src_h; y++) { */
+/*     for (int x = 0; x < src_w; x++) { */
+/*       int v = get_pixel(x, y, src_w, buf, buf_len); */
+
+/*       int dx = src_h - 1 - y; // 479..0 */
+/*       int dy = x;             // 0..799 */
+
+/*       set_pixel(dx, dy, dst_w, v, out, buf_len); */
+/*     } */
+/*   } */
+
+/*   /\* memcpy(buf, out, buf_len); *\/ */
+/*   /\* free(out); *\/ */
+/*   return out; */
+/* } */
+
+unsigned char *rotate(int width, int heigth, unsigned char *buf,
+                      uint32_t buf_len) {
+  unsigned char *rotated = dd_malloc(buf_len);
+
+  /* unsigned char *new_img = rotated; */
+  memset(rotated, 0, buf_len);
+
+  int first_pixel = width * (heigth - 1);
+  int last_pixel = first_pixel + width;
+  (void)first_pixel;
+  (void)last_pixel;  
+  printf("buf_len=%d\n", buf_len);
+  int v;
+  int dst_i = 0  ;
+for (int x = width - 1; x >= 0; --x) {
+  for (int y = 0; y < heigth; ++y) {
+    v = get_pixel(x, y, width, buf, buf_len);
+    set_bit(dst_i++, v, rotated, buf_len);
+  }
+}
+
+  /* for (int src_i = first_pixel, dst_i = 0; src_i < last_pixel; src_i++) { */
+  /*   for (int src_k = 0; src_k < heigth; src_k++, dst_i++) { */
+  /*     int bit_number = src_i - (width * src_k); */
+  /*     int bit_value = get_bit(bit_number, buf, buf_len); */
+  /*     set_bit(dst_i, bit_value, rotated, buf_len); */
+  /*   } */
+  /* } */
+
+  /* memcpy(buf, rotated, buf_len); */
+
+  /* dd_free(rotated); */
+
+  return rotated;
+}
 
 dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   puts(__func__);
@@ -413,36 +555,33 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
     goto error;
   }
 
-  struct dd_ImagePoint *img_res = dd_image_get_resolution(image);
+  /* struct dd_ImagePoint *img_res = dd_image_get_resolution(image); */
   unsigned char *img_data = dd_image_get_data(image);
   uint32_t img_data_len = dd_image_get_data_len(image);
 
-  if (img_res->x != DD_WVS75V2B_WIDTH - 1 ||
-      img_res->y != DD_WVS75V2B_HEIGTH - 1) {
-    dd_errno =
-        dd_errnof(EINVAL,
-                  "To display picture on full screen it's resolution has to "
-                  "match display's resolution: x=%d, y=%d",
-                  img_res->x, img_res->y);
-    goto error;
-  }
+  /* if (img_res->x != DD_WVS75V2B_WIDTH - 1 || */
+  /*     img_res->y != DD_WVS75V2B_HEIGTH - 1) { */
+  /*   dd_errno = */
+  /*       dd_errnof(EINVAL, */
+  /*                 "To display picture on full screen it's resolution has to " */
+  /*                 "match display's resolution: x=%d, y=%d", */
+  /*                 img_res->x, img_res->y); */
+  /*   goto error; */
+  /* } */
 
   // The display does full refresh in about 18 seconds so sending
   // byte by byte does not affect this time much. Real bottleneck is in screen.
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-
-  /* for (int i = 0; i < 800 * 480 / 8; i++) { */
-  /*   if (i % 60){ // this is end of the row */
-  /*     puts("ROW"); */
-  /*   }; */
-  /* } */
-  for (int i = 0; i < img_data_len; i++) {
-    dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){img_data[i]}, 1);
+  unsigned char *rotated_img = rotate(800, 480, img_data, img_data_len);
+  /* unsigned char *rotated_img =img_data; */
+  for (int i = 0; i < img_data_len; i++) {    
+    dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){rotated_img[i]}, 1);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
   dd_wvs75V2b_wait(dd);
+  dd_free(rotated_img);
 
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);

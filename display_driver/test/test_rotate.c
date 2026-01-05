@@ -6,287 +6,129 @@
 #include <string.h>
 #include <unity.h>
 
-#include "turtle_horizontal.h"
-#include "turtle_vertical.h"
-
-static void print_bits_grid(unsigned char *buf, size_t buf_len,
-                            int bits_per_row);
-
-int get_bit(int i, unsigned char *buf, uint32_t buf_len) {
-  int byte_number = floor(i / 8);
-
-  if (byte_number < 0 || byte_number >= buf_len) {
-    return -1;
-  }
-
-  // If MSB
-  int bit_number = 7 - (i % 8);
-  // If LSB
-  /* int bit_number = ((i) % 8) - 1; */
-  if (bit_number < 0) {
-    bit_number = 0;
-  }
-
-  return (buf[byte_number] & (1 << bit_number)) > 0;
-}
-
-void set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) {
-  int byte_number = floor(i / 8);
-
-  if (byte_number < 0 || byte_number >= buf_len) {
-    return;
-  }
-
-  // If MSB
-  int bit_number = 7 - (i % 8);
-  // If LSB
-  /* int bit_number = ((i) % 8) - 1; */
-  if (bit_number < 0) {
-    bit_number = 0;
-  }
-
-  if (val == 0) {
-    buf[byte_number] &= ~(1 << bit_number);
-  } else {
-    buf[byte_number] |= (1 << bit_number);
-  }
-}
-
-int get_pixel(int x, int y, int width, unsigned char *buf, uint32_t buf_len) {
-  if (x < 0 || y < 0) {
-    return -1;
-  }
-
-  int bit = width * y + x;
-
-  return get_bit(bit, buf, buf_len);
-}
-
-void set_pixel(int x, int y, int width, int val, unsigned char *buf,
-               uint32_t buf_len) {
-  if (x < 0 || y < 0) {
-    return;
-  }
-
-  int bit = width * y + x;
-
-  set_bit(bit, val, buf, buf_len);
-}
-
-int rotate(int width, int heigth, unsigned char *buf, uint32_t buf_len) {
-  unsigned char *rotated = malloc(buf_len);
-  TEST_ASSERT(rotated != NULL);
-  /* unsigned char *new_img = rotated; */
-  memset(rotated, 0, buf_len);
-
-  int first_pixel = width * (heigth - 1);
-  int last_pixel = first_pixel + width;
-
-  int rows = 0;
-  int columns = 0;
-  (void)rows;
-  (void)columns;
-
-  for (int src_i = first_pixel, dst_i = 0; src_i < last_pixel; src_i++) {
-    for (int src_k = 0; src_k < heigth; src_k++, dst_i++) {
-      int bit_number = src_i - (width * src_k);
-      int bit_value = get_bit(bit_number, buf, buf_len);
-      set_bit(dst_i, bit_value, rotated, buf_len);
-    }
-  }
-  /*   for (int y = 0; y < heigth; y++) { */
-
-  /* for (int x = 0, xcp = 0; x > 0; x++, xcp++) { */
-  /*   for (int y = 0; y < heigth; y++) { */
-
-  /* for (int x = width - 1, xcp = 0; x > 0; x--, xcp++) { */
-  /*   for (int y = 0; y < heigth; y++) { */
-  /*     set_pixel(xcp, y, width, get_pixel(x, y, width, buf, buf_len), rotated,
-   */
-  /*               buf_len); */
-
-  /*     printf("wrote %dx%d=%d\n", rows, columns, */
-  /*            get_pixel(x, y, width, buf, buf_len)); */
-  /*     columns++; */
-  /*   } */
-  /*   columns = 0; */
-  /*   rows++; */
-  /* } */
-
-  /* TEST_ASSERT(last_pixel - first_pixel == width); */
-  /* // We are iterating pixels */
-  /* int counter = 0; */
-  /* for (int i = first_pixel; i < last_pixel; i++) { */
-  /*   unsigned char byte = 0; */
-  /*   int bits_i = 0; */
-  /*   for (int k = 0; k < heigth; k++) { */
-  /*     int bit_number = i - (width * k); */
-  /*     byte |= get_bit(bit_number, buf, buf_len) << (7 - bits_i); */
-  /*     printf("wrote %dx%d=\n", rows, columns); */
-
-  /*     if (bits_i == 7) { */
-  /*       counter++; */
-  /*       printf("byte %d=%d\n", counter, byte); */
-  /*       bits_i = 0; */
-
-  /*       *new_img = byte; */
-  /*       new_img++; */
-  /*       byte = 0; */
-  /*     } */
-
-  /*     bits_i++;       */
-  /*     columns++; */
-  /*   } */
-  /*   columns = 0; */
-  /*   rows++; */
-  /* } */
-
-  memcpy(buf, rotated, buf_len);
-
-  free(rotated);
-  return 0;
-}
+#include "rotate.h"
+#include "cat_rotated.h"
+#include "cat_not_rotated.h"
 
 void test_rotate(void) {
-  int buf16x8w = 16;
-  int buf16x8h = 8;
-  unsigned char buf16x8[] = {
-      // 2  bytes x 8  = 16  bytes
-      // 16 bits  x 8  = 128 bits
-      0b00000000, 0b00010000, //
-      0b00000000, 0b00010000, //
-      0b00000000, 0b00010000, //
-      0b00000000, 0b00010000, //
-      0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, //
-  };
+  /* int buf16x8w = 16; */
+  /* int buf16x8h = 8; */
+  /* unsigned char buf16x8[] = { */
+  /*     // 2  bytes x 8  = 16  bytes */
+  /*     // 16 bits  x 8  = 128 bits */
+  /*     0b00000000, 0b00010000, // */
+  /*     0b00000000, 0b00010000, // */
+  /*     0b00000000, 0b00010000, // */
+  /*     0b00000000, 0b00010000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /* }; */
 
-  unsigned char buf16x8roatetd[] = {
-      // 2  bytes x 2  = 4  bytes
-      // 16 bits  x 2  = 32 bits
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00001111, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-      0b00000000, //
-  };
+  /* unsigned char buf16x8roatetd[] = { */
+  /*     // 2  bytes x 2  = 4  bytes */
+  /*     // 16 bits  x 2  = 32 bits */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00001111, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /*     0b00000000, // */
+  /* }; */
+  /* (void)buf16x8roatetd; */
+  /* /\* memset(buf16x8, 0, sizeof(buf16x8)); *\/ */
 
-  /* memset(buf16x8, 0, sizeof(buf16x8)); */
+  /* print_bits_grid(buf16x8, sizeof(buf16x8), buf16x8w); */
+  /* puts(""); */
 
-  print_bits_grid(buf16x8, sizeof(buf16x8), buf16x8w);
-  puts("");
+  /* int err = rotate(buf16x8w, buf16x8h, buf16x8, sizeof(buf16x8)); */
+  /* /\* TEST_ASSERT_EQUAL(0, err); *\/ */
+  /* /\* TEST_ASSERT_EQUAL_CHAR_ARRAY(buf16x8roatetd, buf16x8, sizeof(buf16x8)); *\/ */
 
-  int err = rotate(buf16x8w, buf16x8h, buf16x8, sizeof(buf16x8));
-  TEST_ASSERT_EQUAL(0, err);
-  TEST_ASSERT_EQUAL_CHAR_ARRAY(buf16x8roatetd, buf16x8, sizeof(buf16x8));
+  /* print_bits_grid(buf16x8, sizeof(buf16x8), buf16x8h); */
+  /* puts(""); */
 
-  print_bits_grid(buf16x8, sizeof(buf16x8), buf16x8h);
-  puts("");
-  
-  int buf24x16w = 24;
-  int buf24x16h = 16;
-  unsigned char buf24x16[] = {
-      // 2  bytes x 8  = 16  bytes
-      // 16 bits  x 8  = 128 bits
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00111000, 0b00000000, 0b00000000, //
-      0b00111000, 0b00000000, 0b00000000, //
-      0b00111000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-      0b00000000, 0b00000000, 0b00000000, //
-  };
+  /* int buf24x16w = 24; */
+  /* int buf24x16h = 16; */
+  /* unsigned char buf24x16[] = { */
+  /*     // 2  bytes x 8  = 16  bytes */
+  /*     // 16 bits  x 8  = 128 bits */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00111000, 0b00000000, 0b00000000, // */
+  /*     0b00111000, 0b00000000, 0b00000000, // */
+  /*     0b00111000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, 0b00000000, // */
+  /* }; */
 
-  unsigned char buf24x16roatetd[] = {
-      // 2  bytes x 2  = 4  bytes
-      // 16 bits  x 2  = 32 bits
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000,  //
-      0b00000000,       0b00001110, //
-      0b00000000,       0b00001110, //
-      0b00000000,       0b00001110, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-      0b00000000,       0b00000000, //
-  };
+  /* unsigned char buf24x16roatetd[] = { */
+  /*     // 2  bytes x 2  = 4  bytes */
+  /*     // 16 bits  x 2  = 32 bits */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00001110, // */
+  /*     0b00000000, 0b00001110, // */
+  /*     0b00000000, 0b00001110, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /*     0b00000000, 0b00000000, // */
+  /* }; */
 
-  print_bits_grid(buf24x16, sizeof(buf24x16), buf24x16w);
-  puts("");
-  print_bits_grid(buf24x16roatetd, sizeof(buf24x16), buf24x16h);
+  /* print_bits_grid(buf24x16, sizeof(buf24x16), buf24x16w); */
+  /* puts(""); */
+  /* print_bits_grid(buf24x16roatetd, sizeof(buf24x16), buf24x16h); */
 
+  /* err = rotate(buf24x16w, buf24x16h, buf24x16, sizeof(buf24x16)); */
+  /* puts(""); */
+  /* print_bits_grid(buf24x16, sizeof(buf24x16), buf24x16h); */
+  /* puts(""); */
 
-  err = rotate(buf24x16w, buf24x16h, buf24x16, sizeof(buf24x16));
-  puts("");
-  print_bits_grid(buf24x16, sizeof(buf24x16), buf24x16h);
-  puts("");
-  
-  TEST_ASSERT_EQUAL(0, err);
-  TEST_ASSERT_EQUAL_CHAR_ARRAY(buf24x16roatetd, buf24x16, sizeof(buf24x16));
-  
-  /* for (int y = 0; y < buf2x2h; y++) { */
-  /*   for (int x = 0; x < buf2x2w;) { */
-  /*     printf("%d", get_pixel(x, y, buf2x2w, buf2x2,sizeof(buf2x2))); */
-  /*     x++; */
-  /*     if (x > 0 && x % 8 == 0) { */
-  /*       printf(", "); */
-  /*     } */
-  /*   } */
-  /*   printf("\n"); */
-  /* } */
-  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
-  /*                              sizeof(turtle_vertical)); */
-
-  /* unsigned char buf[48000]; */
-  /* memset(buf, 0, sizeof(buf)); */
-  /* int err = rotate(buf, sizeof(buf)); */
   /* TEST_ASSERT_EQUAL(0, err); */
+  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(buf24x16roatetd, buf24x16, sizeof(buf24x16)); */
 
-  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
-  /* sizeof(turtle_vertical)); */
+  
+int err = rotate(480, 800, cat_not_rotated, sizeof(cat_not_rotated));
+  TEST_ASSERT_EQUAL(0, err);
 
-  /* err = rotate(800, 480, turtle_horizontal, sizeof(turtle_horizontal)); */
-  /* TEST_ASSERT_EQUAL(0, err); */
-
-  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
-  /*                              sizeof(turtle_vertical)); */
+  TEST_ASSERT_EQUAL_CHAR_ARRAY(cat_rotated, cat_not_rotated,
+                               sizeof(cat_not_rotated));
 }
 
 void test_get_bit(void) {
@@ -334,34 +176,111 @@ void test_get_bit(void) {
   TEST_ASSERT_EQUAL(0, get_bit(14, bytes2, 2));
   TEST_ASSERT_EQUAL(1, get_bit(15, bytes2, 2)); // LSB of byte[1]
 }
-
 void test_get_pixel(void) {
   unsigned char bytes[] = {0x40}; // 0b0100_0000
 
-  TEST_ASSERT_EQUAL(0, get_pixel(0, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(1, get_pixel(1, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(2, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(3, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(4, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(5, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(6, 0, 1, bytes, 1));
-  TEST_ASSERT_EQUAL(0, get_pixel(7, 0, 1, bytes, 1));
+  // width is in pixels (bits), so 8 pixels in this row
+  TEST_ASSERT_EQUAL(0, get_pixel(0, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(1, get_pixel(1, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(2, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(3, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(4, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(5, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(6, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(7, 0, 8, bytes, 1));
 
   memcpy(bytes, (unsigned char[]){0x04}, 1); // 0b0000_0100
-}
 
-static void print_bits_grid(unsigned char *buf, size_t buf_len,
-                            int bits_per_row) {
-  const int total_bits = (int)(buf_len * 8);
+  TEST_ASSERT_EQUAL(0, get_pixel(0, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(1, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(2, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(3, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(4, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(1, get_pixel(5, 0, 8, bytes, 1)); // MSB-first: bit 5 is set
+  TEST_ASSERT_EQUAL(0, get_pixel(6, 0, 8, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(7, 0, 8, bytes, 1));
 
-  for (int i = 0; i < total_bits; i++) {
-    printf("%d", get_bit(i, buf, buf_len));
+  int buf16x8w = 16;
+  int buf16x8h = 8;
+  unsigned char buf16x8[] = {
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00000000, //
+      0b00000000, 0b00000000, //
+      0b00000000, 0b00000000, //
+      0b00000000, 0b00000000, //
+  };
 
-    if ((i + 1) % 8 == 0) {
-      printf(", ");
-    }
-    if (bits_per_row > 0 && (i + 1) % bits_per_row == 0) {
-      printf("\n");
+  // Rows 0..3 have a single pixel set at x=11
+  for (int y = 0; y < buf16x8h; y++) {
+    for (int x = 0; x < buf16x8w; x++) {
+      int expected = 0;
+      if (y < 4 && x == 11)
+        expected = 1;
+      TEST_ASSERT_EQUAL(expected,
+                        get_pixel(x, y, buf16x8w, buf16x8, sizeof(buf16x8)));
     }
   }
+}
+
+void test_set_pixel(void) {
+  // --- 1) single byte, MSB-first ---
+  unsigned char b1[] = {0x00};
+
+  // set x=1 => bit #6 => 0b0100_0000
+  set_pixel(1, 0, 8, 1, b1, 1);
+  TEST_ASSERT_EQUAL_HEX8(0x40, b1[0]);
+  TEST_ASSERT_EQUAL(1, get_pixel(1, 0, 8, b1, 1));
+
+  // clear it back
+  set_pixel(1, 0, 8, 0, b1, 1);
+  TEST_ASSERT_EQUAL_HEX8(0x00, b1[0]);
+  TEST_ASSERT_EQUAL(0, get_pixel(1, 0, 8, b1, 1));
+
+  // set x=5 => bit #2 => 0b0000_0100
+  set_pixel(5, 0, 8, 1, b1, 1);
+  TEST_ASSERT_EQUAL_HEX8(0x04, b1[0]);
+  TEST_ASSERT_EQUAL(1, get_pixel(5, 0, 8, b1, 1));
+
+  // --- 2) crossing byte boundary: width=16 => 2 bytes per row ---
+  unsigned char b2[] = {0x00, 0x00};
+
+  // set last pixel of first byte (x=7) => LSB of byte0 => 0x01
+  set_pixel(7, 0, 16, 1, b2, 2);
+  TEST_ASSERT_EQUAL_HEX8(0x01, b2[0]);
+  TEST_ASSERT_EQUAL_HEX8(0x00, b2[1]);
+  TEST_ASSERT_EQUAL(1, get_pixel(7, 0, 16, b2, 2));
+
+  // set first pixel of second byte (x=8) => MSB of byte1 => 0x80
+  set_pixel(8, 0, 16, 1, b2, 2);
+  TEST_ASSERT_EQUAL_HEX8(0x01, b2[0]);
+  TEST_ASSERT_EQUAL_HEX8(0x80, b2[1]);
+  TEST_ASSERT_EQUAL(1, get_pixel(8, 0, 16, b2, 2));
+
+  // clear both
+  set_pixel(7, 0, 16, 0, b2, 2);
+  set_pixel(8, 0, 16, 0, b2, 2);
+  TEST_ASSERT_EQUAL_HEX8(0x00, b2[0]);
+  TEST_ASSERT_EQUAL_HEX8(0x00, b2[1]);
+
+  // --- 3) multi-row addressing on 16x8 buffer ---
+  int w = 16;
+  unsigned char img[16] = {0}; // 2 bytes/row * 8 rows = 16 bytes
+
+  // set a pixel at (x=11, y=3)
+  set_pixel(11, 3, w, 1, img, sizeof(img));
+  TEST_ASSERT_EQUAL(1, get_pixel(11, 3, w, img, sizeof(img)));
+
+  // ensure neighbors are still zero
+  TEST_ASSERT_EQUAL(0, get_pixel(10, 3, w, img, sizeof(img)));
+  TEST_ASSERT_EQUAL(0, get_pixel(12, 3, w, img, sizeof(img)));
+  TEST_ASSERT_EQUAL(0, get_pixel(11, 2, w, img, sizeof(img)));
+  TEST_ASSERT_EQUAL(0, get_pixel(11, 4, w, img, sizeof(img)));
+
+  // clear it
+  set_pixel(11, 3, w, 0, img, sizeof(img));
+  TEST_ASSERT_EQUAL(0, get_pixel(11, 3, w, img, sizeof(img)));
+
 }
