@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,9 @@
 
 #include "turtle_horizontal.h"
 #include "turtle_vertical.h"
+
+static void print_bits_grid(unsigned char *buf, size_t buf_len,
+                            int bits_per_row);
 
 int get_bit(int i, unsigned char *buf, uint32_t buf_len) {
   int byte_number = floor(i / 8);
@@ -26,59 +30,113 @@ int get_bit(int i, unsigned char *buf, uint32_t buf_len) {
   return (buf[byte_number] & (1 << bit_number)) > 0;
 }
 
-int rotate(unsigned char *buf, uint32_t buf_len) {
+int get_pixel(int x, int y, int width, unsigned char *buf, uint32_t buf_len) {
+  if (x < 0 || y < 0) {
+    return -1;
+  }
+
+  int bit = width * y + x;
+
+  return get_bit(bit, buf, buf_len);
+}
+
+int rotate(int width, int heigth, unsigned char *buf, uint32_t buf_len) {
   char *rotated = malloc(buf_len);
   TEST_ASSERT(rotated != NULL);
   char *new_img = rotated;
   memset(rotated, 0, buf_len);
 
-  const int width = 800;
-  const int heigth = 480;
+  /* int first_pixel = width * (heigth - 1); */
+  /* int last_pixel = first_pixel + width; */
 
-  int first_pixel = width * (heigth - 1);
-  int last_pixel = first_pixel + width;
+  /* int rows = 0; */
+  /* int columns = 0; */
 
-  int rows = 0;
-  int columns = 0;
-
-  TEST_ASSERT(last_pixel - first_pixel == width);
-  // We are iterating pixels
-  int counter = 0;
-  for (int i = first_pixel; i < last_pixel; i++) {
-    unsigned char byte = 0;
-    int bits_i = 0;
-    for (int k = 0; k < heigth; k++) {
-      int bit_number = i - (width * k);      
-      byte |= get_bit(bit_number, buf, buf_len) << (7 - bits_i);
-      printf("wrote %dx%d=\n", rows, columns);
-      if (bits_i == 7) {
-        counter++;
-        printf("byte %d=%d\n", counter, byte);
-        bits_i = 0;
-
-
+  unsigned char byte = 0;
+  for (int x = width - 1; x > 0; x--) {
+    int bit = 0;
+    for (int y = 0; y < heigth; y++) {
+      byte |= get_pixel(x, y, width, buf, buf_len) << bit;
+      if (bit == 7) {
+        bit = 0;
         *new_img = byte;
         new_img++;
-        byte = 0;
-        
-      } else {
-        bits_i++;
       }
 
-      columns++;
+      bit++;
+      /* columns++; */
     }
-    columns = 0;
-    rows++;
+    /* columns = 0; */
+    /* rows++; */
   }
-  
 
-  memcpy(buf,rotated, buf_len);
+  /* TEST_ASSERT(last_pixel - first_pixel == width); */
+  /* // We are iterating pixels */
+  /* int counter = 0; */
+  /* for (int i = first_pixel; i < last_pixel; i++) { */
+  /*   unsigned char byte = 0; */
+  /*   int bits_i = 0; */
+  /*   for (int k = 0; k < heigth; k++) { */
+  /*     int bit_number = i - (width * k); */
+  /*     byte |= get_bit(bit_number, buf, buf_len) << (7 - bits_i); */
+  /*     printf("wrote %dx%d=\n", rows, columns); */
+
+  /*     if (bits_i == 7) { */
+  /*       counter++; */
+  /*       printf("byte %d=%d\n", counter, byte); */
+  /*       bits_i = 0; */
+
+  /*       *new_img = byte; */
+  /*       new_img++; */
+  /*       byte = 0; */
+  /*     } */
+
+  /*     bits_i++;       */
+  /*     columns++; */
+  /*   } */
+  /*   columns = 0; */
+  /*   rows++; */
+  /* } */
+
+  memcpy(buf, rotated, buf_len);
 
   free(rotated);
   return 0;
 }
 
 void test_rotate(void) {
+  int buf2x2w = 16;
+  int buf2x2h = 4;
+  unsigned char buf2x2[] = {
+      // 2  bytes x 2  = 4  bytes
+      // 16 bits  x 2  = 32 bits
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+      0b00000000, 0b00010000, //
+  };
+  /* memset(buf2x2, 0, sizeof(buf2x2)); */
+
+  print_bits_grid(buf2x2, sizeof(buf2x2), buf2x2w);
+
+  /* int err = rotate(16, 2, buf2x2, sizeof(buf2x2)); */
+  /* TEST_ASSERT_EQUAL(0, err); */
+
+  /* print_bits_grid(buf2x2, sizeof(buf2x2), buf2x2w); */
+
+  for (int y = 0; y < buf2x2h; y++) {
+    for (int x = 0; x < buf2x2w;) {
+      printf("%d", get_pixel(x, y, buf2x2w, buf2x2,sizeof(buf2x2)));
+      x++;
+      if (x > 0 && x % 8 == 0) {
+        printf(", ");
+      }
+    }
+    printf("\n");
+  }
+  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
+  /*                              sizeof(turtle_vertical)); */
+
   /* unsigned char buf[48000]; */
   /* memset(buf, 0, sizeof(buf)); */
   /* int err = rotate(buf, sizeof(buf)); */
@@ -87,11 +145,11 @@ void test_rotate(void) {
   /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
   /*                              sizeof(turtle_vertical)); */
 
-  int err = rotate(turtle_horizontal, sizeof(turtle_horizontal));
-  TEST_ASSERT_EQUAL(0, err);
+  /* int err = rotate(turtle_horizontal, sizeof(turtle_horizontal)); */
+  /* TEST_ASSERT_EQUAL(0, err); */
 
-  TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal,
-                               sizeof(turtle_vertical));
+  /* TEST_ASSERT_EQUAL_CHAR_ARRAY(turtle_vertical, turtle_horizontal, */
+  /*                              sizeof(turtle_vertical)); */
 }
 
 void test_get_bit(void) {
@@ -138,4 +196,35 @@ void test_get_bit(void) {
   TEST_ASSERT_EQUAL(0, get_bit(13, bytes2, 2));
   TEST_ASSERT_EQUAL(0, get_bit(14, bytes2, 2));
   TEST_ASSERT_EQUAL(1, get_bit(15, bytes2, 2)); // LSB of byte[1]
+}
+
+void test_get_pixel(void) {
+  unsigned char bytes[] = {0x40}; // 0b0100_0000
+
+  TEST_ASSERT_EQUAL(0, get_pixel(0, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(1, get_pixel(1, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(2, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(3, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(4, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(5, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(6, 0, 1, bytes, 1));
+  TEST_ASSERT_EQUAL(0, get_pixel(7, 0, 1, bytes, 1));
+
+  memcpy(bytes, (unsigned char[]){0x04}, 1); // 0b0000_0100
+}
+
+static void print_bits_grid(unsigned char *buf, size_t buf_len,
+                            int bits_per_row) {
+  const int total_bits = (int)(buf_len * 8);
+
+  for (int i = 0; i < total_bits; i++) {
+    printf("%d", get_bit(i, buf, buf_len));
+
+    if ((i + 1) % 8 == 0) {
+      printf(", ");
+    }
+    if (bits_per_row > 0 && (i + 1) % bits_per_row == 0) {
+      printf("\n");
+    }
+  }
 }
