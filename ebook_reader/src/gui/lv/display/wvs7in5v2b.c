@@ -40,7 +40,6 @@ bool lvgl_display_driver_wvs7in5v2b_probe(struct LvglDisplayDriver *out) {
 static lv_display_t *wvs7in5v2b_init(uint32_t width, uint32_t heigth,
                                      struct LvglDisplayDriver *out) {
   lv_display_t *disp = lv_display_create(width,heigth);
-  /* lv_display_t *disp = lv_display_create(heigth, width); */
   if (!disp) {
     goto error;
   }

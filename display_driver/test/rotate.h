@@ -72,22 +72,12 @@ static inline int rotate(int width, int heigth, unsigned char *buf, uint32_t buf
   /* unsigned char *new_img = rotated; */
   memset(rotated, 0, buf_len);
 
-  /* int first_pixel = width * (heigth - 1); */
-  /* int last_pixel = first_pixel + width; */
-  
   int rows = 0;
   int columns = 0;
   (void)rows;
   (void)columns;
 
   printf("buf_len=%d\n", buf_len);
-  /* for (int src_i = first_pixel, dst_i = 0; src_i < last_pixel; src_i++) { */
-  /*   for (int src_k = 0; src_k < heigth; src_k++, dst_i++) { */
-  /*     int bit_number = src_i - (width * src_k); */
-  /*     int bit_value = get_bit(bit_number, buf, buf_len); */
-  /*     set_bit(dst_i, bit_value, rotated, buf_len); */
-  /*   } */
-  /* } */
 
   int v;
   int dst_i = 0  ;
@@ -97,7 +87,6 @@ static inline int rotate(int width, int heigth, unsigned char *buf, uint32_t buf
     set_bit(dst_i++, v, rotated, buf_len);
   }
 }
-
   
   memcpy(buf, rotated, buf_len);
 

@@ -574,7 +574,7 @@ dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image) {
   dd_errno = dd_wvs75V2b_send_cmd(dd, dd_Wvs75V2bCmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  unsigned char *rotated_img = rotate(800, 480, img_data, img_data_len);
+  unsigned char *rotated_img = rotate(480, 800, img_data, img_data_len);
   /* unsigned char *rotated_img =img_data; */
   for (int i = 0; i < img_data_len; i++) {    
     dd_errno = dd_wvs75V2b_send_data(dd, (uint8_t[]){rotated_img[i]}, 1);
