@@ -49,14 +49,14 @@ dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
     gchip = chip->private = gpiod_chip_open(chip_path);
     if (!gchip) {
       dd_errno = dd_errnof(EINVAL, "Cannot open: %s", chip_path);
-      goto error;
+      goto error_out;
     }
   }
 
   struct gpiod_line *gline = gpiod_chip_get_line(gchip, pin_no);
   if (!gline) {
     dd_errno = dd_errnof(EINVAL, "Cannot open: %s:%d", chip->path, pin_no);
-    goto error;
+    goto error_out;
   }
 
   struct dd_GpioPin *pin = *out = dd_malloc(sizeof(struct dd_GpioPin));
@@ -75,7 +75,7 @@ dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
 
 error_pin_cleanup:
   dd_free(pin);
-error:
+error_out:
   *out = NULL;
   return dd_errno;
 }
@@ -92,14 +92,14 @@ dd_error_t dd_gpio_set_pin_output(struct dd_GpioPin *pin, bool is_active_high) {
   if (ret) {
     dd_errno = dd_errnof(errno, "Unable to set direction for %c%d: output",
                          pin->chip->path, pin->pin_no);
-    goto error;
+    goto error_out;
   }
 
   pin->is_out = true;
 
   return 0;
 
-error:
+error_out:
   return dd_errno;
 };
 
@@ -108,14 +108,14 @@ dd_error_t dd_gpio_set_pin_input(struct dd_GpioPin *pin) {
   if (ret) {
     dd_errno = dd_errnof(errno, "Unable to set input direction for %c%d",
                          pin->chip->path, pin->pin_no);
-    goto error;
+    goto error_out;
   }
 
   pin->is_out = false;
 
   return 0;
 
-error:
+error_out:
   return dd_errno;
 };
 
@@ -124,12 +124,12 @@ int dd_gpio_read_pin(struct dd_GpioPin *pin, struct dd_Gpio *gpio) {
   if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to get value for: %c:%d",
                          pin->chip->path, pin->pin_no);
-    goto error;
+    goto error_out;
   }
 
   return ret;
 
-error:
+error_out:
   return -1;
 }
 
@@ -139,12 +139,12 @@ dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
   if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to set value for: %c:%d=%d",
                          pin->chip->path, pin->pin_no, value);
-    goto error;
+    goto error_out;
   }
 
   return 0;
 
-error:
+error_out:
   return dd_errno;
 }
 

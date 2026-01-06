@@ -6,9 +6,9 @@
 
 #include "display_driver.h"
 
-static dd_wvs75v2b_t dd;
+static dd_display_driver_t dd;
 
-static inline void signal_handler(int signum) { dd_wvs75v2b_destroy(&dd); }
+static inline void signal_handler(int signum) {  dd_display_driver_destroy(&dd); }
 
 static inline dd_error_t init_stm32mp135f(void) {
   dd = NULL;
@@ -26,42 +26,25 @@ static inline dd_error_t init_stm32mp135f(void) {
 
   dd_error_t err;
 
-  err = dd_wvs75v2b_init(&dd);
+  err = dd_display_driver_init( // Reset is done on init in Wvs7in5V2b
+      &dd, dd_DisplayDriverEnum_Wvs7in5V2b,
+      &(struct dd_Wvs75V2bConfig){
+          .dc = {.gpio_chip_path = "/dev/gpiochip8", .pin_no = 0},
+          .rst = {.gpio_chip_path = "/dev/gpiochip2", .pin_no = 2},
+          .bsy = {.gpio_chip_path = "/dev/gpiochip6", .pin_no = 3},
+          .pwr = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 4},
+          .spi = {.spidev_path = "/dev/spidev0.0"},
+      });
   if (err) {
     goto error;
   }
 
-  puts("Configuring gpio");
-  err = dd_wvs75v2b_set_up_gpio_dc(dd, "/dev/gpiochip8", 0);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_rst(dd, "/dev/gpiochip2", 2);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_bsy(dd, "/dev/gpiochip6", 3);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_pwr(dd, "/dev/gpiochip0", 4);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  puts("Configuring spi");
-  err = dd_wvs75v2b_set_up_spi_master(dd, "/dev/spidev0.0");
-  if (err) {
-    goto error_dd_cleanup;
-  }
+  dd_display_driver_destroy(&dd);
 
   return 0;
 
 error_dd_cleanup:
-  dd_wvs75v2b_destroy(&dd);
+  dd_display_driver_destroy(&dd);
 error:
   return err;
 }

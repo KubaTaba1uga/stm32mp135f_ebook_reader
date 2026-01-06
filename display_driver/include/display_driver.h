@@ -25,9 +25,9 @@
  */
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /******************************************************************
  *                            Errors
@@ -67,149 +67,68 @@ const char *dd_error_get_msg(dd_error_t err);
 int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
 
 /******************************************************************
- *                            Image
- ******************************************************************
- */
-/**
- * \brief An image representation. 
- *
- * Image can be used to draw picture of any resolution.
- */
-struct dd_Image;
-
-/**
- * \brief Image type. 
- */
-typedef struct dd_Image *dd_image_t;
-
-/**
- * \brief An point on the image representation. 
- *
- * Image point represent anything that can be desribed by offset on X and Y axis.
- */
-struct dd_ImagePoint {
-  uint32_t x;
-  uint32_t y;
-};
-
-/**
- * \brief Initialize image object.
- * \param img Pointer to image wich will be filled with by the function.
- * \param data Data encoded to display driver format.
- * \param resolution Resolution of the image encoded into data.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_image_init(dd_image_t *img, unsigned char *data, uint32_t data_len,
-                  struct dd_ImagePoint resolution);
-
-/**
- * \brief Destroy image object.
- * \param img Pointer to image wich will be destroyed by the function.
- */
-void dd_image_destroy(dd_image_t *img);
-
-/******************************************************************
  *              Waveshare 7.5 inch V2b Display Driver
  ******************************************************************
  */
 /**
- * \brief Opaque driver instance for Waveshare 7.5" V2b tri-color display.
+ * \brief Config for display driver instance.
+          You have to supply this config to dd_display_driver_init `config`
+          attribute if you want to use this display. config can be initialized
+          like this: &(struct dd_Wvs75V2bConfig){.dc = {.gpio_chip_path="", }}
+          // TO-DO finish up example
+
+          On Wvs75V2bConfig power on sequence look sth like this:
+             1. set up all gpio pins.
+             2. set up spi.
+             3. send reset sequence to display controller.
+
+          If you want to display 480x800 images instead of 800x480 set rotate to
+          true.
  */
-struct dd_Wvs75V2b;
+struct dd_Wvs75V2bConfig {
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } dc;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } rst;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } bsy;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } pwr;
+  struct {
+    const char *spidev_path;
+  } spi;
 
-/** \brief Driver type. */
-typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
+  bool rotate; // This display is 800x480, if you need to display 480x800 image
+               // set this to true.
+};
 
-/**
- * \brief Create and initialize the display driver instance.
- * \param dd Output pointer to receive the driver.
- * \return Error on failure, NULL on success.
+/******************************************************************
+ *                     Generic Display Driver
+ ******************************************************************
  */
-dd_error_t dd_wvs75v2b_init(dd_wvs75v2b_t *dd);
+enum dd_DisplayDriverEnum {
+  dd_DisplayDriverEnum_Wvs7in5V2b,
+};
+typedef struct dd_DisplayDriver *dd_display_driver_t;
 
-/**
- * \brief Destroy the driver instance and release resources.
- * \param dd Pointer to the driver. Set to NULL on return.
- */
-void dd_wvs75v2b_destroy(dd_wvs75v2b_t *dd);
-
-/**
- * \brief Configure GPIO used as D/C (data/command) pin.
- * \param dd Driver instance.
- * \param gpio_chip_path Path to GPIO chip device (e.g. "/dev/gpiochip0").
- * \param pin_no GPIO line number.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t dd,
-                                     const char *gpio_chip_path, int pin_no);
-
-/**
- * \brief Configure GPIO used as RESET pin.
- * \param dd Driver instance.
- * \param gpio_chip_path Path to GPIO chip device.
- * \param pin_no GPIO line number.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t dd,
-                                      const char *gpio_chip_path, int pin_no);
-
-/**
- * \brief Configure GPIO used as BUSY pin.
- * \param dd Driver instance.
- * \param gpio_chip_path Path to GPIO chip device.
- * \param pin_no GPIO line number.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t dd,
-                                      const char *gpio_chip_path, int pin_no);
-
-/**
- * \brief Configure GPIO used as display power control pin.
- * \param dd Driver instance.
- * \param gpio_chip_path Path to GPIO chip device.
- * \param pin_no GPIO line number.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t dd,
-                                      const char *gpio_chip_path, int pin_no);
-
-/**
- * \brief Configure SPI master interface used to communicate with the display.
- * \param dd Driver instance.
- * \param spidev_path Path to spidev device (e.g. "/dev/spidev0.0").
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd,
-                                        const char *spidev_path);
-
-/**
- * \brief Reset the display using the configured reset line.
- * \param dd Driver instance.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd);
-
-/**
- * \brief Power on the display.
- * \param dd Driver instance.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd);
-
-/**
- * \brief Power off the display.
- * \param dd Driver instance.
- * \return Error on failure, NULL on success.
- */
-dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd);
-
+dd_error_t dd_display_driver_init(dd_display_driver_t *out,
+                                  enum dd_DisplayDriverEnum model,
+                                  void *config);
 /**
  * \brief Clear the display to white or black.
  * \param dd Driver instance.
  * \param white If true clear to white, otherwise clear to black.
  * \return Error on failure, NULL on success.
  */
-dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white);
+dd_error_t dd_display_driver_clear(dd_display_driver_t dd, bool white);
 
 /**
  * \brief Display picture on whole screen.
@@ -217,7 +136,9 @@ dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white);
  * \param image Image to displayed.
  * \return Error on failure, NULL on success.
  */
-dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd, dd_image_t image);
+dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
+                                   uint32_t buf_len);
 
+void dd_display_driver_destroy(dd_display_driver_t *out);
 
 #endif // DISPLAY_DRIVER_H
