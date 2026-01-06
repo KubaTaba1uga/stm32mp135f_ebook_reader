@@ -267,6 +267,6 @@ _Thread_local extern struct dd_Error dd_hidden_errno;
     }                         \
   } while (0)
 
-#define DD_TRY(err) DD_TRY_CATCH(err, error)
+#define DD_TRY(err) DD_TRY_CATCH(err, error_out)
 
 #endif

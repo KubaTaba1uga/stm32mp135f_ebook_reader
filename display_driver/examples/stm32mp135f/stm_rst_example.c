@@ -14,19 +14,13 @@ int main(void) {
     goto error;
   }
   
-  puts("Working");
-  err = dd_wvs75v2b_ops_reset(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
   puts("I'm done");
-  dd_wvs75v2b_destroy(&dd);
+  dd_display_driver_destroy(&dd);
 
   return EXIT_SUCCESS;
 
 error_dd_cleanup:
-  dd_wvs75v2b_destroy(&dd);
+  dd_display_driver_destroy(&dd);
 error: {
   char buf[1024];
   dd_error_dumps(err, 1024, buf);
