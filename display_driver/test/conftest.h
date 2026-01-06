@@ -43,6 +43,9 @@ extern int ioctl_mock_called;
 extern int ioctl_mock_fail_after; 
 extern int ioctl_mock_errno;
 
+extern bool enable_dd_sleep_ms_mock;
+extern int dd_sleep_ms_mock_called;
+
 void gpiod_mock_reset_lines_pool(void);
 
 #endif

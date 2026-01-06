@@ -22,6 +22,7 @@ test_link_args = [
       '-Wl,--wrap=dd_io_open',
       '-Wl,--wrap=dd_io_ioctl',
       '-Wl,--wrap=dd_io_close',
+      '-Wl,--wrap=dd_sleep_ms',
       # Add more mocks via: '-Wl,--wrap=<func name>'
 ]
 

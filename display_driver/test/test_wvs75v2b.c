@@ -1,17 +1,17 @@
-#include <stdio.h>
-#include <unity.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <errno.h>
+#include <stdio.h>
+#include <unity.h>
 
+#include "conftest.h"
 #include "display_driver.h"
 #include "utils/err.h"
-#include "conftest.h"
 
 static struct dd_Wvs75V2bConfig mk_cfg(bool rotate) {
   return (struct dd_Wvs75V2bConfig){
       .rotate = rotate,
-      .dc  = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 10},
+      .dc = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 10},
       .rst = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 11},
       .bsy = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 12},
       .pwr = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 13},
@@ -35,7 +35,7 @@ void setUp(void) {
   enable_gpiod_line_release_mock = true;
   enable_gpiod_line_get_value_mock = true;
   enable_gpiod_line_set_value_mock = true;
-
+  enable_dd_sleep_ms_mock = true;
   enable_open_mock = true;
   enable_close_mock = true;
   enable_ioctl_mock = true;
@@ -69,7 +69,7 @@ void setUp(void) {
 void tearDown(void) {
   if (g_dd) {
     dd_display_driver_destroy(&g_dd);
-  } 
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -84,73 +84,59 @@ void test_init_calls_probe_and_sets_up_gpio_and_spi(void) {
   TEST_ASSERT_EQUAL(0, err);
   TEST_ASSERT_NOT_NULL(g_dd);
 
-  // GPIO setup: chip open + get_line should happen
-  TEST_ASSERT_TRUE(gpiod_chip_open_mock_called >= 1);
+  TEST_ASSERT_TRUE(gpiod_chip_open_mock_called == 1);
   TEST_ASSERT_EQUAL(4, gpiod_chip_get_line_mock_called); // dc,rst,bsy,pwr
-
-  // Direction setup: output_flags for dc/rst/pwr
-  TEST_ASSERT_TRUE(gpiod_line_request_output_flags_mock_called >= 3);
-  TEST_ASSERT_TRUE(gpiod_line_request_input_mock_called >= 1);
-
-  // SPI setup: open + several ioctl calls in dd_spi_init
+  TEST_ASSERT_EQUAL(3,
+                    gpiod_line_request_output_flags_mock_called); // dc,rst,pwr
+  TEST_ASSERT_EQUAL(1, gpiod_line_request_input_mock_called);     // bsy
   TEST_ASSERT_TRUE(open_mock_called >= 1);
   TEST_ASSERT_TRUE(ioctl_mock_called >= 1);
 }
 
-/* void test_clear_uses_public_api_and_toggles_pins_and_spi(void) { */
-/*   struct dd_Wvs75V2bConfig cfg = mk_cfg(false); */
-/*   TEST_ASSERT_EQUAL(0, dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg)); */
+void test_clear_uses_public_api_and_toggles_pins_and_spi(void) {
+  struct dd_Wvs75V2bConfig cfg = mk_cfg(false);
 
-/*   int prev_set = gpiod_line_set_value_mock_called; */
-/*   int prev_get = gpiod_line_get_value_mock_called; */
-/*   int prev_ioc = ioctl_mock_called; */
+  dd_error_t err =
+      dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg);
+  TEST_ASSERT_EQUAL(0, err);
 
-/*   dd_error_t err = dd_display_driver_clear(g_dd, true); */
-/*   puts(err->msg); */
-/*   TEST_ASSERT_EQUAL(0, err); */
+  int prev_set = gpiod_line_set_value_mock_called;
+  int prev_get = gpiod_line_get_value_mock_called;
+  int prev_ioc = ioctl_mock_called;
 
-/*   // Should have toggled dc/rst/pwr (dd_gpio_set_pin -> gpiod_line_set_value) */
-/*   TEST_ASSERT_TRUE(gpiod_line_set_value_mock_called > prev_set); */
+  err = dd_display_driver_clear(g_dd, true);
+  TEST_ASSERT_EQUAL(0, err);
 
-/*   // Should have waited on busy at least once */
-/*   TEST_ASSERT_TRUE(gpiod_line_get_value_mock_called > prev_get); */
+  // Toggle dc/rst/pwr
+  TEST_ASSERT_EQUAL(prev_set + 3, gpiod_line_set_value_mock_called);
 
-/*   // SPI bytes go through ioctl(SPI_IOC_MESSAGE) in dd_spi_send_bytes */
-/*   TEST_ASSERT_TRUE(ioctl_mock_called > prev_ioc); */
-/* } */
+  // Should have waited on busy at least once
+  TEST_ASSERT_TRUE(gpiod_line_get_value_mock_called > prev_get);
 
-/* void test_write_rejects_null_buf_in_public_api(void) { */
-/*   struct dd_Wvs75V2bConfig cfg = mk_cfg(false); */
-/*   TEST_ASSERT_EQUAL(0, dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg)); */
+  // SPI bytes go through ioctl(SPI_IOC_MESSAGE) in dd_spi_send_bytes
+  TEST_ASSERT_TRUE(ioctl_mock_called > prev_ioc);
+}
 
-/*   dd_error_t err = dd_display_driver_write(g_dd, NULL, 123); */
-/*   TEST_ASSERT_NOT_EQUAL(0, err); */
-/*   TEST_ASSERT_NOT_EQUAL(0, dd_errno); */
-/* } */
+void test_init_fails_when_spidev_open_fails(void) {
+  struct dd_Wvs75V2bConfig cfg = mk_cfg(false);
 
-/* void test_init_fails_when_spidev_open_fails(void) { */
-/*   struct dd_Wvs75V2bConfig cfg = mk_cfg(false); */
+  open_mock_return = -1;
+  errno = ENOENT;
 
-/*   open_mock_return = -1; */
-/*   errno = ENOENT; */
+  dd_error_t err =
+      dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg);
+  TEST_ASSERT_NOT_EQUAL(0, err);
+  TEST_ASSERT_NULL(g_dd);
+}
 
-/*   dd_error_t err = dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg); */
-/*   TEST_ASSERT_NOT_EQUAL(0, err); */
-/*   TEST_ASSERT_NOT_EQUAL(0, dd_errno); */
+void test_destroy_releases_gpio_lines_and_chip_close(void) {
+  struct dd_Wvs75V2bConfig cfg = mk_cfg(false);
+  TEST_ASSERT_EQUAL(
+      0, dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg));
 
-/*   // init failed => driver handle not produced */
-/*   TEST_ASSERT_NULL(g_dd); */
-/* } */
+  dd_display_driver_destroy(&g_dd);
+  TEST_ASSERT_NULL(g_dd);
 
-/* void test_destroy_releases_gpio_lines_and_chip_close(void) { */
-/*   struct dd_Wvs75V2bConfig cfg = mk_cfg(false); */
-/*   TEST_ASSERT_EQUAL(0, dd_display_driver_init(&g_dd, dd_DisplayDriverEnum_Wvs7in5V2b, &cfg)); */
-
-/*   dd_display_driver_destroy(&g_dd); */
-/*   TEST_ASSERT_NULL(g_dd); */
-
-/*   // dd_gpio_destroy releases lines and closes chip */
-/*   TEST_ASSERT_TRUE(gpiod_line_release_mock_called >= 1); */
-/*   TEST_ASSERT_TRUE(gpiod_chip_close_mock_called >= 1); */
-/* } */
-
+  TEST_ASSERT_EQUAL(4, gpiod_line_release_mock_called);
+  TEST_ASSERT_EQUAL(1, gpiod_chip_close_mock_called);
+}

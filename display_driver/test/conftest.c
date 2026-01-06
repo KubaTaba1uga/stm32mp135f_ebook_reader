@@ -190,7 +190,10 @@ int __wrap_dd_io_open(const char *pathname, int flags, int mode) {
   if (!enable_open_mock) {
     return __real_dd_io_open(pathname, flags, mode);
   }
+
   open_mock_called++;
+  printf("%s mocked\n", __func__);
+  
   return open_mock_return;
 }
 
@@ -199,8 +202,13 @@ int close_mock_called = 0;
 int __real_dd_io_close(int fd);
 int __wrap_dd_io_close(int fd) {
   (void)fd;
-  if (!enable_close_mock) return __real_dd_io_close(fd);
+  if (!enable_close_mock) {
+    return __real_dd_io_close(fd);
+  }
+
   close_mock_called++;
+  printf("%s mocked\n", __func__);
+
   return 0;
 }
 
@@ -217,6 +225,7 @@ int __wrap_dd_io_ioctl(int fd, unsigned long req, void *arg) {
   }
 
   ioctl_mock_called++;
+  printf("%s mocked\n", __func__);
 
   if (ioctl_mock_fail_after >= 0 && ioctl_mock_called > ioctl_mock_fail_after) {
     errno = ioctl_mock_errno;
@@ -225,4 +234,17 @@ int __wrap_dd_io_ioctl(int fd, unsigned long req, void *arg) {
 
   // Behave like success for config + SPI_IOC_MESSAGE
   return 0;
+}
+
+bool enable_dd_sleep_ms_mock = false;
+int dd_sleep_ms_mock_called = 0;
+void __real_dd_sleep_ms(int ms);
+void __wrap_dd_sleep_ms(int ms) {
+  if (!enable_dd_sleep_ms_mock) {
+    __real_dd_sleep_ms(ms);
+    return;
+  }
+
+  dd_sleep_ms_mock_called++;
+  printf("%s mocked\n", __func__);
 }
