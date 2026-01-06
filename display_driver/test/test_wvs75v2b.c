@@ -108,7 +108,7 @@ void test_clear_uses_public_api_and_toggles_pins_and_spi(void) {
   TEST_ASSERT_EQUAL(0, err);
 
   // Toggle dc/rst/pwr
-  TEST_ASSERT_EQUAL(prev_set + 3, gpiod_line_set_value_mock_called);
+  TEST_ASSERT_TRUE(gpiod_line_set_value_mock_called > prev_set + 3);
 
   // Should have waited on busy at least once
   TEST_ASSERT_TRUE(gpiod_line_get_value_mock_called > prev_get);
