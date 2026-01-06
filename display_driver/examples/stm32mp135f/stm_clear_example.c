@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
   bool is_clr_white = true;
   dd_error_t err;
 
-
   /* classic argv parsing */
   for (int i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "--white") == 0) {
@@ -42,33 +41,18 @@ int main(int argc, char **argv) {
   }
 
   puts("Working");
-  err = dd_wvs75v2b_ops_reset(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_on(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_clear(dd, is_clr_white);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_off(dd);
+  err = dd_display_driver_clear(dd, is_clr_white);
   if (err) {
     goto error_dd_cleanup;
   }
 
   puts("I'm done");
-  dd_wvs75v2b_destroy(&dd);
+  dd_display_driver_destroy(&dd);
 
   return EXIT_SUCCESS;
 
 error_dd_cleanup:
-  dd_wvs75v2b_destroy(&dd);
+  dd_display_driver_destroy(&dd);
 error: {
   char buf[1024];
   dd_error_dumps(err, 1024, buf);

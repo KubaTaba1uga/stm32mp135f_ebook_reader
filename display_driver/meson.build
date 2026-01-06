@@ -25,10 +25,10 @@ display_driver_inc = include_directories(['include', 'src'])
 
 display_driver_src = [files('src/display_driver.c',
 		            'src/gpio/gpio.c',
-		            'src/spi/spi.c',		    
+		            'src/spi/spi.c',
+			    'src/utils/io.c',			    
 			    'src/utils/err.c',
 			    'src/utils/time.c',
-                            'src/image/image.c',
                             'src/drivers/driver.c',			    			    
                             'src/drivers/waveshare_7in5_V2b.c',
 			    # Add more drivers here

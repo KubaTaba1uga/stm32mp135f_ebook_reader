@@ -26,10 +26,8 @@ static void usage(const char *prog) {
 int main(int argc, char *argv[]) {
   unsigned char *buf = (unsigned char *)turtle_7in5_v2;
   int buf_len = sizeof(turtle_7in5_v2);;
-  dd_image_t img;
   dd_error_t err;
 
-  (void)  cat_sm;
   /* classic argv parsing */
   for (int i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "--wvs") == 0) {
@@ -61,36 +59,16 @@ int main(int argc, char *argv[]) {
   }
 
   puts("Working");
-  err = dd_wvs75v2b_ops_reset(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_on(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_image_init(&img, buf, buf_len,
-                      (struct dd_ImagePoint){.x = 480, .y = 800});
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_display_full(dd, img);
-  if (err) {
-    goto error_img_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_off(dd);
+ err = dd_display_driver_write(dd,buf, buf_len);
   if (err) {
     goto error_img_cleanup;
   }
 
   puts("I'm done");
 
-  dd_image_destroy(&img);
-  dd_wvs75v2b_destroy(&dd);
+
+  dd_display_driver_destroy(&dd);
+  
 
   return EXIT_SUCCESS;
 

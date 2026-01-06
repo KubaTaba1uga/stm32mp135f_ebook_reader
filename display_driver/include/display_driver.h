@@ -72,7 +72,7 @@ int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
  */
 /**
  * \brief Config for display driver instance.
-          You have to supply this config to dd_diplay_driver_init `config`
+          You have to supply this config to dd_display_driver_init `config`
           attribute if you want to use this display. config can be initialized
           like this: &(struct dd_Wvs75V2bConfig){.dc = {.gpio_chip_path="", }}
           // TO-DO finish up example
@@ -87,16 +87,20 @@ int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
  */
 struct dd_Wvs75V2bConfig {
   struct {
-    const char *gpio_chip_path, int pin_no,
+    const char *gpio_chip_path;
+    int pin_no;
   } dc;
   struct {
-    const char *gpio_chip_path, int pin_no,
+    const char *gpio_chip_path;
+    int pin_no;
   } rst;
   struct {
-    const char *gpio_chip_path, int pin_no,
+    const char *gpio_chip_path;
+    int pin_no;
   } bsy;
   struct {
-    const char *gpio_chip_path, int pin_no,
+    const char *gpio_chip_path;
+    int pin_no;
   } pwr;
   struct {
     const char *spidev_path;
@@ -113,17 +117,18 @@ struct dd_Wvs75V2bConfig {
 enum dd_DisplayDriverEnum {
   dd_DisplayDriverEnum_Wvs7in5V2b,
 };
-typedef const struct dd_DisplayDriver *dd_diplay_driver_t;
+typedef struct dd_DisplayDriver *dd_display_driver_t;
 
-dd_error_t dd_diplay_driver_init(dd_diplay_driver_t *out,
-                                 enum dd_DisplayDriverEnum model, void *config);
+dd_error_t dd_display_driver_init(dd_display_driver_t *out,
+                                  enum dd_DisplayDriverEnum model,
+                                  void *config);
 /**
  * \brief Clear the display to white or black.
  * \param dd Driver instance.
  * \param white If true clear to white, otherwise clear to black.
  * \return Error on failure, NULL on success.
  */
-dd_error_t dd_diplay_driver_clear(dd_diplay_driver_t dd, bool white);
+dd_error_t dd_display_driver_clear(dd_display_driver_t dd, bool white);
 
 /**
  * \brief Display picture on whole screen.
@@ -131,9 +136,9 @@ dd_error_t dd_diplay_driver_clear(dd_diplay_driver_t dd, bool white);
  * \param image Image to displayed.
  * \return Error on failure, NULL on success.
  */
-dd_error_t dd_diplay_driver_write(dd_diplay_driver_t dd, unsigned char *buf,
-                                  uint32_t buf_len);
+dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
+                                   uint32_t buf_len);
 
-void dd_diplay_driver_destroy(dd_diplay_driver_t *out);
+void dd_display_driver_destroy(dd_display_driver_t *out);
 
 #endif // DISPLAY_DRIVER_H

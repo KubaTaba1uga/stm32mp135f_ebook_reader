@@ -23,11 +23,11 @@ struct dd_DisplayDriver {
   void *driver_data;
 };
 
-dd_error_t dd_init(dd_diplay_driver_t driver, enum dd_DisplayDriverEnum model,
+dd_error_t dd_driver_init(dd_display_driver_t driver, enum dd_DisplayDriverEnum model,
                    void *config);
-void dd_destroy(dd_diplay_driver_t driver);
-dd_error_t dd_write(dd_diplay_driver_t driver, unsigned char *buf,
+void dd_driver_destroy(dd_display_driver_t driver);
+dd_error_t dd_driver_write(dd_display_driver_t driver, unsigned char *buf,
                     uint32_t buf_len);
-dd_error_t dd_clear(dd_diplay_driver_t driver, bool white);
+dd_error_t dd_driver_clear(dd_display_driver_t driver, bool white);
 
 #endif // DISPLAY_DRIVER_DRIVER_H

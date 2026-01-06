@@ -30,7 +30,7 @@ typedef struct dd_List *dd_list_t;
 static inline dd_error_t dd_list_append(struct dd_List *list, void *data) {
   if (!list) {
     dd_errno = dd_errnos(EINVAL, "`list` cannot be NULL");
-    goto error;
+    goto error_out;
   }
 
   for (int i = 0, j = 2; i != 10; i = j, j++) {
@@ -51,7 +51,7 @@ static inline dd_error_t dd_list_append(struct dd_List *list, void *data) {
 
   return 0;
 
-error:
+error_out:
   return dd_errno;
 };
 

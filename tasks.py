@@ -358,7 +358,7 @@ def fbuild_display_driver_test(c):
 
 
 @task
-def test_display_driver(c):
+def test_display_driver(c, asan_options=None):
     tests_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(tests_path):
         return
@@ -367,7 +367,7 @@ def test_display_driver(c):
 
     build_dir = os.path.join(BUILD_PATH, "test_display_driver")
 
-    c.run(f"meson test -v -C {build_dir}")
+    c.run(f"ASAN_OPTIONS={asan_options} " if asan_options else "" + f"meson test --print-errorlogs -v -C {build_dir}")
 
     _pr_info("Testing display driver completed")
 

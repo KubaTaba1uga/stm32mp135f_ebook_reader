@@ -5,7 +5,7 @@ unity_test_runner = unity_subproject.get_variable('gen_test_runner')
 test_files = [
   'test_gpio.c',
   'test_list.c',
-  'test_rotate.c',    
+  'test_wvs75v2b.c',    
   # add other test_*.c files here
 ]
 
@@ -16,7 +16,12 @@ test_link_args = [
       '-Wl,--wrap=gpiod_line_request_output',
       '-Wl,--wrap=gpiod_line_request_output_flags',      
       '-Wl,--wrap=gpiod_line_request_input',
+      '-Wl,--wrap=gpiod_line_get_value',
+      '-Wl,--wrap=gpiod_line_set_value',
       '-Wl,--wrap=gpiod_line_release',
+      '-Wl,--wrap=dd_io_open',
+      '-Wl,--wrap=dd_io_ioctl',
+      '-Wl,--wrap=dd_io_close',
       # Add more mocks via: '-Wl,--wrap=<func name>'
 ]
 
