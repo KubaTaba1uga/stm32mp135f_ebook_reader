@@ -1,5 +1,0 @@
-[wrap-file]
-directory = display_driver
-
-[provide]
-display_driver = display_driver_dep
