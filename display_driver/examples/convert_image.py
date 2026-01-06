@@ -31,27 +31,27 @@ def main():
     ap.add_argument("input", help="Input image path (png, jpg, ...)")
     ap.add_argument("output", help="Output .c file path")
     ap.add_argument("--bit-order", default="MSB", help="Output bit order")
-    ap.add_argument("--threshold", default=128, help="When pixel should be considered black and when white")        
+    ap.add_argument("--threshold", default=128, help="When pixel should be considered black and when white")
+    ap.add_argument("--name", default="output", help="Name of generated variable")
+    ap.add_argument("--rotate", default=False, help="Rotate")
     args = ap.parse_args()
     
     img = Image.open(args.input).convert("RGBA")
     width, heigth = img.size
     pix = img.load()
 
-    if heigth == 480 and width == 800:
+    if not args.rotate:x
         points = [Point(x=x, y=y, is_black=Point.is_black(pix[x, y], args.threshold)) for y in range(heigth) for x in range(width)]
-    elif heigth == 800 and width == 480:
+    else:
         # Now we need to transform this bytes to layout 480x800
         # Now we need to iterate over columns starting from end (x=last y=0, x=last y=1, ...)
         points = []
         for x in range(width-1, 0, -1):
             for y in range(0, heigth, 1):
                 points.append(Point(x=x, y=y, is_black=Point.is_black(pix[x, y], args.threshold)))
-    else:
-        raise Exception("Unsupported image resolution: %d x %d" % (width, heigth))
     
     with open(args.output, "w") as fp:
-        fp.write("unsigned char output[] = {")
+        fp.write(f"unsigned char {args.name}[] = {{")
         fp.write(" ".join("0x%.2X," % byte for byte in convert_points(points, args.bit_order)))
         fp.write("};")
 

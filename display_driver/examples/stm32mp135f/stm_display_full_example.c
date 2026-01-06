@@ -6,6 +6,8 @@
 #include "board.h"
 #include "display_driver.h"
 #include "../rpi4b/picture.h"
+#include "../../test/cat_not_rotated.h"
+#include "../../test/cat_rotated.h"
 
 static void usage(const char *prog) {
   fprintf(stderr,
@@ -24,7 +26,6 @@ static void usage(const char *prog) {
 int main(int argc, char *argv[]) {
   unsigned char *buf = (unsigned char *)turtle_7in5_v2;
   int buf_len = sizeof(turtle_7in5_v2);;
-  dd_image_t img;
   dd_error_t err;
 
   /* classic argv parsing */
@@ -35,10 +36,13 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "--turtle") == 0) {
       buf = (unsigned char *)turtle_7in5_v2;
       buf_len = sizeof(turtle_7in5_v2);
-    } else if (strcmp(argv[i], "--cat_sm") == 0) {
-      buf = (unsigned char *)cat_sm_7in5_v2;
-      buf_len = sizeof(cat_sm_7in5_v2);
-    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+    } else if (strcmp(argv[i], "--cat_rotated") == 0) {
+      buf = (unsigned char *)cat_rotated;
+      buf_len = sizeof(cat_rotated);
+        } else if (strcmp(argv[i], "--cat_not_rotated") == 0) {
+      buf = (unsigned char *)cat_not_rotated;
+      buf_len = sizeof(cat_not_rotated);
+  }else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       usage(argv[0]);
       return EXIT_SUCCESS;
     } else {
@@ -55,36 +59,16 @@ int main(int argc, char *argv[]) {
   }
 
   puts("Working");
-  err = dd_wvs75v2b_ops_reset(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_on(dd);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_image_init(&img, buf, buf_len,
-                      (struct dd_ImagePoint){.x = 480, .y = 800});
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_display_full(dd, img);
-  if (err) {
-    goto error_img_cleanup;
-  }
-
-  err = dd_wvs75v2b_ops_power_off(dd);
+ err = dd_display_driver_write(dd,buf, buf_len);
   if (err) {
     goto error_img_cleanup;
   }
 
   puts("I'm done");
 
-  dd_image_destroy(&img);
-  dd_wvs75v2b_destroy(&dd);
+
+  dd_display_driver_destroy(&dd);
+  
 
   return EXIT_SUCCESS;
 
