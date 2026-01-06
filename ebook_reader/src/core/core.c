@@ -1,10 +1,5 @@
 /**
-   We have two main components, GUI and CORE.
-
-   Core role is to manage consistent state of the device.
-
-   GUI role is to allow inter keep state of the perform all low level operations, like 
-
+   Core assumes we have few possible states of the device.
 
    -----------   init   -------------     open_book()     ---------------
    |  START  | -------> |  IN_MENU  | ------------------> |  IN_READER  |
@@ -26,3 +21,17 @@
 +--------+
 
  */
+
+enum cbk_CoreStateEnum {
+  cbk_CoreStateEnum_START,
+  cbk_CoreStateEnum_IN_MENU,
+  cbk_CoreStateEnum_IN_READER,
+  cbk_CoreStateEnum_IN_ERROR,
+};
+
+struct cbk_Core {
+  enum cbk_CoreStateEnum state;
+  
+};
+
+

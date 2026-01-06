@@ -1,12 +1,6 @@
-#ifndef EBOOK_READER_GUI_H
-#define EBOOK_READER_GUI_H
-#include "utils/error.h"
+#ifndef EBOOK_READER_GUI
+#define EBOOK_READER_GUI
 
-typedef struct Gui *gui_t;
+typedef struct ebk_Gui *gui_t;
 
-cdk_error_t gui_init(gui_t *);
-cdk_error_t gui_start(gui_t);
-void gui_stop(gui_t);
-void gui_destroy(gui_t *);
-void gui_panic(gui_t);
-#endif // EBOOK_READER_GUI_H
+#endif // EBOOK_READER_GUI
