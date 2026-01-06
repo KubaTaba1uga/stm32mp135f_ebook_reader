@@ -253,53 +253,6 @@ def fbuild_linux_dt(c):
 
 
 @task
-def fbuild_ebook_reader(c, recompile=False, local=False):
-    ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
-    if not os.path.exists(ereader_path):
-        return
-
-    _pr_info("Fast building ebook reader...")
-
-    cross_tpl_path = os.path.join(
-        "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
-    )
-
-    with c.cd(ereader_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
-        c.run(f"mkdir -p {build_dir}")
-        root = os.path.abspath(ROOT_PATH)
-        with open(cross_tpl_path, "r", encoding="utf-8") as f:
-            cross_txt = f.read()
-            cross_txt = cross_txt.replace("PLACEHOLDER", root)
-
-        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
-        with open(cross_out_path, "w", encoding="utf-8") as f:
-            f.write(cross_txt)
-
-        c.run(
-            f"rm subprojects/display_driver && "
-            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
-            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
-        )
-        c.run(
-            f"meson setup -Dbuildtype=debug {build_dir} "
-            + (" --wipe " if recompile else " ")
-            + (
-                f" --cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b  -Db_sanitize=address,undefined -Db_lundef=false "
-                if not local
-                else " -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
-            )
-        )
-        c.run(
-            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
-        )
-
-        c.run(f"meson compile -v -C {build_dir}")
-
-    _pr_info("Fast building ebook reader completed")
-
-
-@task
 def fbuild_display_driver(c):
     driver_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(driver_path):
