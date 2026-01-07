@@ -265,7 +265,10 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
     )
 
     with c.cd(ereader_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path)) 
+        if recompile:
+            c.run(f"rm -rf {build_dir}")
+
         c.run(f"mkdir -p {build_dir}")
         root = os.path.abspath(ROOT_PATH)
         with open(cross_tpl_path, "r", encoding="utf-8") as f:
@@ -276,18 +279,19 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        c.run(
-            f"rm subprojects/display_driver && "
-            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
-            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
-        )
+        # c.run(
+        #     f"rm subprojects/display_driver && "
+        #     f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
+        #     f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
+        # )
+        
         c.run(
             f"meson setup -Dbuildtype=debug {build_dir} "
             + (" --wipe " if recompile else " ")
             + (
-                f" --cross-file {cross_out_path} -Ddisplay=waveshare7in5v2b  -Db_sanitize=address,undefined -Db_lundef=false "
+                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false "
                 if not local
-                else " -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
+                else " -Db_sanitize=address,undefined -Db_lundef=false "
             )
         )
         c.run(
@@ -298,6 +302,28 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
 
     _pr_info("Fast building ebook reader completed")
 
+@task
+def fbuild_ebook_reader_test(c):
+    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Fast building ebook reader tests...")
+
+    with c.cd(tests_path):
+        build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
+        c.run(
+            f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"meson compile -v -C {build_dir}")
+
+    _pr_info("Fast building ebook reader tests completed")
+
+    
 
 @task
 def fbuild_display_driver(c):
@@ -334,6 +360,21 @@ def fbuild_display_driver(c):
 
     _pr_info("Fast building display driver completed")
 
+@task
+def test_ebook_reader(c, asan_options=None):
+    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Testing display driver...")
+
+    build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
+
+    c.run(f"ASAN_OPTIONS={asan_options} " if asan_options else "" + f"meson test -v -C {build_dir}")
+
+    _pr_info("Testing display driver completed")
+
+    
 
 @task
 def fbuild_display_driver_test(c):

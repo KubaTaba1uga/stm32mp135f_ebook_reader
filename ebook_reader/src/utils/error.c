@@ -1,4 +1,4 @@
-#include "err.h"
+#include "error.h"
 
 _Thread_local ebk_error_t ebk_errno = NULL;
 _Thread_local struct ebk_Error ebk_hidden_errno = {0};

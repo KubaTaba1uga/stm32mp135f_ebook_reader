@@ -1,4 +1,4 @@
-#Ifndef EBK_ERROR_H
+#ifndef EBK_ERROR_H
 #define EBK_ERROR_H
 
 /*
@@ -26,7 +26,6 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
    SOFTWARE.
  */
-
 
 #ifdef __STDC_NO_THREADS__
 #error "Threads extension is required to compile this library"
@@ -201,7 +200,7 @@ static inline ebk_error_t ebk_error_fstr(struct ebk_Error *err, uint16_t code,
  * Dump all struct ebk_XError to string.
  */
 int ebk_error_dumps(ebk_error_t err, size_t buf_size, char *buf);
-static inline void ebk_error_aebk_frame(ebk_error_t err,
+static inline void ebk_error_add_frame(ebk_error_t err,
                                        struct ebk_EFrame *frame) {
   if (err->eframes_len >= EBK_ERROR_BTRACE_MAX) {
     return;
@@ -212,7 +211,7 @@ static inline void ebk_error_aebk_frame(ebk_error_t err,
 #ifndef EBK_ERROR_OPTIMIZE
 #define ebk_error_wrap(err)                                                    \
   ({                                                                           \
-    ebk_error_aebk_frame(err, &(struct ebk_EFrame){.file = __FILE_NAME__,       \
+    ebk_error_add_frame(err, &(struct ebk_EFrame){.file = __FILE_NAME__,       \
                                                   .func = __func__,            \
                                                   .line = __LINE__});          \
     err;                                                                       \
@@ -259,12 +258,12 @@ _Thread_local extern struct ebk_Error ebk_hidden_errno;
 #define ebk_edumps(buf_size, buf)                                              \
   ebk_error_dumps(&ebk_hidden_errno, buf_size, buf)
 
-#define EBK_TRY_CATCH(err, golabel)    \
-  do {                        \
-    if ((err)) {       \
-      ebk_ewrap();             \
-      goto golabel;             \
-    }                         \
+#define EBK_TRY_CATCH(err, golabel)                                            \
+  do {                                                                         \
+    if ((err)) {                                                               \
+      ebk_ewrap();                                                             \
+      goto golabel;                                                            \
+    }                                                                          \
   } while (0)
 
 #define EBK_TRY(err) EBK_TRY_CATCH(err, error_out)

@@ -3,26 +3,36 @@
 
    Core role is to manage consistent state of the device.
 
-   GUI role is to allow inter keep state of the perform all low level operations, like 
+   GUI role is to change state of the Core by dispatching user input to the
+   Core. For example to go into IN_READER state user needs to select a book
+   in menu and click enter. Role of the GUI is to intercept the button press
+   as up/down/left/rigth/enter amd dispatch this event to core. Then core role
+   is to decide on what screen we are at and do appropriate change in GUI.
 
 
-   -----------   init   -------------     open_book()     ---------------
-   |  START  | -------> |  IN_MENU  | ------------------> |  IN_READER  |
-   -----------          -------------                     ---------------
-                                  |       open_menu()        |
-                                  +<--------------------------
+   Core
+
+   -----------   init    -------------     open_book()     ---------------
+   |  START  | --------> |  IN_MENU  | ------------------> |  IN_READER  |
+   -----------           -------------                     ---------------
+    ^                              |       open_menu()        |
+    |                              +<--------------------------
+    | reset()
+    |
   --------------
   |  IN_ERROR  |
   --------------
 
 
-+--------+   init/probe ok    +--------+   clear/write    +--------+
-|  NEW   | -----------------> | READY  | ---------------> | ACTIVE |
-+--------+                    +--------+                  +--------+
-   |  init/probe fail              ^   | power_off done         |
-   v                               |   +------------------------+
-+--------+   destroy               |
-| ERROR  | <-----------------------+
-+--------+
+   GUI
+
+   TO-DO
 
  */
+
+#include <stdio.h>
+
+int main(void) {
+  puts("It's alive");
+  return 0; 
+}

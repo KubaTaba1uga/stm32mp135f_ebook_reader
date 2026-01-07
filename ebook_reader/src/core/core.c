@@ -21,9 +21,11 @@
 +--------+
 
  */
+#include "core.h"
+
 
 enum cbk_CoreStateEnum {
-  cbk_CoreStateEnum_START,
+  cbk_CoreStateEnum_START = 0,
   cbk_CoreStateEnum_IN_MENU,
   cbk_CoreStateEnum_IN_READER,
   cbk_CoreStateEnum_IN_ERROR,
@@ -31,7 +33,14 @@ enum cbk_CoreStateEnum {
 
 struct cbk_Core {
   enum cbk_CoreStateEnum state;
-  
 };
+
+ebk_error_t ebk_core_init(ebk_core_t *out) {
+  if (!out) {
+    /* ebk_errno */
+  }
+
+  return 0;
+}
 
 
