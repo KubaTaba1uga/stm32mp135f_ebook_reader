@@ -360,6 +360,7 @@ def fbuild_display_driver(c):
 
     _pr_info("Fast building display driver completed")
 
+
 @task
 def test_ebook_reader(c, asan_options=None):
     tests_path = os.path.join(ROOT_PATH, "ebook_reader")
@@ -374,7 +375,6 @@ def test_ebook_reader(c, asan_options=None):
 
     _pr_info("Testing display driver completed")
 
-    
 
 @task
 def fbuild_display_driver_test(c):

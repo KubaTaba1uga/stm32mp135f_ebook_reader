@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include "error.h"
 
 _Thread_local ebk_error_t ebk_errno = NULL;

@@ -14,12 +14,18 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
-ebook_reader_deps = []
+ebook_reader_deps = [dependency('sqlite3',
+		      fallback: ['sqlite3'],
+		      required: true,
+		      static: true,
+		     ),
+]
 
 ebook_reader_inc = include_directories(['src'])
 
 ebook_reader_src = [files('src/main.c',
 			  'src/utils/error.c',
+			  'src/utils/mem.c',			  
 			  'src/gui/gui.c',
 			  'src/core/core.c',			 
 			 )]
