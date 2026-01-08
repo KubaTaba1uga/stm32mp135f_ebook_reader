@@ -1,9 +1,8 @@
 #ifndef EBOOK_READER_SETTINGS_H
 #define EBOOK_READER_SETTINGS_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <display_driver.h>
 
-extern int ebk_setting_dummy;
+extern enum dd_DisplayDriverEnum ebk_settings_display_model;
 
 #endif // EBOOK_READER_SETTINGS_H

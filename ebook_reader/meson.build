@@ -14,7 +14,12 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
-ebook_reader_deps = [dependency('sqlite3',
+ebook_reader_deps = [dependency('display_driver',
+		      fallback: ['display_driver', 'display_driver_dep'],
+		      required: true,
+		      static: true,
+		     ),
+		     dependency('sqlite3',
 		      fallback: ['sqlite3'],
 		      required: true,
 		      static: true,
@@ -25,9 +30,14 @@ ebook_reader_inc = include_directories(['src'])
 
 ebook_reader_src = [files('src/main.c',
 			  'src/utils/error.c',
-			  'src/utils/mem.c',			  
+			  'src/utils/mem.c',
+			  'src/utils/settings.c',			  			  
 			  'src/gui/gui.c',
-			  'src/core/core.c',			 
+			  'src/display/display.c',			  
+			  'src/core/core.c',
+			  'src/core/menu.c',
+			  'src/core/book_reader.c',
+			  'src/core/error.c',			  
 			 )]
 
 buildtype = get_option('buildtype')

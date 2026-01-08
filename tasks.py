@@ -265,7 +265,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
     )
 
     with c.cd(ereader_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path)) 
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
         if recompile:
             c.run(f"rm -rf {build_dir}")
 
@@ -279,12 +279,12 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        # c.run(
-        #     f"rm subprojects/display_driver && "
-        #     f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
-        #     f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
-        # )
-        
+        c.run(
+            f"rm -rf subprojects/display_driver && "
+            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
+            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
+        )
+
         c.run(
             f"meson setup -Dbuildtype=debug {build_dir} "
             + (" --wipe " if recompile else " ")
@@ -294,6 +294,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
                 else " -Db_sanitize=address,undefined -Db_lundef=false "
             )
         )
+
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )
@@ -301,6 +302,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
         c.run(f"meson compile -v -C {build_dir}")
 
     _pr_info("Fast building ebook reader completed")
+
 
 @task
 def fbuild_ebook_reader_test(c):
@@ -323,7 +325,6 @@ def fbuild_ebook_reader_test(c):
 
     _pr_info("Fast building ebook reader tests completed")
 
-    
 
 @task
 def fbuild_display_driver(c):
@@ -371,7 +372,11 @@ def test_ebook_reader(c, asan_options=None):
 
     build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
 
-    c.run(f"ASAN_OPTIONS={asan_options} " if asan_options else "" + f"meson test -v -C {build_dir}")
+    c.run(
+        f"ASAN_OPTIONS={asan_options} "
+        if asan_options
+        else "" + f"meson test -v -C {build_dir}"
+    )
 
     _pr_info("Testing display driver completed")
 
@@ -408,7 +413,11 @@ def test_display_driver(c, asan_options=None):
 
     build_dir = os.path.join(BUILD_PATH, "test_display_driver")
 
-    c.run(f"ASAN_OPTIONS={asan_options} " if asan_options else "" + f"meson test --print-errorlogs -v -C {build_dir}")
+    c.run(
+        f"ASAN_OPTIONS={asan_options} "
+        if asan_options
+        else "" + f"meson test --print-errorlogs -v -C {build_dir}"
+    )
 
     _pr_info("Testing display driver completed")
 
@@ -438,9 +447,11 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
             c.run(f"sudo tar xvf rootfs.tar -C {directory}")
 
     if sanitizers:
-        with c.cd("build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"):
+        with c.cd(
+            "build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"
+        ):
             c.run(f"sudo cp lib*san* {directory}/lib")
-            
+
     with c.cd("build/display_driver"):
         c.run(f"sudo cp *example {directory}/root/")
 

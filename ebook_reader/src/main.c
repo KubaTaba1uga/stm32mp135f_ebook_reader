@@ -70,7 +70,7 @@ int main(void) {
 
   puts("It's alive");
 
-  ebk_errno = ebk_core_start(ebk_app.core);
+  ebk_errno = ebk_core_main(ebk_app.core);
   EBK_TRY_CATCH(ebk_errno, error_core_cleanup);
 
   ebk_core_destroy(&ebk_app.core);
