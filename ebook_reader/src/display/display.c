@@ -20,10 +20,12 @@ struct ebk_Display {
 ebk_error_t ebk_display_init(ebk_display_t *out,
                              enum dd_DisplayDriverEnum model) {
   puts(__func__);
-
-  
-  
   return 0;
 }
 
 void ebk_display_destroy(ebk_display_t *out) { puts(__func__); }
+
+ebk_error_t ebk_display_show_boot_img(ebk_display_t display) {
+  puts(__func__);
+  return 0;
+}
