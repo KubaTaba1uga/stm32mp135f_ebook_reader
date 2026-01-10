@@ -39,5 +39,3 @@ void test_ebk_core_init_success(void) {
     TEST_ASSERT_TRUE(core->modules[i].destroy != NULL);
   }
 }
-
-

@@ -12,6 +12,15 @@ project('ebook_reader', 'c',
 )
 
 # ******************************************************************************
+# *    Config
+# ******************************************************************************
+if get_option('display') == 'x11'
+   run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'x11=1', check: true)
+elif get_option('display') == 'wvs7in5v2b'
+   run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'wvs7in5v2b=1', check: true)
+endif
+
+# ******************************************************************************
 # *    Libraries
 # ******************************************************************************
 ebook_reader_deps = [dependency('display_driver',
@@ -24,6 +33,16 @@ ebook_reader_deps = [dependency('display_driver',
 		      required: true,
 		      static: true,
 		     ),
+		     dependency('lvgl',
+		       fallback: ['lvgl', 'lvgl_dep'],
+		       required: true,
+		       static: true,
+		       default_options: [
+			  'CONFIG_LV_BUILD_EXAMPLES=false',
+			  'CONFIG_LV_BUILD_DEMOS=false',
+			  'werror=false',
+		       ],
+                     ),		     
 ]
 
 ebook_reader_inc = include_directories(['src'])

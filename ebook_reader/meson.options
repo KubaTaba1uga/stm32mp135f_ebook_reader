@@ -3,3 +3,9 @@ option('tests',
   value: false,
   description: 'Build library tests'
 )
+
+option('display',
+  type: 'string',
+  value: 'wvs7in5v2b',
+  description: 'Display model supported by the hardware instance'
+)

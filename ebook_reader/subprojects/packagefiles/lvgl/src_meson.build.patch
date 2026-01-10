@@ -1,0 +1,10 @@
+diff --git a/src/meson.build b/src/meson.build
+index b067d2228..bb35b0a1d 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -1,4 +1,4 @@
+-cfg = []
++cfg = ['-D_DEFAULT_SOURCE']
+ if get_option('LV_BUILD_LVGL_H_SIMPLE_INCLUDE')
+   cfg += '-DLV_CONF_INCLUDE_SIMPLE'
+   cfg += '-DLV_LVGL_H_INCLUDE_SIMPLE'
