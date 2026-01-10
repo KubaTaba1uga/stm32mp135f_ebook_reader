@@ -2,7 +2,9 @@
 #include "utils/error.h"
 #include <stdio.h>
 
+
 ebk_error_t ebk_gui_init(ebk_gui_t *out) {
+  
   puts(__func__);
   return 0;
 }

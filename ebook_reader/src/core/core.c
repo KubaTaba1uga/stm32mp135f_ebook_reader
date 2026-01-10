@@ -52,7 +52,7 @@ struct ebk_CoreFsmTransition {
      @brief Action that need to be performed upon transition to next_state.
 
      Action does not return error, because once app is running all errors should
-     be reported via ebk_core_error_raise in state module.
+     be reported via ebk_core_error_raise.
 
    */
   void (*action)(ebk_core_module_t, ebk_core_ctx_t, void *);
@@ -126,18 +126,6 @@ static const struct ebk_CoreFsmTransition
                 },
 };
 
-struct ebk_CoreFsmEventData {
-  enum ebk_CoreEventEnum event;
-  void *data;
-};
-
-struct ebk_Core {
-  struct ebk_CoreModule modules[ebk_CoreStateEnum_ERROR + 1];
-  struct ebk_CoreFsmEventData ev_data;
-  enum ebk_CoreStateEnum state;
-  struct ebk_CoreCtx ctx;
-  bool on;
-};
 
 static void ebk_core_step(ebk_core_t core);
 
@@ -314,16 +302,16 @@ void ebk_core_raise_error(ebk_core_t core, ebk_error_t error) {
 
 /**
    @brief Move core state according to fsm_table.
-   @note We clean core->ev_data before performing step action.
-         So every step start with no current event.
+   @note We clean core->ev_data before performing step action,
+         so every step start with clean event and event data.
 */
 static void ebk_core_step(ebk_core_t core) {
   if (!core->ev_data.event) {
     goto out;
   }
 
-  struct ebk_CoreFsmEventData ev_data = core->ev_data;
-  memset(&core->ev_data, 0, sizeof(struct ebk_CoreFsmEventData));
+  struct ebk_CoreEventData ev_data = core->ev_data;
+  memset(&core->ev_data, 0, sizeof(struct ebk_CoreEventData));
 
   struct ebk_CoreFsmTransition trans = fsm_table[core->state][ev_data.event];
   ebk_core_module_t next_cmodule = &core->modules[trans.next_state];

@@ -12,10 +12,6 @@
 #include "display/display_internal.h"
 #include "utils/error.h"
 
-struct ebk_Display {
-  dd_display_driver_t dd;
-  ebk_display_module_t display_module;
-};
 
 ebk_error_t ebk_display_init(ebk_display_t *out,
                              enum dd_DisplayDriverEnum model) {

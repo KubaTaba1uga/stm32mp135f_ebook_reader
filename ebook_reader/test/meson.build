@@ -4,10 +4,17 @@ unity_test_runner = unity_subproject.get_variable('gen_test_runner')
 
 test_files = [
   'test_unity.c',
+  'test_core.c',
   # add other test_*.c files here
 ]
 
 test_link_args = [
+      '-Wl,--wrap=ebk_display_init',
+      '-Wl,--wrap=ebk_display_show_boot_img',
+      '-Wl,--wrap=ebk_display_destroy',
+      '-Wl,--wrap=ebk_gui_init',
+      '-Wl,--wrap=ebk_gui_tick',
+      '-Wl,--wrap=ebk_gui_destroy',
       # Add more mocks via: '-Wl,--wrap=<func name>'
 ]
 
@@ -18,7 +25,6 @@ test_lib = static_library(
   sources: ebook_reader_src,
   dependencies: ebook_reader_deps,
   include_directories: ebook_reader_inc,
-  c_args: ['-DENABLE_MOCKS'],
   link_args: test_link_args,
 )
 
@@ -40,7 +46,6 @@ foreach test_file : test_files
       include_directories('.'),
       ebook_reader_inc,
     ],
-    c_args: ['-DENABLE_MOCKS'],
     link_with: test_lib,
     link_args: test_link_args,
   )

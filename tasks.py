@@ -373,9 +373,9 @@ def test_ebook_reader(c, asan_options=None):
     build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
 
     c.run(
-        f"ASAN_OPTIONS={asan_options} "
+        (f"ASAN_OPTIONS={asan_options} "
         if asan_options
-        else "" + f"meson test -v -C {build_dir}"
+        else "") + f"meson test -v -C {build_dir}"
     )
 
     _pr_info("Testing display driver completed")

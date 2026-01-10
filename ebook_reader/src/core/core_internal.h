@@ -13,6 +13,9 @@ typedef struct ebk_CoreModule *ebk_core_module_t;
 
 #define EBK_CORE_STATE_ENUM_INIT -1
 
+/**
+   @brief States device can be put in.
+ */
 enum ebk_CoreStateEnum {
   ebk_CoreStateEnum_NONE = 0,
   ebk_CoreStateEnum_BOOT,
@@ -21,6 +24,7 @@ enum ebk_CoreStateEnum {
   // Add more states here
   ebk_CoreStateEnum_ERROR,
 };
+
 
 struct ebk_CoreModule {
   void (*open)(ebk_core_module_t, ebk_core_ctx_t, void *);
@@ -81,6 +85,19 @@ enum ebk_CoreEventEnum {
    Once any module meet error that cannot be handled we emmit ERROR_RAISED.
    */
   ebk_CoreEventEnum_ERROR_RAISED,
+};
+
+struct ebk_CoreEventData {
+  enum ebk_CoreEventEnum event;
+  void *data;
+};
+
+struct ebk_Core {
+  struct ebk_CoreModule modules[ebk_CoreStateEnum_ERROR + 1];
+  struct ebk_CoreEventData ev_data;
+  enum ebk_CoreStateEnum state;
+  struct ebk_CoreCtx ctx;
+  bool on;
 };
 
 /**
