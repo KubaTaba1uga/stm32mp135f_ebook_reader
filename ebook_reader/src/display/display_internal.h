@@ -16,5 +16,4 @@ struct ebk_Display {
   ebk_display_module_t display_module;
 };
 
-
 #endif // EBOOK_READER_DISPLAY_INTERNAL_H

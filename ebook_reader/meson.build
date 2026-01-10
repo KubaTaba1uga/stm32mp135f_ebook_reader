@@ -14,10 +14,13 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Config
 # ******************************************************************************
+add_global_arguments(''-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 if get_option('display') == 'x11'
-   run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'x11=1', check: true)
+   add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
+   # run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'x11=1', check: true)
 elif get_option('display') == 'wvs7in5v2b'
-   run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'wvs7in5v2b=1', check: true)
+   add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
+   # run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'wvs7in5v2b=1', check: true)
 endif
 
 # ******************************************************************************

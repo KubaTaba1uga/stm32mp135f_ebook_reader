@@ -9,23 +9,26 @@
   to set appropriate value.
 
   EBK_DISPLAY_MODEL display model used with a device instance.
+  EBK_DISPLAY_BOOT_SCREEN_PATH path to image displayed during boot.
  */
 
 #include <display_driver.h>
 
 enum ebk_DisplayModelEnum {
-  ebk_DisplayModelEnum_Wvs7in5V2b = 1,
-  ebk_DisplayModelEnum_X11 = 2,
+  ebk_DisplayModelEnum_Wvs7in5V2b,
+  ebk_DisplayModelEnum_X11,
 };
 
-#ifndef EBK_DISPLAY_MODEL
-#define EBK_DISPLAY_MODEL 1
+#if !defined(EBK_DISPLAY_WVS7IN5V2B) || !defined(EBK_DISPLAY_X11)
+#define EBK_DISPLAY_WVS7IN5V2B 1
 #endif
 
-#if EBK_DISPLAY_MODEL == 1 // ebk_DisplayModelEnum_Wvs7in5V2b
+#if EBK_DISPLAY_WVS7IN5V2B == 1
+#define EBK_DISPLAY_MODEL ebk_DisplayModelEnum_Wvs7in5V2b
 #define EBK_DISPLAY_BOOT_SCREEN_PATH "data/480x800_1bit_boot_screen"
-#elif EBK_DISPLAY_MODEL == 2 // ebk_DisplayModelEnum_X11
-#define EBK_DISPLAY_BOOT_SCREEN_PATH "data/480x800_16bit_boot_screen"
+#elif EBK_DISPLAY_X11 == 1
+#define EBK_DISPLAY_MODEL ebk_DisplayModelEnum_X11
+#define EBK_DISPLAY_BOOT_SCREEN_PATH "data/480x800_24bit_boot_screen"
 #else
 #error "Unsupported display model"
 #endif
