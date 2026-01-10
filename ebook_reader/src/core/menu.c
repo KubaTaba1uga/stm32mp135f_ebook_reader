@@ -3,6 +3,8 @@
 
 #include "core/core_internal.h"
 #include "core/menu.h"
+#include "display/display.h"
+#include "utils/error.h"
 #include "utils/mem.h"
 
 typedef struct ebk_Menu *ebk_menu_t;
@@ -34,8 +36,16 @@ ebk_error_t ebk_corem_menu_init(ebk_core_module_t module, ebk_core_t core) {
 }
 
 static void ebk_corem_menu_open(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                         void *data) {
+                                void *data) {
+  ebk_menu_t menu = module->private;
   puts(__func__);
+  ebk_errno = ebk_display_show_menu(ctx->display, ctx->gui);
+  EBK_TRY(ebk_errno);
+
+  return;
+
+error_out:
+  ebk_core_raise_error(menu->core, ebk_errno);
 }
 
 void ebk_corem_menu_up(ebk_core_module_t module, ebk_core_ctx_t ctx,
@@ -68,6 +78,4 @@ static void ebk_corem_menu_destroy(ebk_core_module_t module) {
   memset(module, 0, sizeof(struct ebk_CoreModule));
 }
 
-static void ebk_corem_menu_close(ebk_core_module_t module) {
-  puts(__func__);
-  }
+static void ebk_corem_menu_close(ebk_core_module_t module) { puts(__func__); }

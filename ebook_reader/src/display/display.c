@@ -20,7 +20,7 @@ ebk_error_t ebk_display_init(ebk_display_t *out,
                              enum ebk_DisplayModelEnum model) {
   puts(__func__);
   ebk_display_t display = *out = ebk_mem_malloc(sizeof(struct ebk_Display));
-  
+
   switch (model) {
   case ebk_DisplayModelEnum_Wvs7in5V2b:
     ebk_errno = ebk_display_wvs7in5v2b_init(&display->display);
@@ -31,8 +31,9 @@ ebk_error_t ebk_display_init(ebk_display_t *out,
     EBK_TRY(ebk_errno);
     break;
   default:
-    ebk_errno = ebk_errnof(ENOENT, "Unsupported model: %s", ebk_display_mdump(model));
-    EBK_TRY(ebk_errno);    
+    ebk_errno =
+        ebk_errnof(ENOENT, "Unsupported model: %s", ebk_display_mdump(model));
+    EBK_TRY(ebk_errno);
   }
 
   display->model = model;
@@ -60,6 +61,23 @@ ebk_error_t ebk_display_show_boot_img(ebk_display_t display) {
   puts(__func__);
   return 0;
 }
+
+ebk_error_t ebk_display_show_menu(ebk_display_t display, ebk_gui_t gui) {
+  if (!display->display.show_menu) {
+    ebk_errno =
+        ebk_errnof(EINVAL, "Opening menu is not supported on display: %s",
+                   ebk_display_mdump(display->model));
+    goto error_out;
+  }
+
+  ebk_errno = display->display.show_menu(&display->display, gui);
+  EBK_TRY(ebk_errno);
+
+  return 0;
+
+error_out:
+  return ebk_errno;
+};
 
 const char *ebk_display_mdump(enum ebk_DisplayModelEnum model) {
   static const char *dumps[] = {

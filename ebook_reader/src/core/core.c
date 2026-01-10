@@ -45,6 +45,7 @@
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
+#include <stdio.h>
 
 struct ebk_CoreFsmTransition {
   enum ebk_CoreStateEnum next_state;
@@ -126,8 +127,9 @@ static const struct ebk_CoreFsmTransition
                 },
 };
 
-
 static void ebk_core_step(ebk_core_t core);
+static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
+                                    void *data);
 
 ebk_error_t ebk_core_init(ebk_core_t *out) {
   if (!out) {
@@ -159,7 +161,7 @@ ebk_error_t ebk_core_init(ebk_core_t *out) {
     EBK_TRY_CATCH(ebk_errno, error_modules_cleanup);
   }
 
-  ebk_errno = ebk_gui_init(&core->ctx.gui);
+  ebk_errno = ebk_gui_init(&core->ctx.gui, ebk_core_input_callback, core);
   EBK_TRY_CATCH(ebk_errno, error_modules_cleanup);
 
   ebk_core_event_post(core, ebk_CoreEventEnum_BOOT_DONE, NULL);
@@ -198,16 +200,17 @@ ebk_error_t ebk_core_main(ebk_core_t core) {
     goto error_out;
   }
 
+  core->on = true;
   while (core->on) {
     sleep_ms = ebk_gui_tick(core->ctx.gui);
-    if (sleep_ms > 0) {
+    if (sleep_ms < 0) {
       ebk_ewrap();
       goto error_out;
     }
 
     ebk_core_step(core);
 
-    ebk_sleep_ms(sleep_ms);
+    ebk_time_sleep_ms(1000);
   }
 
   return 0;
@@ -317,6 +320,8 @@ static void ebk_core_step(ebk_core_t core) {
   ebk_core_module_t next_cmodule = &core->modules[trans.next_state];
   ebk_core_module_t cmodule = &core->modules[core->state];
 
+  log_debug("%s -> %s", ebk_core_sdump(core->state), ebk_core_sdump(trans.next_state));
+  
   if (!trans.action && next_cmodule->open) {
     trans.action = next_cmodule->open;
   }
@@ -330,4 +335,9 @@ static void ebk_core_step(ebk_core_t core) {
   core->state = trans.next_state;
 
 out:;
+}
+
+static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
+                                    void *data) {
+  puts(__func__);
 }

@@ -2,6 +2,7 @@
 #define EBOOK_READER_DISPLAY_INTERNAL_H
 #include <display_driver.h>
 
+#include "display/display.h"
 #include "utils/error.h"
 #include "utils/settings.h"
 
@@ -9,6 +10,7 @@ typedef struct ebk_DisplayModule *ebk_display_module_t;
 
 struct ebk_DisplayModule {
   ebk_error_t (*show_boot_img)(ebk_display_module_t module);
+  ebk_error_t (*show_menu)(ebk_display_module_t module, ebk_gui_t gui);
   void (*destroy)(ebk_display_module_t module);
   void *private;
 };

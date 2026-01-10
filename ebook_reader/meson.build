@@ -14,9 +14,11 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Config
 # ******************************************************************************
+ebook_reader_deps = []
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 if get_option('display') == 'x11'
    add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
+   ebook_reader_deps += [dependency('x11', required: true)]
    # run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'x11=1', check: true)
 elif get_option('display') == 'wvs7in5v2b'
    add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
@@ -26,7 +28,7 @@ endif
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
-ebook_reader_deps = [dependency('display_driver',
+ebook_reader_deps += [dependency('display_driver',
 		      fallback: ['display_driver', 'display_driver_dep'],
 		      required: true,
 		      static: true,
@@ -55,6 +57,7 @@ ebook_reader_src = [files('src/main.c',
 			  'src/utils/mem.c',
 			  'src/utils/settings.c',
 			  'src/utils/time.c',
+			  'src/utils/lvgl.c',			  
 			  'src/gui/gui.c',
 			  'src/display/display.c',
 			  'src/display/wvs7in5v2b.c',
