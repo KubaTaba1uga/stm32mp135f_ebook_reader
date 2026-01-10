@@ -6,13 +6,13 @@
 // `##` in `##__VA_ARGS__` deletes `,` if no args provided
 #ifdef DEBUG
 #define log_info(fmt, ...)                                                     \
-  fprintf(stdout, "(%16.16s:%16.16s:%4.4d)[INFOR]: " fmt "\n", __FILE__, __func__, __LINE__,   \
+  fprintf(stdout, "(%32.32s:%32.32s:%4.4d)[INFOR]: " fmt "\n", __FILE__, __func__, __LINE__,   \
           ##__VA_ARGS__)
 #define log_debug(fmt, ...)                                                    \
-  fprintf(stdout, "(%16.16s:%16.16s:%4.4d)[DEBUG]: " fmt "\n", __FILE__, __func__, __LINE__,   \
+  fprintf(stdout, "(%32.32s:%32.32s:%4.4d)[DEBUG]: " fmt "\n", __FILE__, __func__, __LINE__,   \
           ##__VA_ARGS__)
 #define log_warn(fmt, ...)                                                     \
-  fprintf(stdout, "(%16.16s:%16.16s:%4.4d)[WARNI]: " fmt "\n", __FILE__, __func__, __LINE__,   \
+  fprintf(stdout, "(%32.32s:%32.32s:%4.4d)[WARNI]: " fmt "\n", __FILE__, __func__, __LINE__,   \
           ##__VA_ARGS__)
 #else
 #define log_info(fmt, ...) fprintf(stdout, "[INFOR]: " fmt "\n", ##__VA_ARGS__)
