@@ -12,14 +12,9 @@
   EBK_DISPLAY_BOOT_SCREEN_PATH path to image displayed during boot.
  */
 
-#include <display_driver.h>
+#include "utils/settings.h"
 
-enum ebk_DisplayModelEnum {
-  ebk_DisplayModelEnum_Wvs7in5V2b,
-  ebk_DisplayModelEnum_X11,
-};
-
-#if !defined(EBK_DISPLAY_WVS7IN5V2B) || !defined(EBK_DISPLAY_X11)
+#if !defined(EBK_DISPLAY_WVS7IN5V2B) && !defined(EBK_DISPLAY_X11)
 #define EBK_DISPLAY_WVS7IN5V2B 1
 #endif
 

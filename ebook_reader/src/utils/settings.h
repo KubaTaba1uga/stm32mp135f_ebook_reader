@@ -3,6 +3,11 @@
 
 #include <display_driver.h>
 
-extern enum dd_DisplayDriverEnum ebk_settings_display_model;
+enum ebk_DisplayModelEnum {
+  ebk_DisplayModelEnum_Wvs7in5V2b,
+  ebk_DisplayModelEnum_X11,
+};
+
+extern const enum ebk_DisplayModelEnum ebk_settings_display_model;
 
 #endif // EBOOK_READER_SETTINGS_H

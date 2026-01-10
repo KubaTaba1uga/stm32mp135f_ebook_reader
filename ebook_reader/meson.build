@@ -14,7 +14,7 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Config
 # ******************************************************************************
-add_global_arguments(''-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
+add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 if get_option('display') == 'x11'
    add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
    # run_command(import('python').find_installation('python3'), files('tools/render_lv_conf.py'), 'x11=1', check: true)
@@ -57,6 +57,8 @@ ebook_reader_src = [files('src/main.c',
 			  'src/utils/time.c',
 			  'src/gui/gui.c',
 			  'src/display/display.c',
+			  'src/display/wvs7in5v2b.c',
+			  'src/display/x11.c',			  			  
 			  'src/core/core.c',
 			  'src/core/menu.c',
 			  'src/core/book_reader.c',
