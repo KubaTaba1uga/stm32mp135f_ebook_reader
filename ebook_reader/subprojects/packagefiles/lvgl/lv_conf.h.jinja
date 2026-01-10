@@ -27,9 +27,9 @@
  *====================*/
 
 /** Color depth: 1 (I1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888) */
--{% if wvs7in5v2b %}
+{%- if wvs7in5v2b %}
 #define LV_COLOR_DEPTH 1
--{% elif x11 %}
+{%- elif x11 %}
 #define LV_COLOR_DEPTH 24
 {% endif %}
 
@@ -1225,9 +1225,9 @@
 #endif
 
 /** Use X11 to open window on Linux desktop and handle mouse and keyboard */
--{% if wvs7in5v2b %}
+{%- if wvs7in5v2b %}
 #define LV_USE_X11              0
--{% elif x11 %}
+{%- elif x11 %}
 #define LV_USE_X11              1
 {% endif %}
 #if LV_USE_X11
