@@ -12,6 +12,7 @@ ebook_reader/subprojects/packagecache
 ebook_reader/subprojects/display_driver
 ebook_reader/subprojects/sqlite-amalgamation-3510100
 ebook_reader/subprojects/openjpeg-2.5.4
-ebook_reader/subprojects/poppler
+ebook_reader/subprojects/cmake_poppler
+ebook_reader/subprojects/poppler/include/*
 old*
 

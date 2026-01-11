@@ -66,28 +66,6 @@ add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
 # dep_poppler = poppler_sp.dependency('poppler')
 # ebook_reader_deps += [dep_poppler]
 
-# Poppler is a bit messy when come to build, it require libopenjp2
-#  to be installed before build which is not inline with meson build
-#  model. So we declared these dependencies but do not add them to
-#  ebook_reader_deps to force meson to download them.
-dependency('libopenjp2',
- fallback: ['libopenjp2', 'libopenjp2_dep'],
- required: false,
-)
-dependency('poppler',
- fallback: ['poppler'],
- required: false,
-)
-poppler = custom_target('poppler',
-  output: 'libpoppler.a',
-  command: [
-    'invoke',
-    '-r', '../../ebook_reader/tools',
-    '-c', 'poppler',
-    'build',
-  ],
-  install: false,
-)
 
 ebook_reader_deps += [dependency('display_driver',
 		       fallback: ['display_driver', 'display_driver_dep'],
@@ -108,7 +86,10 @@ ebook_reader_deps += [dependency('display_driver',
 			  'CONFIG_LV_BUILD_DEMOS=false',
 			  'werror=false',
 		       ]),
-		       # dep_poppler,
+		       dependency('poppler',
+			fallback: ['poppler', 'poppler_dep'],
+			required: true,
+		       )
 ]
 
 ebook_reader_inc = include_directories(['src'])
@@ -127,7 +108,7 @@ ebook_reader_src = [files('src/main.c',
 			  'src/core/menu.c',
 			  'src/core/book_reader.c',
 			  'src/core/error.c',			  
-			 ), poppler]
+			 )]
 
 buildtype = get_option('buildtype')
 if buildtype == 'debug' or buildtype == 'debugoptimized'

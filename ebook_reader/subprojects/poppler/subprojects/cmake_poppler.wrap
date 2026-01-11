@@ -1,3 +1,4 @@
 [wrap-git]
 url = https://gitlab.freedesktop.org/poppler/poppler.git
 revision = poppler-26.01.0
+directory = cmake_poppler
