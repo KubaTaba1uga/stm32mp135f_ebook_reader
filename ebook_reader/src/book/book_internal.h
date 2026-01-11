@@ -23,9 +23,16 @@ struct ebk_BookPrivate {
    Book module provide generic abstracion over all formats.
 */
 struct ebk_BookModule {
+  void (*destroy)(ebk_book_module_t);  
   ebk_error_t (*set_title)(ebk_book_t);
   void *private;
 };
+
+struct ebk_BooksList {
+  ebk_book_t *current_book;
+  struct ebk_ZList books;
+  void *owner;
+}; 
 
 #endif // EBOOK_READER_BOOK_INTERNAL_H
 #ifndef EBOOK_READER_BOOK_H
