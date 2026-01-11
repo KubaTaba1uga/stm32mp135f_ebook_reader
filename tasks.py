@@ -1,4 +1,3 @@
-import glob
 import os
 
 from invoke import task
@@ -45,7 +44,7 @@ def install(c):
 
         c.run("virtualenv .venv")
         c.run(
-            "pip install sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25 jinja2==3.1.6"
+            "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
 
     except Exception:
@@ -151,7 +150,6 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
         c.run(
             "python scripts/clang-tools/gen_compile_commands.py && cp compile_commands.json ../../../../third_party/linux"
         )
-    # TO-DO get compile_commands and copy to third_party/linux
 
     _pr_info(f"Building linux completed")
 
@@ -291,7 +289,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
             + (
                 f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false "
                 if not local
-                else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11"
+                else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
             )
         )
 
