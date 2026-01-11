@@ -9,5 +9,6 @@ enum ebk_DisplayModelEnum {
 };
 
 extern const enum ebk_DisplayModelEnum ebk_settings_display_model;
+extern const char *ebk_settings_books_dir;
 
 #endif // EBOOK_READER_SETTINGS_H

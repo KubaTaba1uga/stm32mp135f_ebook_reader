@@ -107,7 +107,9 @@ ebook_reader_src = [files('src/main.c',
 			  'src/core/core.c',
 			  'src/core/menu.c',
 			  'src/core/book_reader.c',
-			  'src/core/error.c',			  
+			  'src/core/error.c',
+			  'src/book/book.c',
+			  'src/book/pdf.c',
 			 )]
 
 buildtype = get_option('buildtype')
