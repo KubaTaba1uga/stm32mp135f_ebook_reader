@@ -46,7 +46,8 @@ def install(c):
         c.run(
             "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
-
+        install_libgpiod(c)
+        
     except Exception:
         _pr_error("Installing failed")
         raise
@@ -55,8 +56,13 @@ def install(c):
 
 @task
 def install_libgpiod(c):
-    _pr_info(f"Installing libgpiod dependency...")
+    r = c.run("pkg-config --modversion libgpiod", warn=True)
 
+    if r.ok and "1.6.5" in r.stdout.strip():
+        return;
+
+    _pr_info(f"Installing libgpiod dependency...")
+    
     try:
         c.run("wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz")
         c.run("tar -xf /tmp/libpiod.tar.xz -C /tmp/")
