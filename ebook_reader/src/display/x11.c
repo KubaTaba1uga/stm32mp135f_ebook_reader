@@ -1,4 +1,5 @@
 #ifdef EBK_DISPLAY_X11
+
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -80,7 +81,9 @@ static void ebk_display_x11_destroy(ebk_display_module_t module) {
   ebk_mem_free(module->private);
   module->private = NULL;
 }
+
 #else
+
 #include "display/display_internal.h"
 #include "utils/error.h"
 

@@ -2,6 +2,7 @@
 #define EBOOK_READER_CORE_INTERNAL_H
 #include <stdbool.h>
 
+#include "book/book.h"
 #include "core/core.h"
 #include "display/display.h"
 #include "gui/gui.h"
@@ -36,6 +37,7 @@ struct ebk_CoreModule {
 struct ebk_CoreCtx {
   ebk_gui_t gui;
   ebk_display_t display;
+  ebk_books_t books;  
 };
 
 /**

@@ -164,6 +164,9 @@ ebk_error_t ebk_core_init(ebk_core_t *out) {
   ebk_errno = ebk_gui_init(&core->ctx.gui, ebk_core_input_callback, core);
   EBK_TRY_CATCH(ebk_errno, error_modules_cleanup);
 
+  ebk_errno = ebk_books_init(&core->ctx.books);
+  EBK_TRY_CATCH(ebk_errno, error_gui_cleanup);
+
   ebk_core_event_post(core, ebk_CoreEventEnum_BOOT_DONE, NULL);
   ebk_core_step(core);
 
@@ -172,6 +175,8 @@ ebk_error_t ebk_core_init(ebk_core_t *out) {
 
   return 0;
 
+error_gui_cleanup:
+  ebk_gui_destroy(&core->ctx.gui);
 error_modules_cleanup:
   for (; inits_status >= ebk_CoreStateEnum_MENU; inits_status--) {
     if (!core->modules[inits_status].destroy) {
@@ -326,7 +331,7 @@ static void ebk_core_step(ebk_core_t core) {
     trans.action = next_cmodule->open;
   }
 
-  trans.action(&core->modules[core->state], &core->ctx, ev_data.data);
+  trans.action(next_cmodule, &core->ctx, ev_data.data);
 
   if (core->state != trans.next_state && cmodule->close) {
     cmodule->close(cmodule);

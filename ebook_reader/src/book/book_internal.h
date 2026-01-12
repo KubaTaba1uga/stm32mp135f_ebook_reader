@@ -1,10 +1,13 @@
 #ifndef EBOOK_READER_BOOK_INTERNAL_H
 #define EBOOK_READER_BOOK_INTERNAL_H
+#include <stdbool.h>
 
 #include "book/book.h"
 #include "utils/error.h"
 
 typedef struct ebk_BookModule *ebk_book_module_t;
+typedef struct ebk_Book *ebk_book_t;
+typedef struct ebk_BookPrivate *ebk_book_private_t;
 
 enum ebk_BookExtensionEnum {
   ebk_BookExtensionEnum_PDF,
@@ -12,10 +15,14 @@ enum ebk_BookExtensionEnum {
 
 /**
   Other subsystem than book does not need to care about book's extension.
-  This way we can treat all books exactly the same. 
+  This way we can treat all books exactly the same.
 */
-struct ebk_BookPrivate {
+struct ebk_Book {
   enum ebk_BookExtensionEnum ext;
+  struct ebk_ZListNode list_node;
+  const char *file_path;
+  const char *title;
+  void *private;
 };
 
 /**
@@ -23,16 +30,18 @@ struct ebk_BookPrivate {
    Book module provide generic abstracion over all formats.
 */
 struct ebk_BookModule {
-  void (*destroy)(ebk_book_module_t);  
-  ebk_error_t (*set_title)(ebk_book_t);
+  void (*destroy)(ebk_book_module_t);
+  bool (*is_extension)(const char *);
+  ebk_error_t (*book_init)(ebk_book_t);
+  void (*book_destroy)(ebk_book_t);  
   void *private;
 };
 
 struct ebk_BooksList {
-  ebk_book_t *current_book;
+  ebk_zlist_node_t current_book;
   struct ebk_ZList books;
   void *owner;
-}; 
+};
 
 #endif // EBOOK_READER_BOOK_INTERNAL_H
 #ifndef EBOOK_READER_BOOK_H
@@ -43,18 +52,7 @@ struct ebk_BooksList {
 
 enum ebk_BookExtensionEnum {
   ebk_BookExtensionEnum_PDF,
-  
 };
-
-struct ebk_Book {
-  const char *title;
-  const char *file_path;
-  const int creation_time;
-  struct ebk_ZListNode list_node;
-};
-
-typedef struct ebk_Book *ebk_book_t;
-typedef ebk_zlist_t ebk_books_t;
 
 /**
    @brief Search for books in the system.

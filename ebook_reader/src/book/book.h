@@ -8,12 +8,6 @@ typedef struct ebk_Book *ebk_book_t;
 typedef struct ebk_BooksList *ebk_books_list_t;
 typedef struct ebk_BooksCore *ebk_books_t;
 
-struct ebk_Book {
-  const char *title;
-  struct ebk_ZListNode list_node;
-  void *private;
-};
-
 ebk_error_t ebk_books_init(ebk_books_t *);
 void ebk_books_destroy(ebk_books_t *);
 
@@ -36,5 +30,7 @@ ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out);
 ebk_book_t ebk_books_list_get(ebk_books_list_t list);
 
 void ebk_books_list_destroy(ebk_books_list_t* out);
+
+const char *ebk_book_get_title(ebk_book_t book);
 
 #endif // EBOOK_READER_CORE_MENU

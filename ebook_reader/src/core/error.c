@@ -5,6 +5,7 @@
 
 #include "core/core_internal.h"
 #include "core/error.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 
 typedef struct ebk_CoremError *ebk_corem_error_t;
@@ -36,8 +37,10 @@ ebk_error_t ebk_corem_error_init(ebk_core_module_t module, ebk_core_t core) {
 }
 
 static void ebk_corem_error_open(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                         void *data) {
+                                 void *data) {
   puts(__func__);
+
+  log_error(data);
 }
 
 static void ebk_corem_error_destroy(ebk_core_module_t module) {
@@ -50,6 +53,4 @@ static void ebk_corem_error_destroy(ebk_core_module_t module) {
   memset(module, 0, sizeof(struct ebk_CoreModule));
 }
 
-static void ebk_corem_error_close(ebk_core_module_t module) {
-  puts(__func__);
-  }
+static void ebk_corem_error_close(ebk_core_module_t module) { puts(__func__); }

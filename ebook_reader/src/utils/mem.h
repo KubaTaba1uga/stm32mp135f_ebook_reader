@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 
+#define container_of(ptr, type, member) \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
+
 void *ebk_mem_malloc(size_t size);
 void ebk_mem_free(void *mem);
 
