@@ -39,7 +39,7 @@ def install(c):
               which sed make binutils build-essential diffutils \
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk wget \
-              git libncurses5-dev python3"
+              git libncurses5-dev python3 libpoppler-glib-dev"
         )
 
         c.run("virtualenv .venv")

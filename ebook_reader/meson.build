@@ -87,7 +87,7 @@ ebook_reader_deps += [dependency('display_driver',
 			  'werror=false',
 		       ]),
 		       dependency('poppler',
-			fallback: ['poppler', 'poppler_dep'],
+			fallback: ['poppler'],
 			required: true,
 		       )
 ]
