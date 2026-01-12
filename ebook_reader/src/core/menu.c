@@ -33,8 +33,6 @@ ebk_error_t ebk_corem_menu_init(ebk_core_module_t module, ebk_core_t core) {
       .private = menu,
   };
 
-  printf("menu: %p\n", menu);
-  printf("module: %p\n", module);  
   
   return 0;
 }
@@ -43,16 +41,12 @@ static void ebk_corem_menu_open(ebk_core_module_t module, ebk_core_ctx_t ctx,
                                 void *data) {
   puts(__func__);
   ebk_menu_t menu = module->private;
-
-  printf("menu: %p\n", menu);
-  printf("module: %p\n", module);  
-
   ebk_books_list_t blist;
 
   ebk_errno = ebk_books_list_init(ctx->books, &blist);
   EBK_TRY(ebk_errno);
 
-  ebk_errno = ebk_display_show_menu(ctx->display, ctx->gui);
+  ebk_errno = ebk_display_show_menu(ctx->display, ctx->gui, blist);
   EBK_TRY_CATCH(ebk_errno, error_blist_cleanup);
 
   ebk_books_list_destroy(&blist);  

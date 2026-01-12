@@ -1,7 +1,9 @@
 #ifndef EBOOK_READER_GUI
 #define EBOOK_READER_GUI
+#include "book/book.h"
 #include "utils/error.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct ebk_Gui *ebk_gui_t;
 
@@ -22,5 +24,6 @@ ebk_error_t ebk_gui_init(
     void *input_data);
 int ebk_gui_tick(ebk_gui_t gui);
 void ebk_gui_destroy(ebk_gui_t *out);
+ebk_error_t ebk_gui_show_menu(ebk_gui_t gui, ebk_books_list_t books, uint32_t width, uint32_t height);
 
 #endif // EBOOK_READER_GUI

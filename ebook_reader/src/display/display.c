@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "display/display.h"
+#include "book/book.h"
 #include "display/display_internal.h"
 #include "display/wvs7in5v2b.h"
 #include "display/x11.h"
@@ -62,7 +63,7 @@ ebk_error_t ebk_display_show_boot_img(ebk_display_t display) {
   return 0;
 }
 
-ebk_error_t ebk_display_show_menu(ebk_display_t display, ebk_gui_t gui) {
+ebk_error_t ebk_display_show_menu(ebk_display_t display, ebk_gui_t gui, ebk_books_list_t books) {
   if (!display->display.show_menu) {
     ebk_errno =
         ebk_errnof(EINVAL, "Opening menu is not supported on display: %s",
@@ -70,7 +71,7 @@ ebk_error_t ebk_display_show_menu(ebk_display_t display, ebk_gui_t gui) {
     goto error_out;
   }
 
-  ebk_errno = display->display.show_menu(&display->display, gui);
+  ebk_errno = display->display.show_menu(&display->display, gui, books);
   EBK_TRY(ebk_errno);
 
   return 0;

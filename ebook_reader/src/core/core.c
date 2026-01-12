@@ -214,7 +214,6 @@ ebk_error_t ebk_core_main(ebk_core_t core) {
     }
 
     ebk_core_step(core);
-
     ebk_time_sleep_ms(1000);
   }
 
@@ -325,8 +324,9 @@ static void ebk_core_step(ebk_core_t core) {
   ebk_core_module_t next_cmodule = &core->modules[trans.next_state];
   ebk_core_module_t cmodule = &core->modules[core->state];
 
-  log_debug("%s -> %s", ebk_core_sdump(core->state), ebk_core_sdump(trans.next_state));
-  
+  log_debug("%s -> %s", ebk_core_sdump(core->state),
+            ebk_core_sdump(trans.next_state));
+
   if (!trans.action && next_cmodule->open) {
     trans.action = next_cmodule->open;
   }

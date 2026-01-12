@@ -65,16 +65,22 @@ ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out) {
   books_dir = opendir(ebk_settings_books_dir);
 
   while ((dirent = readdir(books_dir)) != NULL) {
+    if (strcmp(".", dirent->d_name) == 0 || strcmp("..", dirent->d_name) == 0) {
+      continue;
+    }
+
     book_ext = ebk_books_get_extension(core, dirent->d_name);
     if (book_ext == -1) {
       continue;
     };
-    int bytes = snprintf(NULL,0, "%s/%s", ebk_settings_books_dir, dirent->d_name) + 1;
+
+    int bytes =
+        snprintf(NULL, 0, "%s/%s", ebk_settings_books_dir, dirent->d_name) + 1;
     char *file_path = ebk_mem_malloc(bytes);
-    snprintf(file_path,bytes, "%s/%s", ebk_settings_books_dir, dirent->d_name);
-    
+    snprintf(file_path, bytes, "%s/%s", ebk_settings_books_dir, dirent->d_name);
+
     book = ebk_mem_malloc(sizeof(struct ebk_Book));
-    
+
     *book = (struct ebk_Book){
         .ext = book_ext,
         .file_path = file_path,
@@ -85,18 +91,15 @@ ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out) {
     if (i == 0) {
       list->current_book = list->books.head;
     }
-    
-    if (core->modules[book_ext].book_init) {      
+
+    if (core->modules[book_ext].book_init) {
       ebk_errno = core->modules[book_ext].book_init(book);
       EBK_TRY(ebk_errno);
     }
-
-    
-    printf("FILEPATH=%s\n", dirent->d_name);    
   }
 
   closedir(books_dir);
-  
+
   return 0;
 
 error_out:
@@ -132,10 +135,16 @@ void ebk_books_list_destroy(ebk_books_list_t *out) {
 
   for (ebk_zlist_node_t node = (*out)->books.head; node != NULL;) {
     ebk_book_t book = CAST_BOOK_PRIV(node);
+    struct ebk_BooksCore *core = (*out)->owner;
+    if (core->modules[book->ext].book_destroy) {
+      core->modules[book->ext].book_destroy(book);
+    }
+
     node = node->next;
 
     ebk_mem_free((void *)book->file_path);
-    ebk_mem_free(book);    
+
+    ebk_mem_free(book);
   }
 
   ebk_mem_free(*out);

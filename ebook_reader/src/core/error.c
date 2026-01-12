@@ -36,6 +36,12 @@ ebk_error_t ebk_corem_error_init(ebk_core_module_t module, ebk_core_t core) {
   return 0;
 }
 
+/**
+   @todo Display error on the screen of a device.
+
+   It would be awesome if we would dump errors on disk,
+   or even better send it to grafana or sth like that.
+*/
 static void ebk_corem_error_open(ebk_core_module_t module, ebk_core_ctx_t ctx,
                                  void *data) {
   puts(__func__);

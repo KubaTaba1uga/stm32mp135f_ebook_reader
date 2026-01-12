@@ -1,3 +1,4 @@
+#include "book/book.h"
 #ifdef EBK_DISPLAY_X11
 
 #include <lvgl.h>
@@ -20,7 +21,8 @@ static int ebk_x11_width = 480;
 static int ebk_x11_heigth = 800;
 static void ebk_display_x11_destroy(ebk_display_module_t);
 static ebk_error_t ebk_display_x11_show_boot_img(ebk_display_module_t);
-static ebk_error_t ebk_display_x11_show_menu(ebk_display_module_t, ebk_gui_t);
+static ebk_error_t ebk_display_x11_show_menu(ebk_display_module_t, ebk_gui_t,
+                                             ebk_books_list_t);
 
 ebk_error_t ebk_display_x11_init(ebk_display_module_t module) {
   puts(__func__);
@@ -61,14 +63,15 @@ static ebk_error_t ebk_display_x11_show_boot_img(ebk_display_module_t module) {
 };
 
 static ebk_error_t ebk_display_x11_show_menu(ebk_display_module_t module,
-                                             ebk_gui_t gui) {
-  lv_obj_t *label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "Hello world");
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0x003a57),
-                              LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+                                             ebk_gui_t gui,
+                                             ebk_books_list_t books) {
+  ebk_errno = ebk_gui_show_menu(gui, books, ebk_x11_width, ebk_x11_heigth);
+  EBK_TRY(ebk_errno);
 
   return 0;
+
+error_out:
+  return ebk_errno;
 }
 
 static void ebk_display_x11_destroy(ebk_display_module_t module) {
