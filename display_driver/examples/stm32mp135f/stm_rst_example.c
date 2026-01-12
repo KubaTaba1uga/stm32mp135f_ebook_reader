@@ -19,8 +19,6 @@ int main(void) {
 
   return EXIT_SUCCESS;
 
-error_dd_cleanup:
-  dd_display_driver_destroy(&dd);
 error: {
   char buf[1024];
   dd_error_dumps(err, 1024, buf);

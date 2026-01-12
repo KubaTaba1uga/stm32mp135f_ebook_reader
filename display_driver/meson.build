@@ -8,18 +8,13 @@ project('display_driver', 'c',
 	 default_options: [
             'werror=true',
             'c_std=c11',
-	    'default_library=static',
          ],
 )
 
 # ******************************************************************************
 # *    Library
 # ******************************************************************************
-libgpiod_dep = dependency('libgpiod',
-  fallback: ['libgpiod', 'gpiod_dep'],
-  required: true,
-  static: true,
-)
+libgpiod_dep = dependency('libgpiod')
 
 display_driver_inc = include_directories(['include', 'src'])
 

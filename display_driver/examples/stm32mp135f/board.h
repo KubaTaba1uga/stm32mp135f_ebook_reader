@@ -43,8 +43,6 @@ static inline dd_error_t init_stm32mp135f(void) {
 
   return 0;
 
-error_dd_cleanup:
-  dd_display_driver_destroy(&dd);
 error:
   return err;
 }

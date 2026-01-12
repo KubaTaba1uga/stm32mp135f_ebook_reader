@@ -39,12 +39,6 @@ Currently supported configurations are:
 App dependencies
 ----------------
 
-We are building userspace apps dependencies via meson, the idea here is to centralize all app build into the app directory itself.
-For example sake let's consider ``display_driver`` library which implement drivers required to handle our screens, ``display_driver``
-uses libgpiod which it compiles into it's library file. We use static compilation to ease updates and modification of libraries.
-Because ``display_driver`` manages build of it's dependencies it can insert sanitizers to the libgpiod with need to use of buildroot.
-
-The rule her is that each app or lib that we implement for need of ebook_reader should be self contained and build all it's dependencies.
-
+Buildroot owns sysroot, meson produces apps wich should dynamically link against dependencies build by buildroot.
 
 

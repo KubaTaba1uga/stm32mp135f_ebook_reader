@@ -53,6 +53,25 @@ def install(c):
 
     _pr_info(f"Installing dependencies completed")
 
+@task
+def install_libgpiod(c):
+    _pr_info(f"Installing libgpiod dependency...")
+
+    try:
+        c.run("wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz")
+        c.run("tar -xf /tmp/libpiod.tar.xz -C /tmp/")
+        with c.cd("/tmp/libgpiod-1.6.5"):
+            c.run("./configure --prefix=/usr/")
+            c.run("make")
+            c.run("sudo make install")            
+
+    except Exception:
+        _pr_error("Installing failed")
+        raise
+
+    _pr_info(f"Installing libgpiod completed")
+
+    
 
 @task
 def build_docs(c):
@@ -319,7 +338,7 @@ def fbuild_ebook_reader_test(c):
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )
 
-        c.run(f"meson compile -v -C {build_dir}")
+        c.run(f"LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH meson compile -v -C {build_dir}")
 
     _pr_info("Fast building ebook reader tests completed")
 
