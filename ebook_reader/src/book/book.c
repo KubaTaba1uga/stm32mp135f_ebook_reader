@@ -123,7 +123,7 @@ ebk_book_t ebk_books_list_get(ebk_books_list_t list) {
   if (!list->current_book) {
     return NULL;
   }
-  
+
   ebk_zlist_node_t next_node = list->current_book->next;
   ebk_book_t book = CAST_BOOK_PRIV(list->current_book);
   list->current_book = next_node;
@@ -166,3 +166,10 @@ static enum ebk_BookExtensionEnum ebk_books_get_extension(ebk_books_t core,
 }
 
 const char *ebk_book_get_title(ebk_book_t book) { return book->title; }
+
+unsigned char *ebk_book_create_thumbnail(ebk_book_t book, int w, int h) {
+  ebk_books_t core = book->owner;
+  ebk_book_module_t module = &core->modules[ebk_BookExtensionEnum_PDF];
+
+  return module->create_thumbnail(book, w, h);
+}

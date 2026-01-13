@@ -33,4 +33,5 @@ void ebk_books_list_destroy(ebk_books_list_t* out);
 
 const char *ebk_book_get_title(ebk_book_t book);
 
+unsigned char *ebk_book_create_thumbnail(ebk_book_t book, int w, int h);
 #endif // EBOOK_READER_CORE_MENU

@@ -33,6 +33,7 @@ struct ebk_Book {
 struct ebk_BookModule {
   void (*destroy)(ebk_book_module_t);
   bool (*is_extension)(const char *);
+  unsigned char * (*create_thumbnail)(ebk_book_t book, int w, int h);
   ebk_error_t (*book_init)(ebk_book_t);
   void (*book_destroy)(ebk_book_t);  
   void *private;

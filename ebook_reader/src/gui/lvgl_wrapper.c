@@ -1,7 +1,7 @@
 
 #include <lvgl.h>
 
-#define EBK_DEBUG_LVGL 1
+/* #define EBK_DEBUG_LVGL 1 */
 
 lv_obj_t *ebklv_obj_create(void *parent) {
   
