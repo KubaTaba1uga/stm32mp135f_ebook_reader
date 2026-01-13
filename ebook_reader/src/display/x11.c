@@ -65,13 +65,13 @@ static ebk_error_t ebk_display_x11_show_boot_img(ebk_display_module_t module) {
 static ebk_error_t ebk_display_x11_show_menu(ebk_display_module_t module,
                                              ebk_gui_t gui,
                                              ebk_books_list_t books) {
-  ebk_errno = ebk_gui_show_menu(gui, books, ebk_x11_width, ebk_x11_heigth);
-  EBK_TRY(ebk_errno);
+  /* ebk_errno = ebk_gui_show_menu(gui, books, 0); */
+  /* EBK_TRY(ebk_errno); */
 
   return 0;
 
-error_out:
-  return ebk_errno;
+/* error_out: */
+  /* return ebk_errno; */
 }
 
 static void ebk_display_x11_destroy(ebk_display_module_t module) {
