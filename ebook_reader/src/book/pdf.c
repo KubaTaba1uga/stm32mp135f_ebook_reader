@@ -83,6 +83,34 @@ static void pdf_book_destroy(ebk_book_t book) {
   book->private = NULL;
 };
 
+static void argb32_to_a1(uint8_t *dst, int w, int h,
+                         const uint8_t *src, int stride)
+{
+    int dst_stride = (w + 7) / 8;
+    memset(dst, 0x00, dst_stride * h);   // 0 = transparent everywhere
+
+    for(int y = 0; y < h; y++) {
+        const uint32_t *row = (const uint32_t *)(src + y * stride);
+
+        for(int x = 0; x < w; x++) {
+            uint32_t p = row[x];                 // 0xAARRGGBB (little-endian)
+            uint8_t a = (p >> 24) & 0xFF;
+            uint8_t r = (p >> 16) & 0xFF;
+            uint8_t g = (p >>  8) & 0xFF;
+            uint8_t b = (p >>  0) & 0xFF;
+
+            /* decide "ink" (opaque) */
+            uint16_t lum = (uint16_t)(r*30 + g*59 + b*11) / 100;
+            bool is_ink = (a > 0) && (lum < 160);  // dark -> opaque
+
+            int byte_i = y * dst_stride + (x >> 3);
+            int bit    = 7 - (x & 7);              // MSB first
+
+            if(is_ink) dst[byte_i] |= (1u << bit);  // 1 = opaque
+        }
+    }
+}
+
 // dst: size = ((w + 7) / 8) * h bytes
 static void argb32_to_i1(uint8_t *dst, int w, int h,
                          const uint8_t *src, int stride)
@@ -149,9 +177,9 @@ static unsigned char * pdf_book_create_thumbnail(ebk_book_t book, int w, int h) 
   int sw      = cairo_image_surface_get_width(surface);
   int sh      = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
-
-  unsigned char *buf = ebk_mem_malloc(w * h );
-  argb32_to_i1(buf, sw, sh, sdata, stride);
+  (void)(argb32_to_i1);
+  unsigned char *buf = ebk_mem_malloc(w*h);
+  argb32_to_a1(buf, sw, sh, sdata, stride);
   return buf;
   
   /* cairo_destroy(cr); */

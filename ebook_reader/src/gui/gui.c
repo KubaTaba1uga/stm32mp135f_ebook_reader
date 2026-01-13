@@ -183,8 +183,8 @@ static lv_obj_t *ebk_gui_create_book(ebk_book_t book, int is_current,
   static lv_img_dsc_t dsc = {0};
   dsc.header.cf = LV_COLOR_FORMAT_A1;
   dsc.header.w = w;
-  dsc.header.h = h ;
-  dsc.data_size = w * (h - text_h) ;
+  dsc.header.h = (h - text_h) ;
+  dsc.data_size = ((w + 7) / 8) * (h - text_h) ;
   dsc.data = (const uint8_t *)ebk_book_create_thumbnail(book, w, h - text_h);
   
   lv_image_set_src(book_img, &dsc);
