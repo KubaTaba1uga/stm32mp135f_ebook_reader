@@ -127,7 +127,7 @@ ebk_book_t ebk_books_list_get(ebk_books_list_t list) {
   ebk_zlist_node_t next_node = list->current_book->next;
   ebk_book_t book = CAST_BOOK_PRIV(list->current_book);
   list->current_book = next_node;
-
+  printf("Book title: %s\n", book->title);
   return book;
 }
 

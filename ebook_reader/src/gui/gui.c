@@ -137,7 +137,6 @@ ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
   int y = 0;
   for (ebk_book_t book = ebk_books_list_get(books); book != NULL;
        book = ebk_books_list_get(books)) {
-
     lv_book = ebk_gui_create_book(book, lv_book == NULL, books_table, 120, 230);
     lv_obj_set_grid_cell(lv_book, LV_GRID_ALIGN_CENTER, x, 1,
                          LV_GRID_ALIGN_CENTER, y, 1);
@@ -179,15 +178,16 @@ static lv_obj_t *ebk_gui_create_book(ebk_book_t book, int is_current,
   int text_h = 50;
   lv_obj_set_size(book_card, w, h);
   lv_obj_t *book_img = lv_image_create(book_card);
+
+  lv_img_dsc_t *dsc = ebk_mem_malloc(sizeof(lv_img_dsc_t));
+  *dsc   = (lv_img_dsc_t){0};
+  dsc->header.cf = LV_COLOR_FORMAT_A1;
+  dsc->header.w = w;
+  dsc->header.h = (h - text_h) ;
+  dsc->data_size = ((w + 7) / 8) * (h - text_h) ;
+  dsc->data = (const uint8_t *)ebk_book_create_thumbnail(book, w, h - text_h);
   
-  static lv_img_dsc_t dsc = {0};
-  dsc.header.cf = LV_COLOR_FORMAT_A1;
-  dsc.header.w = w;
-  dsc.header.h = (h - text_h) ;
-  dsc.data_size = ((w + 7) / 8) * (h - text_h) ;
-  dsc.data = (const uint8_t *)ebk_book_create_thumbnail(book, w, h - text_h);
-  
-  lv_image_set_src(book_img, &dsc);
+  lv_image_set_src(book_img, dsc);
 
   /* lv_obj_t *book_img = ebklv_obj_create(book_card); */
   lv_obj_set_pos(book_img, 0, 0);
