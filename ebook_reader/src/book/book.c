@@ -1,6 +1,7 @@
 #include "book/book.h"
 #include "book/book_internal.h"
 #include "book/pdf.h"
+#include "core/core.h"
 #include "utils/error.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
@@ -51,11 +52,11 @@ void ebk_books_destroy(ebk_books_t *out) {
    @return 0 on success and ebk_errno on failure.
 */
 ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out) {
+  puts(__func__);
   enum ebk_BookExtensionEnum book_ext;
   struct dirent *dirent;
   ebk_book_t book;
   DIR *books_dir;
-  int i;
 
   ebk_books_list_t list = *out = ebk_mem_malloc(sizeof(struct ebk_BooksList));
   *list = (struct ebk_BooksList){
@@ -84,11 +85,12 @@ ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out) {
     *book = (struct ebk_Book){
         .ext = book_ext,
         .file_path = file_path,
+        .owner = core,
     };
 
-    i = ebk_zlist_append(&list->books, &book->list_node);
+    ebk_zlist_append(&list->books, &book->list_node);
 
-    if (i == 0) {
+    if (!list->current_book) {
       list->current_book = list->books.head;
     }
 
@@ -117,13 +119,14 @@ error_out:
    it return NULL. It return NULL and set ebk_errno with ENOENT code.
 */
 ebk_book_t ebk_books_list_get(ebk_books_list_t list) {
-  ebk_book_t book = NULL;
-
-  if (list->current_book) {
-    ebk_zlist_node_t next_node = list->current_book->next;
-    book = CAST_BOOK_PRIV(&list->current_book);
-    list->current_book = next_node;
+  puts(__func__);
+  if (!list->current_book) {
+    return NULL;
   }
+  
+  ebk_zlist_node_t next_node = list->current_book->next;
+  ebk_book_t book = CAST_BOOK_PRIV(list->current_book);
+  list->current_book = next_node;
 
   return book;
 }
@@ -161,3 +164,5 @@ static enum ebk_BookExtensionEnum ebk_books_get_extension(ebk_books_t core,
 
   return -1;
 }
+
+const char *ebk_book_get_title(ebk_book_t book) { return book->title; }

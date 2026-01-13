@@ -36,7 +36,7 @@ ebk_error_t ebk_book_pdf_init(ebk_book_module_t module, ebk_books_t core) {
 
 static bool pdf_is_extension(const char *path) {
   puts(__func__);
-  puts(path);
+  /* puts(path); */
   const char *ext = ".pdf";
   const char *result = strstr(path, ext);
   return result != NULL;
@@ -56,9 +56,14 @@ static ebk_error_t pdf_book_init(ebk_book_t book) {
   }
 
   ebk_mem_free(uri);
-  
-  book->private = pdf;
 
+  book->private = pdf;
+  book->title = poppler_document_get_title(pdf);
+  if (!book->title){
+    book->title = "Unknown";
+  }
+  
+  puts(book->title)  ;  
   return 0;
 
 error_out:

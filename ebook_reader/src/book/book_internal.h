@@ -23,6 +23,7 @@ struct ebk_Book {
   const char *file_path;
   const char *title;
   void *private;
+  void *owner;  
 };
 
 /**
