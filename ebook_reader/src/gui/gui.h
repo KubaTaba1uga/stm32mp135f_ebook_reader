@@ -19,7 +19,7 @@ enum ebk_GuiInputEventEnum {
 
 ebk_error_t ebk_gui_init(
     ebk_gui_t *out, 
-    void (*input_callback)(enum ebk_GuiInputEventEnum event, void *data),
+    void (*input_callback)(enum ebk_GuiInputEventEnum event, void *data, void *arg),
     void *input_data);
 int ebk_gui_tick(ebk_gui_t gui);
 void ebk_gui_destroy(ebk_gui_t *out);

@@ -26,7 +26,6 @@ enum ebk_CoreStateEnum {
   ebk_CoreStateEnum_ERROR,
 };
 
-
 struct ebk_CoreModule {
   void (*open)(ebk_core_module_t, ebk_core_ctx_t, void *);
   void (*close)(ebk_core_module_t);
@@ -37,7 +36,7 @@ struct ebk_CoreModule {
 struct ebk_CoreCtx {
   ebk_gui_t gui;
   ebk_display_t display;
-  ebk_books_t books;  
+  ebk_books_t books;
 };
 
 /**
@@ -51,13 +50,9 @@ enum ebk_CoreEventEnum {
    */
   ebk_CoreEventEnum_BOOT_DONE,
   /**
-   Once enter button is pressed we emmit BTN_ENTER.
+  Once enter button is pressed we emmit BTN_ENTER.
    */
   ebk_CoreEventEnum_BTN_ENTER,
-  /**
-   Once menu button is pressed we emmit BTN_MENU.
-   */
-  ebk_CoreEventEnum_BTN_MENU,
   /**
    Once left button is pressed we emmit BTN_LEFT.
    */
@@ -75,16 +70,18 @@ enum ebk_CoreEventEnum {
    */
   ebk_CoreEventEnum_BTN_DOWN,
   /**
-   Every time we want to show books to the user we need to refresh books state
-   in the device. User could add book to the storage, so we need to ensure that
-   our view of the books is always valid.
+   Once menu button is pressed we emmit BTN_MENU.
    */
-  ebk_CoreEventEnum_BOOKS_REFRESHED,
-
-  // Add more events here
-  
+  ebk_CoreEventEnum_BTN_MENU,
   /**
-   Once any module meet error that cannot be handled we emmit ERROR_RAISED.
+   Once user selected a book to read we emmit BOOK_SELECTED.
+   */
+  ebk_CoreEventEnum_BOOK_SELECTED,
+  // Add more events here
+  /**
+   Once any module meet error that cannot be gracefully handled
+   so the user can go back to using the device we emmit ERROR_RAISED.
+   Once device is in error mode it log info about error and resets itself.
    */
   ebk_CoreEventEnum_ERROR_RAISED,
 };

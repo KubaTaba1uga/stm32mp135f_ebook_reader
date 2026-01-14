@@ -65,33 +65,11 @@ error_out:
   ebk_core_raise_error(menu->core, ebk_errno);
 }
 
-void ebk_corem_menu_up(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                       void *data) {
-  puts(__func__);
-}
 
-void ebk_corem_menu_down(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                         void *data) {
-  puts(__func__);
-}
-
-void ebk_corem_menu_left(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                         void *data) {
-  puts(__func__);
-  ebk_menu_t menu = module->private;
-
-  menu->current_book_i = menu->current_book_i + menu->items_in_row - 1;
-  ebk_errno = ebk_gui_menu_select(ctx->gui, menu->current_book_i);
-  EBK_TRY_CATCH(ebk_errno, error_out);
+void ebk_corem_menu_select_book(ebk_core_module_t module, ebk_core_ctx_t ctx,
+                                void *data) {
+  /* int id = *(int *)data; */
   
-  return;
-
-error_out:
-  ebk_core_raise_error(menu->core, ebk_errno);
-}
-
-void ebk_corem_menu_rigth(ebk_core_module_t module, ebk_core_ctx_t ctx,
-                          void *data) {
   puts(__func__);
 }
 

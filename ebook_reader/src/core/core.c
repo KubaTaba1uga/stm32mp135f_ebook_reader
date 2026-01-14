@@ -75,30 +75,20 @@ static const struct ebk_CoreFsmTransition
                 },
             [ebk_CoreStateEnum_MENU] =
                 {
+                    // In menu we use LVGL flex layout which can handle
+                    // Changes in selection on it's own, so we just receive
+                    // Info that book is selected.
                     [ebk_CoreEventEnum_BTN_ENTER] =
+                        {
+                            .next_state = ebk_CoreStateEnum_MENU,
+                            .action = ebk_corem_menu_select_book,
+
+                        },
+                    [ebk_CoreEventEnum_BOOK_SELECTED] =
                         {
                             .next_state = ebk_CoreStateEnum_READER,
                         },
-                    [ebk_CoreEventEnum_BTN_LEFT] =
-                        {
-                            .next_state = ebk_CoreStateEnum_MENU,
-                            .action = ebk_corem_menu_left,
-                        },
-                    [ebk_CoreEventEnum_BTN_RIGTH] =
-                        {
-                            .next_state = ebk_CoreStateEnum_MENU,
-                            .action = ebk_corem_menu_rigth,
-                        },
-                    [ebk_CoreEventEnum_BTN_DOWN] =
-                        {
-                            .next_state = ebk_CoreStateEnum_MENU,
-                            .action = ebk_corem_menu_down,
-                        },
-                    [ebk_CoreEventEnum_BTN_UP] =
-                        {
-                            .next_state = ebk_CoreStateEnum_MENU,
-                            .action = ebk_corem_menu_up,
-                        },
+
                     [ebk_CoreEventEnum_ERROR_RAISED] =
                         {
                             .next_state = ebk_CoreStateEnum_ERROR,
@@ -129,7 +119,7 @@ static const struct ebk_CoreFsmTransition
 
 static void ebk_core_step(ebk_core_t core);
 static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
-                                    void *data);
+                                    void *data, void *arg);
 
 ebk_error_t ebk_core_init(ebk_core_t *out) {
   if (!out) {
@@ -291,7 +281,7 @@ const char *ebk_core_edump(enum ebk_CoreEventEnum event) {
       [ebk_CoreEventEnum_BTN_RIGTH] = "ev_btn_right",
       [ebk_CoreEventEnum_BTN_UP] = "ev_btn_up",
       [ebk_CoreEventEnum_BTN_DOWN] = "ev_btn_down",
-      [ebk_CoreEventEnum_BOOKS_REFRESHED] = "ev_books_refreshed",
+      [ebk_CoreEventEnum_BOOK_SELECTED] = "ev_book_selected",
       [ebk_CoreEventEnum_ERROR_RAISED] = "ev_error_raised",
   };
 
@@ -343,7 +333,8 @@ out:;
 }
 
 static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
-                                    void *data) {
+                                    void *data, void *arg) {
+  puts(__func__);
 
   static enum ebk_CoreEventEnum gui_input_ev_table[] = {
       [ebk_GuiInputEventEnum_UP] = ebk_CoreEventEnum_BTN_UP,
@@ -355,8 +346,6 @@ static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
   };
 
   ebk_core_t core = data;
-  
-  ebk_core_event_post(core, gui_input_ev_table[event], NULL);  
-  
-  puts(__func__);
+
+  ebk_core_event_post(core, gui_input_ev_table[event], arg);
 }
