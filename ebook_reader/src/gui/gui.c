@@ -1,18 +1,22 @@
 #include <lvgl.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "book/book.h"
+#include "core/lv_group.h"
 #include "core/lv_obj.h"
 #include "core/lv_obj_pos.h"
 #include "core/lv_obj_style.h"
 #include "core/lv_obj_style_gen.h"
 #include "core/lv_obj_tree.h"
+#include "display/display.h"
 #include "gui/gui.h"
 #include "gui/gui_internal.h"
 #include "gui/lvgl_wrapper.h"
 #include "layouts/grid/lv_grid.h"
 #include "lv_api_map_v8.h"
 #include "misc/lv_color.h"
+#include "misc/lv_event.h"
 #include "misc/lv_palette.h"
 #include "misc/lv_types.h"
 #include "utils/error.h"
@@ -34,13 +38,13 @@ struct ebk_Gui {
   } inputh;
 
   lv_obj_t *bar;
-  lv_obj_t *menu;
-  lv_obj_t *menu_books_table;
+  struct ebk_GuiMenu menu;
 };
 
 static lv_obj_t *ebk_gui_create_bar(ebk_gui_t gui, int h);
 static lv_obj_t *ebk_gui_create_book(ebk_book_t book, int is_current,
                                      lv_obj_t *table, int w, int h);
+static void ebk_gui_event_cb(lv_event_t *e);
 
 ebk_error_t ebk_gui_init(
     ebk_gui_t *out,
@@ -60,6 +64,9 @@ ebk_error_t ebk_gui_init(
           },
   };
 
+  /* lv_display_add_event_cb(lv_display_get_default(), ebk_gui_event_cb,
+   * LV_EVENT_KEY, gui);   */
+
   return 0;
 }
 
@@ -78,6 +85,18 @@ void ebk_gui_destroy(ebk_gui_t *out) {
   ebk_mem_free(*out);
   *out = NULL;
 }
+
+/* void keyboard_read(lv_indev_t *indev, lv_indev_data_t *data) { */
+/*   ebk_gui_t gui = data; */
+
+/*   if(key_pressed()) { */
+/*      data->key = my_last_key();            /\* Get the last pressed or
+ * released key *\/ */
+/*      data->state = LV_INDEV_STATE_PRESSED; */
+/*   } else { */
+/*      data->state = LV_INDEV_STATE_RELEASED; */
+/*   } */
+/* } */
 
 /* lv_coord_t x = lv_obj_get_x(obj); */
 /* lv_coord_t y = lv_obj_get_y(obj); */
@@ -99,45 +118,64 @@ ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
   int menu_x = lv_display_get_horizontal_resolution(NULL) - menu_x_off * 2;
   int menu_y =
       lv_display_get_vertical_resolution(NULL) - bar_y - menu_y_off * 2;
-  gui->menu = lv_obj_create(lv_screen_active());
-  if (!gui->menu) {
+  gui->menu.menu = lv_obj_create(lv_screen_active());
+  if (!gui->menu.menu) {
     ebk_errno = ebk_errnos(ENODATA, "Cannot create `gui->menu`");
     goto error_bar_cleanup;
   }
   // Delete borders from theme
   // Set menu at the beginning of display + bar
-  lv_obj_set_pos(gui->menu, menu_x_off,
+  lv_obj_set_pos(gui->menu.menu, menu_x_off,
                  bar_y + menu_y_off); // set offset 20, 20 for menu
-  lv_obj_set_size(gui->menu, menu_x, menu_y);
-  lv_obj_set_style_pad_all(gui->menu, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_border_width(gui->menu, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_size(gui->menu.menu, menu_x, menu_y);
+  lv_obj_set_style_pad_all(gui->menu.menu, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(gui->menu.menu, 0,
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
 
-  static int32_t row_dsc[] = {170 + 50, 170 + 50, 170 + 50,
-                              LV_GRID_TEMPLATE_LAST};
-  static int32_t col_dsc[] = {120, 120, 120, LV_GRID_TEMPLATE_LAST};
-  lv_obj_t *books_table = gui->menu_books_table = lv_obj_create(gui->menu);
+  lv_obj_t *books_table = gui->menu.menu_books_table =
+      lv_obj_create(gui->menu.menu);
   if (!books_table) {
-    ebk_errno = ebk_errnos(ENODATA, "Cannot create `gui->menu_books_table`");
+    ebk_errno =
+        ebk_errnos(ENODATA, "Cannot create `gui->menu.menu_books_table`");
     goto error_menu_cleanup;
   }
-
   lv_obj_set_pos(books_table, 0, 0);
   lv_obj_set_size(books_table, menu_x, menu_y);
+
+  int32_t books_len = ebk_books_list_len(books);
+  int32_t *row_dsc = gui->menu.row_dsc =
+      ebk_mem_malloc(sizeof(int32_t) * (books_len + 1));
+  for (int32_t i = 0; i < books_len / 3; i++) {
+    row_dsc[i] = 170 + 50;
+  }
+  row_dsc[books_len] = LV_GRID_TEMPLATE_LAST;
+
+  int32_t *col_dsc = gui->menu.col_dsc =
+      ebk_mem_malloc(sizeof(int32_t) * (books_len + 1));
+  for (int32_t i = 0; i < 3; i++) {
+    col_dsc[i] = 120;
+  }
+  col_dsc[books_len] = LV_GRID_TEMPLATE_LAST;
+
   lv_obj_set_grid_dsc_array(books_table, col_dsc, row_dsc);
 
   lv_coord_t books_table_x_pad = 20;
   lv_coord_t books_table_y_pad = 40;
   lv_obj_set_style_pad_row((lv_obj_t *)books_table, books_table_x_pad, 0);
   lv_obj_set_style_pad_column((lv_obj_t *)books_table, books_table_y_pad, 0);
-  lv_obj_set_style_border_width(gui->menu_books_table, 0,
+  lv_obj_set_style_border_width(gui->menu.menu_books_table, 0,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
 
+  lv_obj_t **lv_books = gui->menu.books =
+      ebk_mem_malloc(sizeof(lv_obj_t *) * books_len);
   lv_obj_t *lv_book = NULL;
   int x = 0;
   int y = 0;
+  int i = 0;
   for (ebk_book_t book = ebk_books_list_get(books); book != NULL;
        book = ebk_books_list_get(books)) {
-    lv_book = ebk_gui_create_book(book, lv_book == NULL, books_table, 120, 230);
+    lv_book = lv_books[i++] =
+        ebk_gui_create_book(book, lv_book == NULL, books_table, 120, 230);
     lv_obj_set_grid_cell(lv_book, LV_GRID_ALIGN_CENTER, x, 1,
                          LV_GRID_ALIGN_CENTER, y, 1);
     x++;
@@ -146,14 +184,33 @@ ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
       y++;
     }
   }
+  lv_group_t *g = lv_group_create();
+  lv_group_set_default(g);
+
+  for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
+    if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
+      lv_indev_set_group(i, g);
+      break;
+    }
+  }
+
+  lv_obj_add_event_cb(gui->menu.menu_books_table, ebk_gui_event_cb,
+                      LV_EVENT_KEY, gui);
+
+  lv_group_add_obj(g, gui->menu.menu_books_table);
+  /* lv_group_t * g = lv_group_create(); */
+  /* lv_indev_t * indev = lv_indev_create(); */
+  /* lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD); */
+  /* lv_indev_add_event_cb(indev, ebk_gui_event_cb, LV_EVENT_KEY, NULL); */
+  /* lv_indev_set_group(indev, g); */
 
   *books_per_row = 3;
 
   return 0;
 
 error_menu_cleanup:
-  lv_obj_delete(gui->menu);
-  gui->menu = NULL;
+  lv_obj_delete(gui->menu.menu);
+  gui->menu.menu = NULL;
 error_bar_cleanup:
   lv_obj_delete(gui->bar);
   gui->bar = NULL;
@@ -162,13 +219,16 @@ error_out:
 };
 
 void ebk_gui_menu_destroy(ebk_gui_t gui) {
-  if (gui->menu) {
-    lv_obj_delete(gui->menu);
-    gui->menu = NULL;
+  if (!gui) {
+    return;
   }
-  if (gui->menu_books_table) {
-    lv_obj_delete(gui->menu_books_table);
-    gui->menu_books_table = NULL;
+  if (gui->menu.menu) {
+    lv_obj_delete(gui->menu.menu);
+    gui->menu.menu = NULL;
+  }
+  if (gui->menu.menu_books_table) {
+    lv_obj_delete(gui->menu.menu_books_table);
+    gui->menu.menu_books_table = NULL;
   }
 };
 
@@ -177,21 +237,22 @@ static lv_obj_t *ebk_gui_create_book(ebk_book_t book, int is_current,
   lv_obj_t *book_card = ebklv_obj_create(table);
   int text_h = 50;
   lv_obj_set_size(book_card, w, h);
-  lv_obj_t *book_img = lv_image_create(book_card);
 
-  lv_img_dsc_t *dsc = ebk_mem_malloc(sizeof(lv_img_dsc_t));
-  *dsc   = (lv_img_dsc_t){0};
-  dsc->header.cf = LV_COLOR_FORMAT_A1;
-  dsc->header.w = w;
-  dsc->header.h = (h - text_h) ;
-  dsc->data_size = ((w + 7) / 8) * (h - text_h) ;
-  dsc->data = (const uint8_t *)ebk_book_create_thumbnail(book, w, h - text_h);
-  
-  lv_image_set_src(book_img, dsc);
+  /* lv_obj_t *book_img = lv_image_create(book_card); */
+  /* lv_img_dsc_t *dsc = ebk_mem_malloc(sizeof(lv_img_dsc_t)); */
+  /* *dsc   = (lv_img_dsc_t){0}; */
+  /* dsc->header.cf = LV_COLOR_FORMAT_A1; */
+  /* dsc->header.w = w; */
+  /* dsc->header.h = (h - text_h) ; */
+  /* dsc->data_size = ((w + 7) / 8) * (h - text_h) ; */
+  /* dsc->data = (const uint8_t *)ebk_book_create_thumbnail(book, w, h -
+   * text_h); */
+
+  /* lv_image_set_src(book_img, dsc); */
+  /* lv_obj_set_pos(book_img, 0, 0); */
+  /* lv_obj_set_size(book_img, w, h - text_h); */
 
   /* lv_obj_t *book_img = ebklv_obj_create(book_card); */
-  lv_obj_set_pos(book_img, 0, 0);
-  lv_obj_set_size(book_img, w, h - text_h);
 
   lv_obj_t *book_label = lv_label_create(book_card);
   lv_obj_set_pos(book_label, 0, h - text_h);
@@ -229,3 +290,25 @@ static lv_obj_t *ebk_gui_create_bar(ebk_gui_t gui, int h) {
 
   return gui->bar;
 }
+
+ebk_error_t ebk_gui_menu_select(ebk_gui_t gui, int book_i) {
+  puts("HIT");
+  static lv_style_t style_shadow;
+  lv_obj_t *book_label = lv_obj_get_child(gui->menu.books[book_i], 1);
+  lv_style_init(&style_shadow);
+  lv_style_set_shadow_width(&style_shadow, 15);
+  lv_style_set_shadow_spread(&style_shadow, 10);
+  lv_style_set_shadow_color(&style_shadow, lv_color_black());
+  lv_obj_add_style(gui->menu.books[book_i], &style_shadow, 0);
+  lv_obj_set_style_text_decor(book_label, LV_TEXT_DECOR_UNDERLINE,
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+  return 0;
+}
+
+static void ebk_gui_event_cb(lv_event_t *e) {
+  ebk_gui_t gui = lv_event_get_user_data(e);
+  lv_event_code_t code = lv_event_get_code(e);
+  (void)gui;
+  (void)code;
+  puts("CLICK");
+};

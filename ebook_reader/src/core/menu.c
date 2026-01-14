@@ -12,9 +12,10 @@
 typedef struct ebk_Menu *ebk_menu_t;
 
 struct ebk_Menu {
+  ebk_core_t core;
   ebk_gui_t gui;
   int items_in_row;
-  ebk_core_t core;
+  int current_book_i;
 };
 
 static void ebk_corem_menu_open(ebk_core_module_t, ebk_core_ctx_t, void *);
@@ -45,11 +46,13 @@ static void ebk_corem_menu_open(ebk_core_module_t module, ebk_core_ctx_t ctx,
   ebk_menu_t menu = module->private;
   ebk_books_list_t blist;
   menu->gui = ctx->gui;
+  menu->current_book_i = 0;
 
   ebk_errno = ebk_books_list_init(ctx->books, &blist);
   EBK_TRY(ebk_errno);
 
-  ebk_errno = ebk_gui_menu_create(ctx->gui, blist, 0, &menu->items_in_row);
+  ebk_errno = ebk_gui_menu_create(ctx->gui, blist, menu->current_book_i,
+                                  &menu->items_in_row);
   EBK_TRY_CATCH(ebk_errno, error_blist_cleanup);
 
   ebk_books_list_destroy(&blist);
@@ -75,6 +78,16 @@ void ebk_corem_menu_down(ebk_core_module_t module, ebk_core_ctx_t ctx,
 void ebk_corem_menu_left(ebk_core_module_t module, ebk_core_ctx_t ctx,
                          void *data) {
   puts(__func__);
+  ebk_menu_t menu = module->private;
+
+  menu->current_book_i = menu->current_book_i + menu->items_in_row - 1;
+  ebk_errno = ebk_gui_menu_select(ctx->gui, menu->current_book_i);
+  EBK_TRY_CATCH(ebk_errno, error_out);
+  
+  return;
+
+error_out:
+  ebk_core_raise_error(menu->core, ebk_errno);
 }
 
 void ebk_corem_menu_rigth(ebk_core_module_t module, ebk_core_ctx_t ctx,
@@ -94,7 +107,7 @@ static void ebk_corem_menu_destroy(ebk_core_module_t module) {
 
 static void ebk_corem_menu_close(ebk_core_module_t module) {
   puts(__func__);
-  
+
   ebk_menu_t menu = module->private;
   if (menu->gui) {
     ebk_gui_menu_destroy(menu->gui);

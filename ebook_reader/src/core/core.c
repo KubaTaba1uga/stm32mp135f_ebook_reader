@@ -344,5 +344,19 @@ out:;
 
 static void ebk_core_input_callback(enum ebk_GuiInputEventEnum event,
                                     void *data) {
+
+  static enum ebk_CoreEventEnum gui_input_ev_table[] = {
+      [ebk_GuiInputEventEnum_UP] = ebk_CoreEventEnum_BTN_UP,
+      [ebk_GuiInputEventEnum_DOWN] = ebk_CoreEventEnum_BTN_DOWN,
+      [ebk_GuiInputEventEnum_LEFT] = ebk_CoreEventEnum_BTN_LEFT,
+      [ebk_GuiInputEventEnum_RIGTH] = ebk_CoreEventEnum_BTN_RIGTH,
+      [ebk_GuiInputEventEnum_ENTER] = ebk_CoreEventEnum_BTN_ENTER,
+      [ebk_GuiInputEventEnum_MENU] = ebk_CoreEventEnum_BTN_MENU,
+  };
+
+  ebk_core_t core = data;
+  
+  ebk_core_event_post(core, gui_input_ev_table[event], NULL);  
+  
   puts(__func__);
 }

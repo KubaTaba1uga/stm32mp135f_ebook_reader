@@ -3,6 +3,7 @@
 
 #include "utils/error.h"
 #include "utils/zero_list.h"
+#include <stdint.h>
 
 typedef struct ebk_Book *ebk_book_t;
 typedef struct ebk_BooksList *ebk_books_list_t;
@@ -28,6 +29,7 @@ ebk_error_t ebk_books_list_init(ebk_books_t core, ebk_books_list_t *out);
    it return NULL. It return NULL and set ebk_errno with ENOENT code.
 */
 ebk_book_t ebk_books_list_get(ebk_books_list_t list);
+uint32_t ebk_books_list_len(ebk_books_list_t list);
 
 void ebk_books_list_destroy(ebk_books_list_t* out);
 

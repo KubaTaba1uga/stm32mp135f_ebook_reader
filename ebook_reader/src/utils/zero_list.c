@@ -12,7 +12,8 @@ int ebk_zlist_append(ebk_zlist_t head, ebk_zlist_node_t node) {
     p = &(*p)->next;
   }
 
-  node->next = NULL;   // important if node was used before
+  head->len++;
+  node->next = NULL;
   *p = node;
   return 0;
 }

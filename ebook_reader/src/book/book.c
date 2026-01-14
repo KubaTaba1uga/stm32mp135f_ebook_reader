@@ -154,6 +154,10 @@ void ebk_books_list_destroy(ebk_books_list_t *out) {
   *out = NULL;
 }
 
+uint32_t ebk_books_list_len(ebk_books_list_t list) {
+  return list->books.len;  
+}
+
 static enum ebk_BookExtensionEnum ebk_books_get_extension(ebk_books_t core,
                                                           const char *path) {
   ebk_book_module_t module = &core->modules[ebk_BookExtensionEnum_PDF];
