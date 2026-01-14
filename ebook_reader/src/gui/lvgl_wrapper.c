@@ -2,9 +2,12 @@
 
 #include "core/lv_obj.h"
 #include "core/lv_obj_style.h"
+#include "core/lv_obj_style_gen.h"
 #include "gui/gui.h"
 #include "gui/lvgl_wrapper.h"
 #include "lv_api_map_v8.h"
+#include "misc/lv_area.h"
+#include "misc/lv_style.h"
 #include "others/gridnav/lv_gridnav.h"
 #include "utils/mem.h"
 
@@ -104,10 +107,11 @@ ebklv_widget_menu_book_t ebklv_menu_book_create(ebklv_widget_menu_t menu,
   dsc->data_size = ((dsc->header.w + 7) / 8) * dsc->header.h;
   dsc->data = thumbnail;
   lv_image_set_src(book_img, dsc);
-
+  lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+  
   // Configure book label
   lv_obj_t *book_label = lv_label_create(book_card);
-  lv_obj_set_pos(book_label, 0, menu_book_y - menu_book_text_y);
+  lv_obj_set_pos(book_label, 0, menu_book_y - (menu_book_text_y * 0.75));
   lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
                               LV_PART_MAIN);
   lv_label_set_text(book_label, book_title);
