@@ -1,9 +1,27 @@
 #include <lvgl.h>
 
+#include "core/lv_obj.h"
+#include "core/lv_obj_style.h"
+#include "gui/gui.h"
+#include "gui/lvgl_wrapper.h"
+#include "lv_api_map_v8.h"
+#include "others/gridnav/lv_gridnav.h"
+#include "utils/mem.h"
+
 #define EBK_DEBUG_LVGL 1
-static const int bar_y = 30;
-static const int menu_x_off = 10;
-static const int menu_y_off = 20;
+
+struct ebk_GuiMenuBookWidget {
+  lv_img_dsc_t img;
+  ebk_gui_t gui;
+  int id;
+};
+
+const int bar_y = 30;
+const int menu_x_off = 10;
+const int menu_y_off = 20;
+const int menu_book_x = 120;
+const int menu_book_text_y = 50;
+const int menu_book_y = 170 + menu_book_text_y;
 
 lv_obj_t *ebklv_obj_create(void *parent) {
 
@@ -18,7 +36,6 @@ lv_obj_t *ebklv_obj_create(void *parent) {
   return obj;
 }
 
-typedef lv_obj_t *ebklv_widget_bar_t;
 ebklv_widget_bar_t ebklv_bar_create(void) {
   lv_obj_t *bar = ebklv_obj_create(lv_screen_active());
   lv_obj_set_size(bar, lv_display_get_horizontal_resolution(NULL), bar_y);
@@ -32,11 +49,11 @@ ebklv_widget_bar_t ebklv_bar_create(void) {
 
 void ebklv_bar_destroy(ebklv_widget_bar_t bar) { lv_obj_del(bar); }
 
-typedef lv_obj_t *ebklv_widget_menu_t;
 ebklv_widget_menu_t ebklv_menu_create(void) {
   lv_obj_t *menu_container = ebklv_obj_create(lv_screen_active());
-  lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_NONE);
-
+  /* lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_NONE); */
+  lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_ROLLOVER);
+  
   int menu_x = lv_display_get_horizontal_resolution(NULL) - menu_x_off * 2;
   int menu_y = lv_display_get_vertical_resolution(NULL) - bar_y - menu_y_off;
 
@@ -60,4 +77,74 @@ ebklv_widget_menu_t ebklv_menu_create(void) {
   /* lv_obj_set_size(cont1, lv_pct(50), lv_pct(100)); */
 }
 
-void ebklv_menu_destroy(ebklv_widget_menu_t menu) { return; }
+void ebklv_menu_destroy(ebklv_widget_menu_t menu) { lv_obj_del(menu); }
+
+ebklv_widget_menu_book_t ebklv_menu_book_create(ebklv_widget_menu_t menu,
+                                                const char *book_title,
+                                                bool is_focused,
+                                                uint8_t *thumbnail, int id,
+                                                ebk_gui_t gui) {
+  lv_obj_t *book_card = ebklv_obj_create(menu);
+  lv_obj_set_size(book_card, menu_book_x, menu_book_y);
+
+  lv_obj_t *book_img = lv_image_create(book_card);
+  struct ebk_GuiMenuBookWidget *book_data =
+      ebk_mem_malloc(sizeof(struct ebk_GuiMenuBookWidget));
+  lv_img_dsc_t *dsc = &book_data->img;
+  *dsc = (lv_img_dsc_t){0};
+  dsc->header.cf = LV_COLOR_FORMAT_A1;
+  dsc->header.w = menu_book_x;
+  dsc->header.h = (menu_book_y - menu_book_text_y);
+  dsc->data_size = ((dsc->header.w + 7) / 8) * dsc->header.h;
+  dsc->data = thumbnail;
+  book_data->id = id;
+
+  lv_obj_set_user_data(book_card, book_data);
+  lv_image_set_src(book_img, dsc);
+
+  lv_obj_t *book_label = lv_label_create(book_card);
+  lv_obj_set_pos(book_label, 0, menu_book_y - menu_book_text_y);
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
+                              LV_PART_MAIN);
+// Label: wrap text, never scroll
+  lv_label_set_long_mode(book_label, LV_LABEL_LONG_WRAP);
+  lv_obj_clear_flag(book_label, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scroll_dir(book_label, LV_DIR_NONE);
+
+  lv_label_set_text(book_label, book_title);
+
+  lv_obj_set_style_border_width(book_card, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  
+  lv_obj_set_style_outline_width(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_pad(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
+                               LV_PART_MAIN | LV_STATE_FOCUSED);  
+  if (is_focused) {
+    lv_obj_add_state(book_card, LV_STATE_FOCUSED);
+  }
+
+  lv_obj_add_flag(book_card, LV_OBJ_FLAG_CLICK_FOCUSABLE);  
+  lv_obj_clear_flag(book_label, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  lv_obj_clear_flag(book_img,   LV_OBJ_FLAG_CLICK_FOCUSABLE); 
+  lv_obj_clear_flag(book_card, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scroll_dir(book_card, LV_DIR_NONE);
+
+  return book_card;
+}
+
+void ebklv_menu_book_destroy(ebklv_widget_menu_book_t book) {
+  struct ebk_GuiMenuBookWidget *book_data = lv_obj_get_user_data(book);
+  ebk_mem_free((void *)book_data->img.data);
+  ebk_mem_free(book_data);
+  lv_obj_del(book);
+};
+
+int ebklv_menu_book_get_id(ebklv_widget_menu_book_t book) {
+  struct ebk_GuiMenuBookWidget *book_data = lv_obj_get_user_data(book);
+  return book_data->id;
+}
+
+ebk_gui_t ebklv_menu_book_get_gui(ebklv_widget_menu_book_t book) {
+  struct ebk_GuiMenuBookWidget *book_data = lv_obj_get_user_data(book);
+  return book_data->gui;
+};

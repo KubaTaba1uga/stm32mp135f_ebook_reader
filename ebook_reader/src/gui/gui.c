@@ -3,10 +3,12 @@
 #include <string.h>
 
 #include "book/book.h"
+#include "core/core_internal.h"
 #include "display/display.h"
 #include "gui/gui.h"
 #include "gui/gui_internal.h"
 #include "gui/lvgl_wrapper.h"
+#include "misc/lv_event.h"
 #include "utils/error.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"
@@ -33,6 +35,7 @@ struct ebk_Gui {
 static lv_obj_t *ebk_gui_create_book(ebk_book_t book, int is_current,
                                      lv_obj_t *table, int w, int h);
 static void ebk_gui_event_cb(lv_event_t *e);
+static void ebk_gui_menu_book_event_cb(lv_event_t *e);
 
 ebk_error_t ebk_gui_init(
     ebk_gui_t *out,
@@ -74,69 +77,50 @@ void ebk_gui_destroy(ebk_gui_t *out) {
   *out = NULL;
 }
 
-/* void keyboard_read(lv_indev_t *indev, lv_indev_data_t *data) { */
-/*   ebk_gui_t gui = data; */
-
-/*   if(key_pressed()) { */
-/*      data->key = my_last_key();            /\* Get the last pressed or
- * released key *\/ */
-/*      data->state = LV_INDEV_STATE_PRESSED; */
-/*   } else { */
-/*      data->state = LV_INDEV_STATE_RELEASED; */
-/*   } */
-/* } */
-
-/* lv_coord_t x = lv_obj_get_x(obj); */
-/* lv_coord_t y = lv_obj_get_y(obj); */
-/* lv_coord_t w = lv_obj_get_width(obj); */
-/* lv_coord_t h = lv_obj_get_height(obj); */
-
 ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
                                 int book_i, int *books_per_row) {
   gui->bar = gui->bar ? gui->bar : ebklv_bar_create();
   gui->menu.menu = gui->menu.menu ? gui->menu.menu : ebklv_menu_create();
 
-  int32_t books_len = ebk_books_list_len(books);  
+  int32_t books_len = ebk_books_list_len(books);
   lv_obj_t **lv_books = gui->menu.books =
       ebk_mem_malloc(sizeof(lv_obj_t *) * books_len);
   lv_obj_t *lv_book = NULL;
   int i = 0;
+
+  lv_group_t *g = lv_group_create();
+  lv_group_set_default(g);
+
+  for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
+    if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
+      lv_indev_set_group(i, g);
+      break;
+    }
+  }
+
+  /* lv_group_add_obj(g, gui->menu.menu);   */
   for (ebk_book_t book = ebk_books_list_get(books); book != NULL;
        book = ebk_books_list_get(books)) {
-    lv_book = lv_books[i++] =
-        ebk_gui_create_book(book, lv_book == NULL, gui->menu.menu, 120, 230);
+    lv_book = ebklv_menu_book_create(
+        gui->menu.menu, ebk_book_get_title(book), lv_book == NULL,
+        ebk_book_create_thumbnail(book, menu_book_x,
+                                  menu_book_y - menu_book_text_y),
+        i, gui);
+    lv_books[i++] = lv_book;
+
+    lv_group_add_obj(g, lv_book);
+    /* lv_obj_add_event_cb(lv_book, ebk_gui_event_cb, LV_EVENT_ALL, */
+    /*                   lv_book); */
+
+    lv_obj_add_event_cb(lv_book, ebk_gui_menu_book_event_cb, LV_EVENT_KEY, lv_book);
   }
+  /* lv_group_add_obj(g, gui->menu.menu); */
+  /* lv_obj_add_event_cb(gui->menu.menu, ebk_gui_event_cb, LV_EVENT_ALL, */
+  /*                     lv_book); */
   
-  /* lv_obj_t *cont1 = lv_obj_create(lv_screen_active()); */
-  /* lv_gridnav_add(cont1, LV_GRIDNAV_CTRL_NONE); */
+  (void)ebk_gui_menu_book_event_cb;
 
-  /* /\*Use flex here, but works with grid or manually placed objects as well*\/
-   */
-  /* lv_obj_set_flex_flow(cont1, LV_FLEX_FLOW_ROW_WRAP); */
-  /* lv_obj_set_style_bg_color(cont1, lv_palette_lighten(LV_PALETTE_BLUE, 5), */
-  /*                           LV_STATE_FOCUSED); */
-  /* lv_obj_set_size(cont1, lv_pct(50), lv_pct(100)); */
-
-  /* /\*Only the container needs to be in a group*\/ */
-  /* lv_group_add_obj(lv_group_get_default(), cont1); */
-
-  /* lv_obj_t *label = lv_label_create(cont1); */
-  /* lv_label_set_text_fmt(label, "No rollover"); */
-
-  /* uint32_t i; */
-  /* for (i = 0; i < 10; i++) { */
-  /*   lv_obj_t *obj = lv_button_create(cont1); */
-  /*   lv_obj_set_size(obj, 70, LV_SIZE_CONTENT); */
-  /*   lv_obj_add_flag(obj, LV_OBJ_FLAG_CHECKABLE); */
-  /*   lv_group_remove_obj(obj); /\*Not needed, we use the gridnav instead*\/ */
-
-  /*   label = lv_label_create(obj); */
-  /*   lv_label_set_text_fmt(label, "%" LV_PRIu32 "", i); */
-  /*   lv_obj_center(label); */
-
-  /*   lv_obj_add_event_cb(obj, ebk_gui_event_cb, LV_EVENT_FOCUSED, gui); */
-  /* } */
-
+  
   return 0;
 };
 
@@ -323,6 +307,20 @@ ebk_error_t ebk_gui_menu_select(ebk_gui_t gui, int book_i) {
   lv_obj_set_style_text_decor(book_label, LV_TEXT_DECOR_UNDERLINE,
                               LV_PART_MAIN | LV_STATE_DEFAULT);
   return 0;
+}
+
+static void ebk_gui_menu_book_event_cb(lv_event_t *e) {
+  ebklv_widget_menu_book_t book = lv_event_get_user_data(e);
+  lv_event_code_t code = lv_event_get_code(e);
+  /* const char *name = lv_event_code_get_name(code); */
+  int id = ebklv_menu_book_get_id(book);  
+  ebk_gui_t gui = ebklv_menu_book_get_gui(book);
+  
+  /* gui->inputh.callback() */
+  
+  (void)gui;
+  (void)code;
+  printf("FOCUSED: %d\n", id);
 }
 
 static void ebk_gui_event_cb(lv_event_t *e) {
