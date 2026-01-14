@@ -98,7 +98,9 @@ ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
     }
   }
 
-  /* lv_group_add_obj(g, gui->menu.menu);   */
+  lv_group_add_obj(g, gui->menu.menu);
+  lv_group_set_editing(g, false);
+  
   for (ebk_book_t book = ebk_books_list_get(books); book != NULL;
        book = ebk_books_list_get(books)) {
     lv_book = ebklv_menu_book_create(
@@ -108,11 +110,11 @@ ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
         i, gui);
     lv_books[i++] = lv_book;
 
-    lv_group_add_obj(g, lv_book);
-    /* lv_obj_add_event_cb(lv_book, ebk_gui_event_cb, LV_EVENT_ALL, */
-    /*                   lv_book); */
+    /* lv_group_add_obj(g, lv_book); */
+    lv_obj_add_event_cb(lv_book, ebk_gui_event_cb, LV_EVENT_ALL,
+                      lv_book);
 
-    lv_obj_add_event_cb(lv_book, ebk_gui_menu_book_event_cb, LV_EVENT_KEY, lv_book);
+    /* lv_obj_add_event_cb(lv_book, ebk_gui_menu_book_event_cb, LV_EVENT_KEY, lv_book); */
   }
   /* lv_group_add_obj(g, gui->menu.menu); */
   /* lv_obj_add_event_cb(gui->menu.menu, ebk_gui_event_cb, LV_EVENT_ALL, */

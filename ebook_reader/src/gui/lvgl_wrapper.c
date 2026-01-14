@@ -118,9 +118,11 @@ ebklv_widget_menu_book_t ebklv_menu_book_create(ebklv_widget_menu_t menu,
   lv_obj_set_style_outline_width(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_pad(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
-                               LV_PART_MAIN | LV_STATE_FOCUSED);  
+                               LV_PART_MAIN | LV_STATE_FOCUSED);
   if (is_focused) {
-    lv_obj_add_state(book_card, LV_STATE_FOCUSED);
+    /* lv_group_focus_obj(book_card); */
+    
+    /* lv_obj_add_state(book_card, LV_STATE_FOCUSED); */
   }
 
   lv_obj_add_flag(book_card, LV_OBJ_FLAG_CLICK_FOCUSABLE);  
