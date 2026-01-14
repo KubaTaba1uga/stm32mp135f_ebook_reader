@@ -8,7 +8,7 @@
 #include "others/gridnav/lv_gridnav.h"
 #include "utils/mem.h"
 
-#define EBK_DEBUG_LVGL 1
+/* #define EBK_DEBUG_LVGL 1 */
 
 struct ebk_GuiMenuBookWidget {
   lv_img_dsc_t img;
@@ -56,10 +56,11 @@ ebklv_widget_menu_t ebklv_menu_create(void) {
   int menu_x = lv_display_get_horizontal_resolution(NULL) - menu_x_off * 2;
   int menu_y = lv_display_get_vertical_resolution(NULL) - bar_y - menu_y_off;
 
-  lv_obj_set_pos(menu_container, menu_x_off,
-                 bar_y + menu_y_off); // set offset 20, 20 for menu
+  lv_obj_set_pos(menu_container, menu_x_off / 2,
+                 bar_y + menu_y_off / 2 ); // set offset 20, 20 for menu
   lv_obj_set_size(menu_container, menu_x, menu_y);
-  lv_obj_set_style_pad_all(menu_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_pad_ver(menu_container, menu_y_off/2, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_pad_hor(menu_container, menu_x_off/2, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(menu_container, 0,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
 

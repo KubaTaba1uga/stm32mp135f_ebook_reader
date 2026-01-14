@@ -78,26 +78,28 @@ void ebk_gui_destroy(ebk_gui_t *out) {
 ebk_error_t ebk_gui_menu_create(ebk_gui_t gui, ebk_books_list_t books,
                                 int book_i, int *books_per_row) {
   gui->bar = gui->bar ? gui->bar : ebklv_bar_create();
-  gui->menu.menu = gui->menu.menu ? gui->menu.menu : ebklv_menu_create();
+  gui->menu.menu = ebklv_menu_create();
+  gui->menu.books =
+      ebk_mem_malloc(sizeof(lv_obj_t *) * ebk_books_list_len(books));
 
-  int32_t books_len = ebk_books_list_len(books);
-  lv_obj_t **lv_books = gui->menu.books =
-      ebk_mem_malloc(sizeof(lv_obj_t *) * books_len);
+  lv_obj_t **lv_books = gui->menu.books;
   lv_obj_t *lv_book = NULL;
   int i = 0;
 
-  lv_group_t *g = lv_group_create();
-  lv_group_set_default(g);
+  { // Configure passing events to menu widget
+    lv_group_t *group = gui->menu.group = lv_group_create();
+    lv_group_set_default(group);
 
-  for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
-    if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
-      lv_indev_set_group(i, g);
-      break;
+    for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
+      if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
+        lv_indev_set_group(i, group);
+        break;
+      }
     }
-  }
 
-  lv_group_add_obj(g, gui->menu.menu);
-  lv_group_set_editing(g, false);
+    lv_group_add_obj(group, gui->menu.menu);
+    lv_group_set_editing(group, false);
+  }
 
   for (ebk_book_t book = ebk_books_list_get(books); book != NULL;
        book = ebk_books_list_get(books)) {
