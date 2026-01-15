@@ -2,6 +2,7 @@
 #define EBOOK_READER_CORE_INTERNAL_H
 #include <stdbool.h>
 
+#include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
 
@@ -20,9 +21,7 @@ struct AppModule {
 
 struct AppCtx {
   ui_t ui;
-  /* ebk_gui_t gui; */
-  /* ebk_display_t display; */
-  /* ebk_books_t books; */
+  book_api_t book_api;  
 };
 
 /**
@@ -99,5 +98,9 @@ const char *app_event_dump(enum AppEventEnum event);
    @param error Error which will be handled by error module.
 */
 void app_raise_error(app_t core, err_t error);
+
+err_t app_menu_init(app_module_t menu, app_t app);
+err_t app_error_init(app_module_t menu, app_t app);
+err_t app_reader_init(app_module_t menu, app_t app);
 
 #endif // EBOOK_READER_CORE_INTERNAL_H

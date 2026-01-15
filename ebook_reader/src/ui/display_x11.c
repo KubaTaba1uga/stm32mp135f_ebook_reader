@@ -81,18 +81,18 @@ static err_t ui_display_x11_render(ui_display_t display,
   x11->dsc = mem_malloc(sizeof(lv_img_dsc_t));
   *x11->dsc = (lv_img_dsc_t){0};
   x11->dsc->header.cf = ui_display_color_format;
-  x11->dsc->header.w = ui_display_x11_width;
-  x11->dsc->header.h = ui_display_x11_heigth;
+  x11->dsc->header.w = ui_display_x11_get_render_x(display);
+  x11->dsc->header.h = ui_display_x11_get_render_y(display);
   x11->dsc->data_size = ui_display_x11_get_render_size(display);
   x11->dsc->data = render_buf;
   lv_image_set_src(x11->img, x11->dsc);
   lv_obj_set_pos(x11->img, 0, 0);
-  lv_obj_set_size(x11->img, ui_display_x11_width, ui_display_x11_heigth);
+  lv_obj_set_size(x11->img, x11->dsc->header.w, x11->dsc->header.h);
   lv_display_add_event_cb(x11->display, ui_display_x11_render_event_cb,
                           LV_EVENT_ALL, x11);
 
-  x11->render_counter = 2;
-  while (x11->render_counter) {
+  x11->render_counter = 0;
+  while (x11->render_counter < 1) {
     lv_timer_handler();
   }
 
@@ -125,12 +125,20 @@ static void ui_display_x11_destroy(ui_display_t display) {
   display->private = NULL;
 }
 
+void ui_display_x11_render_cleanup(ui_display_t display) {
+  ui_display_x11_t x11 = display->private;
+  ui_display_x11_cleanup(x11);
+};
+
 static void ui_display_x11_cleanup(ui_display_x11_t x11) {
   if (x11->img) {
     lv_obj_delete(x11->img);
+    x11->img = NULL;
   }
   if (x11->dsc) {
+    mem_free((void *)x11->dsc->data);
     mem_free(x11->dsc);
+    x11->dsc = NULL;
   }
 }
 
@@ -141,7 +149,7 @@ static void ui_display_x11_render_event_cb(lv_event_t *lv_ev) {
 
   ui_display_x11_t x11 = lv_event_get_user_data(lv_ev);
   if (code == LV_EVENT_REFR_READY) {
-    x11->render_counter--;
+    x11->render_counter++;
   }
 }
 

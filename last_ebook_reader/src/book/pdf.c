@@ -73,6 +73,7 @@ error_out:
   ebk_mem_free(uri);
   return ebk_errno;
 };
+
 static void pdf_book_destroy(ebk_book_t book) {
   puts(__func__);
   if (!book->private) {

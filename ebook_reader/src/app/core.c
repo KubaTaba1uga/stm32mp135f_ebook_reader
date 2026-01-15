@@ -1,7 +1,10 @@
 #include "core.h"
+#include "book/book.h"
+#include "ui/ui.h"
 #include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
+#include "utils/time.h"
 
 enum AppStateEnum {
   AppStateEnum_NONE = 0,
@@ -88,8 +91,9 @@ static const struct AppFsmTransition
             },
 };
 
-static const char *app_state_dump(enum AppStateEnum state);
-static void app_step(app_t app);
+static const char *app_state_dump(enum AppStateEnum);
+static void app_modules_destroy(app_module_t, int);
+static void app_step(app_t);
 
 err_t app_init(app_t *out) {
   app_t app = *out = mem_malloc(sizeof(struct App));
@@ -100,11 +104,31 @@ err_t app_init(app_t *out) {
   err_errno = ui_init(&app->ctx.ui);
   ERR_TRY(err_errno);
 
-  (void)app_step;
+  err_errno = book_api_init(&app->ctx.book_api);
+  ERR_TRY_CATCH(err_errno, error_ui_cleanup);
 
-  (void)fsm_table;
+  static err_t (*modules_inits[AppStateEnum_MAX])(app_module_t, app_t) = {
+      [AppStateEnum_MENU] = app_menu_init,
+      [AppStateEnum_ERROR] = app_error_init,
+      [AppStateEnum_READER] = app_reader_init,
+  };
+
+  int inits_status;
+  for (inits_status = AppStateEnum_MENU; inits_status < AppStateEnum_MAX;
+       inits_status++) {
+    err_errno = modules_inits[inits_status](&app->modules[inits_status], app);
+    ERR_TRY_CATCH(err_errno, error_modules_cleanup);
+  }
+
+  app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
+
   return 0;
 
+error_modules_cleanup:
+  app_modules_destroy((*out)->modules, inits_status);
+  book_api_destroy(&app->ctx.book_api);
+error_ui_cleanup:
+  ui_destroy(&app->ctx.ui);
 error_out:
   mem_free(*out);
   *out = NULL;
@@ -112,15 +136,25 @@ error_out:
 };
 
 err_t app_main(app_t app) {
-  while (1) {
-    
-      }
-  return 0; }
+  int sleeping_time;
+
+  app->is_running = true;
+  while (app->is_running) {
+    app_step(app);
+
+    sleeping_time = ui_tick(app->ctx.ui);
+    time_sleep_ms(sleeping_time);
+  }
+
+  return 0;
+}
+
 void app_destroy(app_t *out) {
   if (!out || !*out) {
     return;
   }
 
+  app_modules_destroy((*out)->modules, AppStateEnum_MAX);
   mem_free(*out);
   *out = NULL;
 };
@@ -227,4 +261,14 @@ static void app_step(app_t app) {
   app->state = trans.next_state;
 
 out:;
+}
+
+static void app_modules_destroy(app_module_t modules, int modules_len) {
+  while (modules_len--) {
+
+    if (!modules[modules_len].destroy) {
+      continue;
+    }
+    modules[modules_len].destroy(&modules[modules_len]);
+  }
 }
