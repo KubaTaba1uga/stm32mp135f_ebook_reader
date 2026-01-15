@@ -1,0 +1,108 @@
+# Ebook reader
+# ******************************************************************************
+# *    Project
+# ******************************************************************************
+project('ebook_reader', 'c',
+         version: '0.0.1',
+	 meson_version: '>=1.1',
+	 default_options: [
+            'werror=true',
+            'c_std=c11',
+         ],
+)
+
+# ******************************************************************************
+# *    Config
+# ******************************************************************************
+ebook_reader_deps = []
+add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
+if get_option('display') == 'x11'
+   add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
+   ebook_reader_deps += [dependency('x11', required: true)]
+elif get_option('display') == 'wvs7in5v2b'
+   add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
+endif
+
+# Beautify logs, without these directives every log start with `../../`
+add_global_arguments('-ffile-prefix-map=../../=', language: ['c', 'cpp'])
+add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
+
+# ******************************************************************************
+# *    Libraries
+# ******************************************************************************
+ebook_reader_deps += [dependency('display_driver',
+		       fallback: ['display_driver', 'display_driver_dep'],
+		       required: true,
+		       static: true,
+		      ),
+		      dependency('sqlite3',
+		       fallback: ['sqlite3'],
+		       required: true,
+		       static: true,
+		      ),
+		      dependency('lvgl',
+		       fallback: ['lvgl', 'lvgl_dep'],
+		       required: true,
+		       static: true,
+		       default_options: [
+			  'CONFIG_LV_BUILD_EXAMPLES=false',
+			  'CONFIG_LV_BUILD_DEMOS=false',
+			  'werror=false',
+		       ]),
+		       dependency('poppler',
+			required: true,
+		       ),
+		       dependency('glib-2.0',
+			required: true,
+		       ),
+		       dependency('poppler-glib',
+			required: true,
+		       ),
+		       dependency('cairo',
+			required: true,
+		       ),
+		       
+]
+
+ebook_reader_inc = include_directories(['src'])
+
+ebook_reader_src = [files('src/main.c',
+			  'src/utils/error.c',
+			  'src/utils/mem.c',
+			  'src/utils/settings.c',
+			  'src/utils/time.c',
+			  'src/utils/lvgl.c',
+			  'src/utils/zero_list.c',			  
+			  'src/gui/gui.c',
+			  'src/gui/lvgl_wrapper.c',			  
+			  'src/display/display.c',
+			  'src/display/wvs7in5v2b.c',
+			  'src/display/x11.c',			  			  
+			  'src/core/core.c',
+			  'src/core/menu.c',
+			  'src/core/book_reader.c',
+			  'src/core/error.c',
+			  'src/book/book.c',
+			  'src/book/pdf.c',
+			 )]
+
+buildtype = get_option('buildtype')
+if buildtype == 'debug' or buildtype == 'debugoptimized'
+  add_project_arguments('-DDEBUG', language: 'c')
+endif
+
+# ******************************************************************************
+# *    App
+# ******************************************************************************
+ebook_reader_exe = executable('ebook_reader',
+  sources: ebook_reader_src,
+  include_directories: ebook_reader_inc,
+  dependencies: ebook_reader_deps,
+)
+
+# ******************************************************************************
+# *    Tests
+# ******************************************************************************
+if get_option('tests')
+   subdir('test')
+endif

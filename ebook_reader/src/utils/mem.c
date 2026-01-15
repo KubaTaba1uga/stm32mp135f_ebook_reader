@@ -5,7 +5,7 @@
 
 #include "mem.h"
 
-void *ebk_mem_malloc(size_t size) {
+void *mem_malloc(size_t size) {
   void *mem = malloc(size);
   if (!mem) {
     puts("ERROR: No memory");
@@ -15,4 +15,4 @@ void *ebk_mem_malloc(size_t size) {
   return mem;
 }
 
- void ebk_mem_free(void *mem) { free(mem); }
+ void mem_free(void *mem) { free(mem); }

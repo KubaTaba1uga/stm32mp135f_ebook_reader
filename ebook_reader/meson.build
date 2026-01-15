@@ -15,10 +15,11 @@ project('ebook_reader', 'c',
 # *    Config
 # ******************************************************************************
 ebook_reader_deps = []
+
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 if get_option('display') == 'x11'
-   add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
    ebook_reader_deps += [dependency('x11', required: true)]
+   add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
 elif get_option('display') == 'wvs7in5v2b'
    add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
 endif
@@ -32,11 +33,6 @@ add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
 # ******************************************************************************
 ebook_reader_deps += [dependency('display_driver',
 		       fallback: ['display_driver', 'display_driver_dep'],
-		       required: true,
-		       static: true,
-		      ),
-		      dependency('sqlite3',
-		       fallback: ['sqlite3'],
 		       required: true,
 		       static: true,
 		      ),
@@ -61,29 +57,32 @@ ebook_reader_deps += [dependency('display_driver',
 		       dependency('cairo',
 			required: true,
 		       ),
-		       
+		      # dependency('sqlite3',
+		      #  required: true,
+		      # ),		       
 ]
 
 ebook_reader_inc = include_directories(['src'])
 
 ebook_reader_src = [files('src/main.c',
-			  'src/utils/error.c',
+			  'src/utils/err.c',
 			  'src/utils/mem.c',
 			  'src/utils/settings.c',
 			  'src/utils/time.c',
-			  'src/utils/lvgl.c',
-			  'src/utils/zero_list.c',			  
-			  'src/gui/gui.c',
-			  'src/gui/lvgl_wrapper.c',			  
-			  'src/display/display.c',
-			  'src/display/wvs7in5v2b.c',
-			  'src/display/x11.c',			  			  
-			  'src/core/core.c',
-			  'src/core/menu.c',
-			  'src/core/book_reader.c',
-			  'src/core/error.c',
-			  'src/book/book.c',
+			  'src/utils/zlist.c',			  
+			  'src/ui/core.c',
+			  'src/ui/widgets.c',
+			  'src/ui/display.c',
+			  'src/ui/display_x11.c',
+			  'src/ui/display_wvs7in5v2b.c',
+			  'src/ui/img_boot_screen.c',			  
+			  'src/app/core.c',
+			  'src/app/menu.c',
+			  'src/app/reader.c',
+			  'src/app/error.c',
+			  'src/book/core.c',
 			  'src/book/pdf.c',
+			  # Add more files here
 			 )]
 
 buildtype = get_option('buildtype')
