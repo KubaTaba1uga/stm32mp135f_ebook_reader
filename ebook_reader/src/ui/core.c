@@ -122,6 +122,8 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   ui->menu.books.buf = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
   ui->menu.books.len = books_list_len(books);
 
+  ui->display.render_cleanup(&ui->display);
+  
   if (!ui->bar || !ui->menu.menu) {
     err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
     goto error_out;

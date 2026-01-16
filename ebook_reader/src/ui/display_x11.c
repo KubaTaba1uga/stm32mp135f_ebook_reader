@@ -35,6 +35,7 @@ static int ui_display_x11_get_render_size(ui_display_t);
 static int ui_display_x11_get_render_x(ui_display_t);
 static int ui_display_x11_get_render_y(ui_display_t);
 static void ui_display_x11_destroy(ui_display_t);
+static void ui_display_x11_render_cleanup(ui_display_t);
 static void ui_display_x11_cleanup(ui_display_x11_t);
 static void ui_display_x11_render_event_cb(lv_event_t *);
 
@@ -54,6 +55,7 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
 
   display->get_lv_display = ui_display_x11_get_lv_display;
   display->render = ui_display_x11_render;
+  display->render_cleanup = ui_display_x11_render_cleanup;
   display->get_render_size = ui_display_x11_get_render_size;
   display->get_render_x = ui_display_x11_get_render_x;
   display->get_render_y = ui_display_x11_get_render_y;
@@ -98,7 +100,7 @@ static err_t ui_display_x11_render(ui_display_t display,
 
   lv_display_remove_event_cb_with_user_data(
       x11->display, ui_display_x11_render_event_cb, x11);
-
+  
   return 0;
 }
 static int ui_display_x11_get_render_size(ui_display_t __) {

@@ -1,6 +1,8 @@
 #include <lvgl.h>
 
 #include "ui/widgets.h"
+#include "misc/lv_color.h"
+#include "misc/lv_style_gen.h"
 #include "utils/mem.h"
 
 /* #define EBK_DEBUG_LVGL 1 */
@@ -68,6 +70,7 @@ ui_wx_menu_t ui_wx_menu_create(void) {
   lv_style_set_layout(&style, LV_LAYOUT_FLEX);
   lv_style_set_pad_column(&style, 40);
   lv_style_set_pad_row(&style, 20);
+  lv_style_set_bg_color(&style, lv_color_white());
   lv_obj_add_style(menu_container, &style, 0);
 
   return menu_container;
