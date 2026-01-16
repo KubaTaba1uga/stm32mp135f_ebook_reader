@@ -12,15 +12,6 @@
 #include "utils/settings.h"
 #include "utils/time.h"
 
-enum UiInputEventEnum {
-  UiInputEventEnum_UP,
-  UiInputEventEnum_DOWN,
-  UiInputEventEnum_LEFT,
-  UiInputEventEnum_RIGTH,
-  UiInputEventEnum_ENTER,
-  UiInputEventEnum_MENU,
-};
-
 struct Ui {
   struct {
     void (*callback)(enum UiInputEventEnum event, void *data, void *arg);
@@ -35,12 +26,17 @@ struct Ui {
 
 static void ui_menu_book_event_cb(lv_event_t *e);
 
-err_t ui_init(ui_t *out) {
+err_t ui_init(ui_t *out,
+              void (*callback)(enum UiInputEventEnum event, void *data,
+                               void *arg),
+              void *data) {
   static err_t (*displays_inits[])(ui_display_t, ui_t) = {
       [UiDisplayEnum_X11] = ui_display_x11_init,
   };
   ui_t ui = *out = mem_malloc(sizeof(struct Ui));
-  *ui = (struct Ui){0};
+  *ui = (struct Ui){
+      .inputh = {.callback = callback, .data = data},
+  };
 
   lv_init();
   lv_tick_set_cb(time_now);
@@ -182,3 +178,12 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     }
   }
 }
+
+void ui_panic(ui_t ui) {
+  puts(__func__);
+  if (!ui || !ui->display.panic) {
+    return;
+  }
+
+  ui->display.panic(&ui->display);
+};

@@ -6,10 +6,30 @@
 
 typedef struct Ui *ui_t;
 
-err_t ui_init(ui_t *out);
+enum UiInputEventEnum {
+  UiInputEventEnum_UP,
+  UiInputEventEnum_DOWN,
+  UiInputEventEnum_LEFT,
+  UiInputEventEnum_RIGTH,
+  UiInputEventEnum_ENTER,
+  UiInputEventEnum_MENU,
+};
 
-int ui_tick(ui_t ui);
+err_t ui_init(ui_t *out,
+              void (*callback)(enum UiInputEventEnum event, void *data,
+                               void *arg),
+              void *data);
 err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
+void  ui_menu_destroy(ui_t ui);
+int ui_tick(ui_t ui);
 void ui_destroy(ui_t *out);
+
+/**
+   @brief When system crashes we need to do smallest possible
+          cleanup available in ui. Mainly to reset display driver
+          to not leave it in wierd state which may cause malfunction
+          if not changed for long period of time.
+*/
+void ui_panic(ui_t ui);
 
 #endif // UI_H

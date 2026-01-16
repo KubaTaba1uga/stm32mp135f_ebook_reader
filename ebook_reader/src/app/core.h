@@ -100,6 +100,8 @@ const char *app_event_dump(enum AppEventEnum event);
 void app_raise_error(app_t app, err_t error);
 
 err_t app_menu_init(app_module_t menu, app_t app);
+void app_menu_select_book(app_module_t, app_ctx_t, void *);
+
 err_t app_error_init(app_module_t menu, app_t app);
 err_t app_reader_init(app_module_t menu, app_t app);
 

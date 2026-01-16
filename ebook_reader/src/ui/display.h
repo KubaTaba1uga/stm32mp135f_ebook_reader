@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "misc/lv_color.h"
 #include "ui/ui.h"
 #include "utils/err.h"
 
@@ -19,12 +18,13 @@ enum UiDisplayEnum {
 struct UiDisplay {
   lv_display_t *(*get_lv_display)(ui_display_t);
   err_t (*render)(ui_display_t, unsigned char *);
-  void (*render_cleanup)(ui_display_t);  
+  void (*render_cleanup)(ui_display_t);
   int (*get_render_size)(ui_display_t);
   int (*get_render_x)(ui_display_t);
   int (*get_render_y)(ui_display_t);
   int (*get_color_format)(ui_display_t);
   void (*destroy)(ui_display_t);
+  void (*panic)(ui_display_t);
   void *private;
 };
 

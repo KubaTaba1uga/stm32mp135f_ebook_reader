@@ -51,12 +51,13 @@ static const struct AppFsmTransition
         [AppStateEnum_MENU] =
             {
                 // In menu we use LVGL flex layout which can handle
-                // Changes in selection on it's own, so we just receive
-                // Info that book is selected.
+                // changes in selection on it's own, so we just receive
+                // info that book is selected and which index in list
+                // was it.
                 [AppEventEnum_BTN_ENTER] =
                     {
                         .next_state = AppStateEnum_MENU,
-                        /* .action = ebk_corem_menu_select_book, */
+                        .action = app_menu_select_book,
                     },
                 [AppEventEnum_BOOK_SELECTED] =
                     {
@@ -91,6 +92,8 @@ static const struct AppFsmTransition
             },
 };
 
+static void app_input_callback(enum UiInputEventEnum event, void *data,
+                               void *arg);
 static const char *app_state_dump(enum AppStateEnum);
 static void app_modules_destroy(app_module_t, int);
 static void app_step(app_t);
@@ -101,7 +104,7 @@ err_t app_init(app_t *out) {
       .state = AppStateEnum_BOOT,
   };
 
-  err_o = ui_init(&app->ctx.ui);
+  err_o = ui_init(&app->ctx.ui, app_input_callback, app);
   ERR_TRY(err_o);
 
   err_o = book_api_init(&app->ctx.book_api);
@@ -263,9 +266,9 @@ static void app_step(app_t app) {
 out:;
 }
 
-void app_raise_error(app_t app, err_t error){
+void app_raise_error(app_t app, err_t error) {
   app_event_post(app, AppEventEnum_ERROR_RAISED, error);
-  }
+}
 
 static void app_modules_destroy(app_module_t modules, int modules_len) {
   while (modules_len--) {
@@ -275,4 +278,23 @@ static void app_modules_destroy(app_module_t modules, int modules_len) {
     }
     modules[modules_len].destroy(&modules[modules_len]);
   }
+}
+
+void app_panic(app_t app) { ui_panic(app->ctx.ui); }
+
+static void app_input_callback(enum UiInputEventEnum event, void *data,
+                               void *arg) {
+  puts(__func__);
+  static enum AppEventEnum gui_input_ev_table[] = {
+      [UiInputEventEnum_UP] = AppEventEnum_BTN_UP,
+      [UiInputEventEnum_DOWN] = AppEventEnum_BTN_DOWN,
+      [UiInputEventEnum_LEFT] = AppEventEnum_BTN_LEFT,
+      [UiInputEventEnum_RIGTH] = AppEventEnum_BTN_RIGTH,
+      [UiInputEventEnum_ENTER] = AppEventEnum_BTN_ENTER,
+      [UiInputEventEnum_MENU] = AppEventEnum_BTN_MENU,
+  };
+
+  app_t app = data;
+
+  app_event_post(app, gui_input_ev_table[event], arg);
 }

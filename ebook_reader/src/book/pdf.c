@@ -118,6 +118,7 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
 
   /* render at scaled size */
   poppler_page_render(page, cr);
+  cairo_surface_flush(surface);
 
   /* now surface contains the first page image */
 
@@ -128,6 +129,7 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   unsigned char *buf = mem_malloc(x * y);
   graphic_argb32_to_a1(buf, sw, sh, sdata, stride);
   cairo_destroy(cr);
+  cairo_surface_destroy(surface);    
   g_object_unref(page);
 
   return buf;
