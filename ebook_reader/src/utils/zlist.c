@@ -3,7 +3,7 @@
 
 int zlist_append(zlist_t head, zlist_node_t node) {
   if (!head || !node) {
-    err_errno = err_errnos(EINVAL, "`head` and `node` cannot be NULL");
+    err_o = err_errnos(EINVAL, "`head` and `node` cannot be NULL");
     return -1;
   }
 

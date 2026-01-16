@@ -24,6 +24,7 @@ err_t app_menu_init(app_module_t module, app_t app) {
   module->open = app_menu_open;
   module->close = app_menu_close;
   module->destroy = app_menu_destroy;
+  module->private = menu;
 
   return 0;
 };
@@ -33,14 +34,14 @@ static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
   app_menu_t menu = module->private;
   menu->current_book_i = 0;
 
-  if (blist == NULL){
-    err_errnos(ENOENT, "No books");
+  if (blist == NULL) { // We should display sth wich would indicate
+                       // lack of books instead of raising error.    
+    err_o = err_errnos(ENOENT, "No books");
     goto error_out;
-    }
+  }
 
-  err_errno = ui_menu_create(ctx->ui, blist, menu->current_book_i);
-  ERR_TRY_CATCH(err_errno, error_blist_cleanup);
-
+  err_o = ui_menu_create(ctx->ui, blist, menu->current_book_i);
+  ERR_TRY_CATCH(err_o, error_blist_cleanup);
     
   books_list_destroy(blist);
 
@@ -49,7 +50,7 @@ static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
  error_blist_cleanup:
   books_list_destroy(blist);
 error_out:
-  app_raise_error(menu->owner, err_errno);
+  app_raise_error(menu->owner, err_o);
 }
 
 static void app_menu_close(app_module_t module) {

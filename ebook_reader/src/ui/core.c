@@ -33,6 +33,8 @@ struct Ui {
   ui_wx_bar_t bar;
 };
 
+static void ui_menu_book_event_cb(lv_event_t *e);
+
 err_t ui_init(ui_t *out) {
   static err_t (*displays_inits[])(ui_display_t, ui_t) = {
       [UiDisplayEnum_X11] = ui_display_x11_init,
@@ -53,18 +55,18 @@ err_t ui_init(ui_t *out) {
       continue;
     }
 
-    err_errno = displays_inits[i](&ui->display, ui);
-    if (!err_errno) {
+    err_o = displays_inits[i](&ui->display, ui);
+    if (!err_o) {
       ui->current_display = i;
       is_display_found = true;
       break;
     }
 
-    log_error(err_errno);
+    log_error(err_o);
   }
 
   if (!is_display_found) {
-    err_errno = err_errnos(ENODEV, "Cannot initialize display");
+    err_o = err_errnos(ENODEV, "Cannot initialize display");
     goto error_out;
   }
 
@@ -73,22 +75,22 @@ err_t ui_init(ui_t *out) {
   */
   FILE *boot_screen_fd = fopen(settings_boot_screen_path, "r");
   if (!boot_screen_fd) {
-    err_errno = err_errnof(ENOENT, "There is no file like %s",
-                           settings_boot_screen_path);
+    err_o = err_errnof(ENOENT, "There is no file like %s",
+                       settings_boot_screen_path);
     goto error_display_cleanup;
   }
 
   unsigned char *img_buf = mem_malloc(48000);
   const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
   if (ret_code != 48000) {
-    err_errno =
+    err_o =
         err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
     goto error_boot_screen_cleanup;
   }
   fclose(boot_screen_fd);
 
-  err_errno = ui->display.render(&ui->display, (unsigned char *)img_buf);
-  ERR_TRY_CATCH(err_errno, error_boot_screen_cleanup);
+  err_o = ui->display.render(&ui->display, (unsigned char *)img_buf);
+  ERR_TRY_CATCH(err_o, error_boot_screen_cleanup);
 
   return 0;
 
@@ -100,7 +102,7 @@ error_display_cleanup:
 error_out:
   mem_free(*out);
   *out = NULL;
-  return err_errno;
+  return err_o;
 }
 
 int ui_tick(ui_t ui) { return lv_timer_handler(); };
@@ -122,8 +124,7 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   ui->menu.books = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
 
   if (!ui->bar || !ui->menu.menu) {
-    err_errno =
-        err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
+    err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
     goto error_out;
   }
   lv_obj_t **lv_books = ui->menu.books;
@@ -149,8 +150,7 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
        book = books_list_get(books)) {
     lv_book = ui_wx_menu_book_create(
         ui->menu.menu, book_get_title(book), lv_book == NULL,
-        book_create_thumbnail(book, menu_book_x,
-                              menu_book_y - menu_book_text_y),
+        book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
         i, ui);
 
     lv_obj_add_event_cb(lv_book, ui_menu_book_event_cb, LV_EVENT_KEY, lv_book);
@@ -161,7 +161,7 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   return 0;
 
 error_out:
-  return err_errno;
+  return err_o;
 };
 
 void ui_menu_destroy(ui_t ui) { return; };
@@ -178,7 +178,7 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     }
 
     if (key == LV_KEY_ENTER) {
-      ui->inputh.callback(uiInputEventEnum_ENTER, ui->inputh.data, &id);
+      ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
     }
   }
 }

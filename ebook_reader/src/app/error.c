@@ -1,4 +1,5 @@
 #include "app/core.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 
 typedef struct AppError *app_error_t;
@@ -29,7 +30,7 @@ static void app_error_open(app_module_t module, app_ctx_t ctx, void *arg) {
   /* app_error_t error = module->private; */
   /* ebk_books_list_t blist; */
   
-
+  log_error(arg);
   }
 
 static void app_error_close(app_module_t module){

@@ -35,8 +35,8 @@ err_t book_api_init(book_api_t *out) {
       continue;
     }
 
-    err_errno = module_inits[inits_status](&api->modules[inits_status], api);
-    ERR_TRY(err_errno);
+    err_o = module_inits[inits_status](&api->modules[inits_status], api);
+    ERR_TRY(err_o);
   }
 
   return 0;
@@ -51,7 +51,7 @@ error_out:
 
   mem_free(*out);
   *out = NULL;
-  return err_errno;
+  return err_o;
 };
 
 void book_api_destroy(book_api_t *out) {
@@ -79,7 +79,9 @@ books_list_t book_api_find_books(book_api_t api) {
   book_t book;
 
   books_list_t list = mem_malloc(sizeof(struct BooksList));
-  *list = (struct BooksList){0};
+  *list = (struct BooksList){
+      .owner = api,
+  };
 
   books_dir = opendir(settings_books_dir);
 
@@ -113,14 +115,14 @@ books_list_t book_api_find_books(book_api_t api) {
     }
 
     if (api->modules[book_ext].book_create) {
-      err_errno = api->modules[book_ext].book_create(book);
-      ERR_TRY(err_errno);
+      err_o = api->modules[book_ext].book_create(book);
+      ERR_TRY(err_o);
     }
   }
 
   closedir(books_dir);
 
-  return 0;
+  return list;
 
 error_out:
   books_list_destroy(list);
@@ -149,6 +151,21 @@ void books_list_destroy(books_list_t blist) {
   mem_free(blist);
 };
 
+book_t books_list_get(books_list_t list) {
+  if (!list->current_book) {
+    return NULL;
+  }
+
+  book_t current_book = CAST_BOOK_PRIV(list->current_book);
+  list->current_book = list->current_book->next;
+
+  return current_book;
+}
+
+void books_list_reset(books_list_t list) {
+  list->current_book = list->books.head;
+}
+
 static enum BookExtensionEnum book_get_extension(book_api_t api,
                                                  const char *path) {
 
@@ -164,3 +181,13 @@ static enum BookExtensionEnum book_get_extension(book_api_t api,
 
   return -1;
 }
+
+const char *book_get_title(book_t book) {
+  return book->owner->modules[book->extension].book_get_title(book);
+}
+
+const unsigned char *book_get_thumbnail(book_t book, int x, int y) {  
+  return book->owner->modules[book->extension].book_get_thumbnail(book, x, y);
+}
+
+int books_list_len(books_list_t list) { return list->books.len; }

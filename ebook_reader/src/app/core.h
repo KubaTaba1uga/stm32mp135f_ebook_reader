@@ -1,5 +1,5 @@
-#ifndef EBOOK_READER_CORE_INTERNAL_H
-#define EBOOK_READER_CORE_INTERNAL_H
+#ifndef EBOOK_READER_APP_CORE_H
+#define EBOOK_READER_APP_CORE_H
 #include <stdbool.h>
 
 #include "book/book.h"
@@ -76,12 +76,12 @@ struct AppEventData {
 
 
 /**
-  @brief Post event to the core.
-  @param core Pointer to initialized instance of core.
+  @brief Post event to the app.
+  @param app Pointer to initialized instance of app.
   @param event Event to post.
   @param data Generic data in case event needs payload.
  */
-void app_event_post(app_t core, enum AppEventEnum event,
+void app_event_post(app_t app, enum AppEventEnum event,
                          void *data);
 
 
@@ -94,13 +94,13 @@ const char *app_event_dump(enum AppEventEnum event);
 
 /**
    @brief Post ERROR_RAISED event.
-   @param core Core instance to receive the event.
+   @param app App instance to receive the event.
    @param error Error which will be handled by error module.
 */
-void app_raise_error(app_t core, err_t error);
+void app_raise_error(app_t app, err_t error);
 
 err_t app_menu_init(app_module_t menu, app_t app);
 err_t app_error_init(app_module_t menu, app_t app);
 err_t app_reader_init(app_module_t menu, app_t app);
 
-#endif // EBOOK_READER_CORE_INTERNAL_H
+#endif // EBOOK_READER_APP_CORE_H

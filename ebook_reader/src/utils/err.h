@@ -117,6 +117,8 @@ static inline err_t err_error_int(struct err_Error *err, uint16_t code,
       .eframes_len = 1,
   };
 
+  puts("INT ERROR");
+  
   return err;
 };
 
@@ -134,6 +136,8 @@ static inline err_t err_error_lstr(struct err_Error *err, uint16_t code,
       .eframes_len = 1,
   };
 
+  puts("STR ERROR");
+  printf("%s:%s:%d\n", file, func, line);
   return err;
 };
 
@@ -162,6 +166,8 @@ static inline err_t err_error_fstr(struct err_Error *err, uint16_t code,
 
   err->msg = err->_msg_buf;
 
+  puts("FSTR ERROR");
+  
   return err;
 };
 #endif
@@ -205,7 +211,7 @@ static inline void err_error_add_frame(err_t err,
 /******************************************************************************
  *                                Errno API                                   *
  ******************************************************************************/
-_Thread_local extern err_t err_errno;
+_Thread_local extern err_t err_o;
 _Thread_local extern struct err_Error err_hidden_errno;
 
 #define err_errnoi(code) err_errori(&err_hidden_errno, code)

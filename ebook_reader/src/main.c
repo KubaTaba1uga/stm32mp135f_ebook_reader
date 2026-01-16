@@ -17,25 +17,25 @@ int main(void) {
                               // set different errno along the cleanup way and
                               // we need to ensure that we log only error in the
                               // highest error_X_cleanup routine.
-  err_errno = app_init(&app);
+  err_o = app_init(&app);
 
-  ERR_TRY(err_errno);
+  ERR_TRY(err_o);
 
   log_info("App is running");
 
-  err_errno = app_main(app);
-  ERR_TRY_CATCH(err_errno, error_core_cleanup);
+  err_o = app_main(app);
+  ERR_TRY_CATCH(err_o, error_core_cleanup);
 
   app_destroy(&app);
 
   return 0;
 
 error_core_cleanup:
-  LOG_ERROR(err_errno);
+  LOG_ERROR(err_o);
   app_destroy(&app);
 error_out:
-  LOG_ERROR(err_errno);
-  return err_errno->code;
+  LOG_ERROR(err_o);
+  return err_o->code;
 
   return 0;
 }

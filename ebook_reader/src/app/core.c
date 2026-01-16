@@ -101,11 +101,11 @@ err_t app_init(app_t *out) {
       .state = AppStateEnum_BOOT,
   };
 
-  err_errno = ui_init(&app->ctx.ui);
-  ERR_TRY(err_errno);
+  err_o = ui_init(&app->ctx.ui);
+  ERR_TRY(err_o);
 
-  err_errno = book_api_init(&app->ctx.book_api);
-  ERR_TRY_CATCH(err_errno, error_ui_cleanup);
+  err_o = book_api_init(&app->ctx.book_api);
+  ERR_TRY_CATCH(err_o, error_ui_cleanup);
 
   static err_t (*modules_inits[AppStateEnum_MAX])(app_module_t, app_t) = {
       [AppStateEnum_MENU] = app_menu_init,
@@ -116,8 +116,8 @@ err_t app_init(app_t *out) {
   int inits_status;
   for (inits_status = AppStateEnum_MENU; inits_status < AppStateEnum_MAX;
        inits_status++) {
-    err_errno = modules_inits[inits_status](&app->modules[inits_status], app);
-    ERR_TRY_CATCH(err_errno, error_modules_cleanup);
+    err_o = modules_inits[inits_status](&app->modules[inits_status], app);
+    ERR_TRY_CATCH(err_o, error_modules_cleanup);
   }
 
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
@@ -132,7 +132,7 @@ error_ui_cleanup:
 error_out:
   mem_free(*out);
   *out = NULL;
-  return err_errno;
+  return err_o;
 };
 
 err_t app_main(app_t app) {
@@ -262,6 +262,10 @@ static void app_step(app_t app) {
 
 out:;
 }
+
+void app_raise_error(app_t app, err_t error){
+  app_event_post(app, AppEventEnum_ERROR_RAISED, error);
+  }
 
 static void app_modules_destroy(app_module_t modules, int modules_len) {
   while (modules_len--) {

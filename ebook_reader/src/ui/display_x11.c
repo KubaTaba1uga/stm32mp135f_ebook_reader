@@ -46,7 +46,7 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
   x11->display = lv_x11_window_create("ebook_reader", ui_display_x11_width,
                                       ui_display_x11_heigth);
   if (!x11->display) {
-    err_errno = err_errnos(errno, "Cannot initialize X11 display");
+    err_o = err_errnos(errno, "Cannot initialize X11 display");
     goto error_out;
   }
   lv_x11_inputs_create(x11->display, NULL);
@@ -64,7 +64,7 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
 
 error_out:
   memset(display, 0, sizeof(struct UiDisplay));
-  return err_errno;
+  return err_o;
 };
 
 static lv_display_t *ui_display_x11_get_lv_display(ui_display_t display) {

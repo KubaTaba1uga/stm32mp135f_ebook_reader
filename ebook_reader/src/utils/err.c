@@ -2,7 +2,7 @@
 
 #include "err.h"
 
-_Thread_local err_t err_errno = NULL;
+_Thread_local err_t err_o = NULL;
 _Thread_local struct err_Error err_hidden_errno = {0};
 
 int err_error_dumps(err_t err, size_t buf_size, char *buf) {

@@ -47,15 +47,17 @@ void ui_wx_bar_destroy(ui_wx_bar_t bar) { lv_obj_del(bar); }
 ui_wx_menu_t ui_wx_menu_create(void) {
   lv_obj_t *menu_container = ui_wx_obj_create(lv_screen_active());
   lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_NONE);
-  
+
   int menu_x = lv_display_get_horizontal_resolution(NULL) - menu_x_off * 2;
   int menu_y = lv_display_get_vertical_resolution(NULL) - bar_y - menu_y_off;
 
   lv_obj_set_pos(menu_container, menu_x_off / 2,
-                 bar_y + menu_y_off / 2 ); // set offset 20, 20 for menu
+                 bar_y + menu_y_off / 2); // set offset 20, 20 for menu
   lv_obj_set_size(menu_container, menu_x, menu_y);
-  lv_obj_set_style_pad_ver(menu_container, menu_y_off/2, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_pad_hor(menu_container, menu_x_off/2, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_pad_ver(menu_container, menu_y_off / 2,
+                           LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_pad_hor(menu_container, menu_x_off / 2,
+                           LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(menu_container, 0,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -74,11 +76,10 @@ ui_wx_menu_t ui_wx_menu_create(void) {
 void ui_wx_menu_destroy(ui_wx_menu_t menu) { lv_obj_del(menu); }
 
 ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
-                                                const char *book_title,
-                                                bool is_focused,
-                                                uint8_t *thumbnail, int id,
-                                                ui_t gui) {
-  lv_obj_t *book_card = ui_wx_obj_create(menu);
+                                         const char *book_title,
+                                         bool is_focused, const uint8_t *thumbnail,
+                                         int id, ui_t gui) {
+  lv_obj_t *book_card = ui_wx_obj_create(menu);  
   lv_obj_set_size(book_card, menu_book_x, menu_book_y);
 
   // Configure data required to display book
@@ -86,21 +87,23 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
       mem_malloc(sizeof(struct UiMenuBookWidget));
   *book_data = (struct UiMenuBookWidget){0};
   book_data->id = id;
-  book_data->gui = gui;  
+  book_data->gui = gui;
   lv_obj_set_user_data(book_card, book_data);
 
-  // Configure book's thumbnail
-  lv_obj_t *book_img = lv_image_create(book_card);  
-  lv_img_dsc_t *dsc = &book_data->img;
-  *dsc = (lv_img_dsc_t){0};
-  dsc->header.cf = LV_COLOR_FORMAT_A1;
-  dsc->header.w = menu_book_x;
-  dsc->header.h = (menu_book_y - menu_book_text_y);
-  dsc->data_size = ((dsc->header.w + 7) / 8) * dsc->header.h;
-  dsc->data = thumbnail;
-  lv_image_set_src(book_img, dsc);
-  lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-  
+  if (thumbnail) {
+    lv_obj_t *book_img = lv_image_create(book_card);
+    lv_img_dsc_t *dsc = &book_data->img;
+    *dsc = (lv_img_dsc_t){0};
+    dsc->header.cf = LV_COLOR_FORMAT_A1;
+    dsc->header.w = menu_book_x;
+    dsc->header.h = (menu_book_y - menu_book_text_y);
+    dsc->data_size = ((dsc->header.w + 7) / 8) * dsc->header.h;
+    dsc->data = thumbnail;
+    lv_image_set_src(book_img, dsc);
+    lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_clear_flag(book_img, LV_OBJ_FLAG_CLICK_FOCUSABLE);    
+  }
+
   // Configure book label
   lv_obj_t *book_label = lv_label_create(book_card);
   lv_obj_set_pos(book_label, 0, menu_book_y - (menu_book_text_y * 0.75));
@@ -108,23 +111,21 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                               LV_PART_MAIN);
   lv_label_set_text(book_label, book_title);
 
-  // Configure not focused border  
+  // Configure not focused border
   lv_obj_set_style_border_width(book_card, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   // Configure focused border
   lv_obj_set_style_outline_width(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_pad(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
-                               LV_PART_MAIN | LV_STATE_FOCUSED);
-
+                                 LV_PART_MAIN | LV_STATE_FOCUSED);
 
   // Disable scrolling inside a card
   lv_label_set_long_mode(book_label, LV_LABEL_LONG_WRAP);
   lv_obj_clear_flag(book_label, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_scroll_dir(book_label, LV_DIR_NONE);  
-  lv_obj_add_flag(book_card, LV_OBJ_FLAG_CLICK_FOCUSABLE);  
+  lv_obj_set_scroll_dir(book_label, LV_DIR_NONE);
+  lv_obj_add_flag(book_card, LV_OBJ_FLAG_CLICK_FOCUSABLE);
   lv_obj_clear_flag(book_label, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-  lv_obj_clear_flag(book_img,   LV_OBJ_FLAG_CLICK_FOCUSABLE); 
   lv_obj_clear_flag(book_card, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_scroll_dir(book_card, LV_DIR_NONE);
 
@@ -143,8 +144,7 @@ int ui_wx_menu_book_get_id(ui_wx_menu_book_t book) {
   return book_data->id;
 }
 
-ui_t ui_wx_menu_book_get_gui(ui_wx_menu_book_t book) {
+ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t book) {
   struct UiMenuBookWidget *book_data = lv_obj_get_user_data(book);
   return book_data->gui;
 };
-
