@@ -1,3 +1,4 @@
+#include <fontconfig/fontconfig.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -49,6 +50,9 @@ static void exit_handler(void) {
   puts(__func__);
   if (app) {
     app_destroy(&app);
+    FcFini(); // Font config leave some rubbish, we are cleaning it
+              // cause it seems cleaner than adding asan suppresion
+              // file.    
   }
 }
 
