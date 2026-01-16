@@ -3,6 +3,7 @@
 #include "ui/widgets.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct AppMenu *app_menu_t;
 
@@ -36,6 +37,7 @@ static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
 
   menu->blist = book_api_find_books(ctx->book_api);
   menu->current_book_i = 0;
+  menu->ui = ctx->ui;
 
   if (menu->blist == NULL) { // We should display sth wich would indicate
                              // lack of books instead of raising error.
@@ -68,8 +70,8 @@ static void app_menu_close(app_module_t module) {
 };
 
 static void app_menu_destroy(app_module_t module) {
+  puts(__func__);
   if (!module->private) {
-
     return;
   }
 

@@ -1,7 +1,9 @@
 #include "ui/core.h"
 #include <error.h>
 #include <stdio.h>
+#include <string.h>
 
+#include "lv_api_map_v8.h"
 #include "misc/lv_timer.h"
 #include "ui/display.h"
 #include "ui/ui.h"
@@ -117,13 +119,14 @@ void ui_destroy(ui_t *out) {
 err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   ui->bar = ui->bar ? ui->bar : ui_wx_bar_create();
   ui->menu.menu = ui_wx_menu_create();
-  ui->menu.books = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
+  ui->menu.books.buf = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
+  ui->menu.books.len = books_list_len(books);
 
   if (!ui->bar || !ui->menu.menu) {
     err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
     goto error_out;
   }
-  lv_obj_t **lv_books = ui->menu.books;
+  lv_obj_t **lv_books = ui->menu.books.buf;
   lv_obj_t *lv_book = NULL;
   int i = 0;
 
@@ -160,7 +163,21 @@ error_out:
   return err_o;
 };
 
-void ui_menu_destroy(ui_t ui) { return; };
+void ui_menu_destroy(ui_t ui) {
+  puts(__func__);
+  if (!ui->menu.menu) {
+    return;
+  }
+
+  for (int i = ui->menu.books.len - 1; i >= 0; i--) {
+    ui_wx_menu_book_destroy(ui->menu.books.buf[i]);
+  }
+
+  mem_free(ui->menu.books.buf);
+  ui_wx_menu_destroy(ui->menu.menu);
+  lv_group_del(ui->menu.group);
+  memset(&ui->menu, 0, sizeof(struct UiMenu));
+};
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);

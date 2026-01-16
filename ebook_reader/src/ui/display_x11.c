@@ -120,7 +120,7 @@ static void ui_display_x11_destroy(ui_display_t display) {
 
   ui_display_x11_t x11 = display->private;
   ui_display_x11_cleanup(x11);
-  lv_display_delete(x11->display);
+  /* lv_display_delete(x11->display); */ // Cleaning up display causes crash in exit handler.
   mem_free(x11);
   display->private = NULL;
 }

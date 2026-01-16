@@ -1,6 +1,7 @@
 #include "app/core.h"
 #include "utils/log.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct AppError *app_error_t;
 
@@ -18,25 +19,29 @@ err_t app_error_init(app_module_t module, app_t app) {
   *error = (struct AppError){
       .owner = app,
   };
-  
+
   module->open = app_error_open;
   module->close = app_error_close;
   module->destroy = app_error_destroy;
-
+  module->private = error;
+  
   return 0;
 };
 
 static void app_error_open(app_module_t module, app_ctx_t ctx, void *arg) {
-  /* app_error_t error = module->private; */
-  /* ebk_books_list_t blist; */
-  
   log_error(arg);
-  }
+}
 
-static void app_error_close(app_module_t module){
+static void app_error_close(app_module_t module) {
 
 };
 
-static void app_error_destroy(app_module_t module){
+static void app_error_destroy(app_module_t module) {
+  puts(__func__)  ;
+  if (!module->private) {
+    return;
+  }
 
-  };
+  mem_free(module->private);
+  module->private = NULL;
+};

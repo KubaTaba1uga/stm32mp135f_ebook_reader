@@ -96,6 +96,10 @@ static const char *book_module_pdf_book_get_title(book_t book) {
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
                                                                int x, int y) {
   pdf_book_t pdf_book = book->private;
+  if (pdf_book->thumbnail) {
+    return pdf_book->thumbnail;
+  }
+
   PopplerDocument *doc = pdf_book->document;
   PopplerPage *page = poppler_document_get_page(doc, 0);
   cairo_surface_t *surface;
@@ -121,18 +125,17 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   cairo_surface_flush(surface);
 
   /* now surface contains the first page image */
-
   unsigned char *sdata = cairo_image_surface_get_data(surface);
   int sw = cairo_image_surface_get_width(surface);
   int sh = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
-  unsigned char *buf = mem_malloc(x * y);
-  graphic_argb32_to_a1(buf, sw, sh, sdata, stride);
+  pdf_book->thumbnail = mem_malloc(x * y);
+  graphic_argb32_to_a1(pdf_book->thumbnail, sw, sh, sdata, stride);
   cairo_destroy(cr);
-  cairo_surface_destroy(surface);    
+  cairo_surface_destroy(surface);
   g_object_unref(page);
 
-  return buf;
+  return pdf_book->thumbnail;
 };
 
 static bool book_module_pdf_is_extension(const char *file_path) {

@@ -73,7 +73,10 @@ ui_wx_menu_t ui_wx_menu_create(void) {
   return menu_container;
 }
 
-void ui_wx_menu_destroy(ui_wx_menu_t menu) { lv_obj_del(menu); }
+void ui_wx_menu_destroy(ui_wx_menu_t menu) {
+  
+
+  lv_obj_del(menu); }
 
 ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                                          const char *book_title,
@@ -134,7 +137,6 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
 
 void ui_wx_menu_book_destroy(ui_wx_menu_book_t book) {
   struct UiMenuBookWidget *book_data = lv_obj_get_user_data(book);
-  mem_free((void *)book_data->img.data);
   mem_free(book_data);
   lv_obj_del(book);
 };

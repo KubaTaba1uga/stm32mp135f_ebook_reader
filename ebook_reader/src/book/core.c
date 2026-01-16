@@ -60,7 +60,7 @@ void book_api_destroy(book_api_t *out) {
   }
 
   book_api_t api = *out;
-  for (int inits_status = BookExtensionEnum_MAX;
+  for (int inits_status = BookExtensionEnum_MAX - 1;
        inits_status >= BookExtensionEnum_PDF; inits_status--) {
     if (!api->modules[inits_status].destroy) {
       continue;

@@ -6,7 +6,10 @@
 
 struct UiMenu {
   ui_wx_menu_t menu;
-  ui_wx_menu_book_t *books;
+  struct {
+    ui_wx_menu_book_t *buf;
+    int len;
+  } books;
   lv_group_t *group;
   ui_t owner;
 };

@@ -21,7 +21,8 @@ err_t app_reader_init(app_module_t module, app_t app) {
   module->open = app_reader_open;
   module->close = app_reader_close;
   module->destroy = app_reader_destroy;
-
+  module->private = reader;
+  
   return 0;
 };
 
@@ -35,5 +36,10 @@ static void app_reader_close(app_module_t module) {
 };
 
 static void app_reader_destroy(app_module_t module) {
+  if (!module->private){
+    return;
+  }
 
+  mem_free(module->private);
+  module->private = NULL;
 };
