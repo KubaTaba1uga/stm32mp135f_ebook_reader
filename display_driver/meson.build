@@ -14,8 +14,6 @@ project('display_driver', 'c',
 # ******************************************************************************
 # *    Library
 # ******************************************************************************
-libgpiod_dep = dependency('libgpiod')
-
 display_driver_inc = include_directories(['include', 'src'])
 
 display_driver_src = [files('src/display_driver.c',
@@ -29,8 +27,9 @@ display_driver_src = [files('src/display_driver.c',
 			    # Add more drivers here
 )]
 
-display_driver_deps = [
-   libgpiod_dep,
+display_driver_deps = [dependency('libgpiod',
+		                   required: true,
+		       )
 ]
 
 display_driver_lib = library('display_driver',
@@ -42,6 +41,7 @@ display_driver_lib = library('display_driver',
 display_driver_dep = declare_dependency(
   link_with: display_driver_lib,
   include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
 )
 
 # ******************************************************************************
