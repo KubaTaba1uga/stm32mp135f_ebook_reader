@@ -3,16 +3,15 @@
 #include "misc/lv_timer.h"
 #include "misc/lv_types.h"
 #include <stdio.h>
-#if !EBK_DISPLAY_X11
 #include "ui/display.h"
 #include "utils/err.h"
+#include "utils/mem.h"
+
+#if !EBK_DISPLAY_X11
 err_t ui_display_x11_init(ui_display_t __, ui_t ___) {
   return err_errnos(EINVAL, "X11 is not supported!");
 };
 #else
-#include "ui/display.h"
-#include "utils/err.h"
-#include "utils/mem.h"
 
 typedef struct UiDisplayX11 *ui_display_x11_t;
 

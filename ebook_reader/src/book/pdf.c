@@ -1,6 +1,7 @@
 #include <libgen.h>
 #include <poppler.h>
 
+
 #include "book/book.h"
 #include "book/core.h"
 #include "glib.h"
