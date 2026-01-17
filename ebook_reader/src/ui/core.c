@@ -1,15 +1,13 @@
-#include "ui/core.h"
 #include <error.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "lv_api_map_v8.h"
-#include "misc/lv_timer.h"
 #include "ui/display.h"
+#include "ui/screen.h"
+#include "ui/screen_menu.h"
 #include "ui/ui.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
-#include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
@@ -21,8 +19,7 @@ struct Ui {
   } inputh;
 
   ui_display_t display;
-  /* ui_screen_t screen;   */
-  struct UiMenu menu;
+  ui_screen_t screen;
   ui_wx_bar_t bar;
 };
 
@@ -68,51 +65,16 @@ void ui_destroy(ui_t *out) {
   }
 
   ui_t ui = *out;
+  ui_screen_destroy(&ui->screen);    
   ui_display_destroy(&ui->display);
   mem_free(*out);
   *out = NULL;
 };
 
 err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
-  ui->bar = ui->bar ? ui->bar : ui_wx_bar_create();
-  ui->menu.menu = ui_wx_menu_create();
-  ui->menu.books.buf = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
-  ui->menu.books.len = books_list_len(books);
-
-  if (!ui->bar || !ui->menu.menu) {
-    err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
-    goto error_out;
-  }
-  lv_obj_t **lv_books = ui->menu.books.buf;
-  lv_obj_t *lv_book = NULL;
-  int i = 0;
-
-  { // Configure passing events to menu widget
-    lv_group_t *group = ui->menu.group = lv_group_create();
-    lv_group_set_default(group);
-
-    for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
-      if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
-        lv_indev_set_group(i, group);
-        break;
-      }
-    }
-
-    lv_group_add_obj(group, ui->menu.menu);
-    lv_group_set_editing(group, false);
-  }
-
-  for (book_t book = books_list_get(books); book != NULL;
-       book = books_list_get(books)) {
-    lv_book = ui_wx_menu_book_create(
-        ui->menu.menu, book_get_title(book), lv_book == NULL,
-        book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
-        i, ui);
-
-    lv_obj_add_event_cb(lv_book, ui_menu_book_event_cb, LV_EVENT_KEY, lv_book);
-
-    lv_books[i++] = lv_book;
-  }
+  err_o = ui_screen_menu_create(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
+                                ui_menu_book_event_cb);
+  ERR_TRY(err_o);
 
   return 0;
 
@@ -120,21 +82,14 @@ error_out:
   return err_o;
 };
 
-void ui_menu_destroy(ui_t ui) {
+void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
+
+void ui_panic(ui_t ui) {
   puts(__func__);
-  if (!ui->menu.menu) {
-    return;
-  }
-
-  for (int i = ui->menu.books.len - 1; i >= 0; i--) {
-    ui_wx_menu_book_destroy(ui->menu.books.buf[i]);
-  }
-
-  mem_free(ui->menu.books.buf);
-  ui_wx_menu_destroy(ui->menu.menu);
-  lv_group_del(ui->menu.group);
-  memset(&ui->menu, 0, sizeof(struct UiMenu));
+  ui_display_panic(ui->display);
 };
+
+void ui_init_cleanup(ui_t ui) { ui_display_render_destroy(ui->display); };
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);
@@ -152,12 +107,3 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     }
   }
 }
-
-void ui_panic(ui_t ui) {
-  puts(__func__);
-  ui_display_panic(ui->display);
-};
-
-void ui_init_cleanup(ui_t ui){
-  ui_display_render_destroy(ui->display);  
-};

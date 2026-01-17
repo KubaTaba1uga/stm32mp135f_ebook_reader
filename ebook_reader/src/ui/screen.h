@@ -9,23 +9,14 @@
 
 typedef struct UiScreen *ui_screen_t;
 
-enum UiScreenEnum {
-  UiScreenEnum_MENU = 0,
-  UiScreenEnum_READER,
-  UiScreenEnum_MAX,
-};
+/* enum UiScreenEnum { */
+/*   UiScreenEnum_MENU = 0, */
+/*   UiScreenEnum_READER, */
+/*   UiScreenEnum_MAX, */
+/* }; */
 
-struct UiScreen {
-  void (*destroy)(ui_screen_t);
-  void (*panic)(ui_screen_t);
-  void *private;
-};
-
-extern const int ui_screen_color_format;
-
-err_t ui_screen_init(ui_screen_t *, uint32_t, ui_t);
-err_t ui_screens_render(ui_screen_t *, unsigned char *);
-err_t ui_screens_render_cleanup(ui_screen_t *, unsigned char *);
-err_t ui_screens_destroy(ui_screen_t, ui_t);
+err_t ui_screen_init(ui_screen_t *, ui_t, void (*destroy)(void *), void *);
+void ui_screen_destroy(ui_screen_t *);
+ui_t ui_screen_get_ui(ui_screen_t);
 
 #endif // UI_SCREEN_H
