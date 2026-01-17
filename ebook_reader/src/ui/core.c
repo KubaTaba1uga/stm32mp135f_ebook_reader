@@ -88,9 +88,11 @@ err_t ui_init(ui_t *out,
   }
   fclose(boot_screen_fd);
 
+  if (ui->display.render)  {
   err_o = ui->display.render(&ui->display, (unsigned char *)img_buf);
   ERR_TRY_CATCH(err_o, error_boot_screen_cleanup);
-
+  }
+  
   return 0;
 
 error_boot_screen_cleanup:
@@ -122,9 +124,9 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   ui->menu.menu = ui_wx_menu_create();
   ui->menu.books.buf = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
   ui->menu.books.len = books_list_len(books);
-
+  if (ui->display.render_cleanup)  {
   ui->display.render_cleanup(&ui->display);
-  
+  }
   if (!ui->bar || !ui->menu.menu) {
     err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
     goto error_out;

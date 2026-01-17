@@ -53,8 +53,11 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
   lv_display_set_default(x11->display);
 
   display->get_lv_display = ui_display_x11_get_lv_display;
-  display->render = ui_display_x11_render;
-  display->render_cleanup = ui_display_x11_render_cleanup;
+  /* display->render = ui_display_x11_render; */
+  /* display->render_cleanup = ui_display_x11_render_cleanup; */
+  (void)ui_display_x11_render;
+  (void)ui_display_x11_render_cleanup;
+
   display->get_render_size = ui_display_x11_get_render_size;
   display->get_render_x = ui_display_x11_get_render_x;
   display->get_render_y = ui_display_x11_get_render_y;

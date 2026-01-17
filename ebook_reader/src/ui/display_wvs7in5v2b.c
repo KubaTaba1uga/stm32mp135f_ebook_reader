@@ -20,7 +20,7 @@ typedef struct UiDisplayWvs7in5V2b *wvs7in5v2b_t;
 struct UiDisplayWvs7in5V2b {
   dd_display_driver_t dd;
   struct {
-    char *data;
+    unsigned char *data;
     uint32_t len;
   } render_buf;
 };
@@ -57,7 +57,8 @@ err_t ui_display_wvs7in5v2b_init(ui_display_t module, ui_t ui) {
 
   // 1 pixel per color and + colour palette size
   wvs->render_buf.len = (480 * 800 / 8) + 8;
-  lv_display_set_color_format(disp, LV_COLOR_FORMAT_I1);
+  wvs->render_buf.data = mem_malloc(wvs->render_buf.len);
+  lv_display_set_color_format(disp, ui_display_color_format);
   lv_display_set_driver_data(disp, module);
   lv_display_set_flush_cb(disp, ui_display_wvs7in5v2b_flush_dd_callback);
   lv_display_set_buffers(disp, wvs->render_buf.data, NULL, wvs->render_buf.len,
