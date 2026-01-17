@@ -1,5 +1,9 @@
 #ifndef UI_SCREEN_H
 #define UI_SCREEN_H
+/**
+    Each app state has corresponding screen. 
+*/
+
 #include <lvgl.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,12 +12,6 @@
 #include "utils/err.h"
 
 typedef struct UiScreen *ui_screen_t;
-
-/* enum UiScreenEnum { */
-/*   UiScreenEnum_MENU = 0, */
-/*   UiScreenEnum_READER, */
-/*   UiScreenEnum_MAX, */
-/* }; */
 
 err_t ui_screen_create(ui_screen_t *, ui_t, void (*destroy)(void *), void *);
 void ui_screen_destroy(ui_screen_t *);
