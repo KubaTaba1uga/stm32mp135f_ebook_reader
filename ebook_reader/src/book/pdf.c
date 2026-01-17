@@ -1,5 +1,8 @@
+#include <lvgl.h>
 #include <libgen.h>
 #include <poppler.h>
+#include <stdio.h>
+#include <string.h>
 
 
 #include "book/book.h"
@@ -8,6 +11,7 @@
 #include "utils/err.h"
 #include "utils/graphic.h"
 #include "utils/mem.h"
+#include "utils/log.h"
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
@@ -96,46 +100,59 @@ static const char *book_module_pdf_book_get_title(book_t book) {
 
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
                                                                int x, int y) {
+  puts(__func__);
   pdf_book_t pdf_book = book->private;
   if (pdf_book->thumbnail) {
     return pdf_book->thumbnail;
   }
 
-  PopplerDocument *doc = pdf_book->document;
-  PopplerPage *page = poppler_document_get_page(doc, 0);
-  cairo_surface_t *surface;
-  cairo_t *cr;
+  /* PopplerDocument *doc = pdf_book->document; */
+  /* PopplerPage *page = poppler_document_get_page(doc, 0); */
+  /* cairo_surface_t *surface; */
+  /* cairo_t *cr; */
 
-  double pw, ph; // page size in points
-  poppler_page_get_size(page, &pw, &ph);
+  /* double pw, ph; // page size in points */
+  /* poppler_page_get_size(page, &pw, &ph); */
 
-  surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
-  cr = cairo_create(surface);
+  /* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y); */
+  /* cr = cairo_create(surface); */
 
   /* white background */
-  cairo_set_source_rgb(cr, 1, 1, 1);
-  cairo_paint(cr);
+  /* cairo_set_source_rgb(cr, 1, 1, 1); */
+  /* cairo_paint(cr); */
 
   /* scale page -> output */
-  double sx = (double)x / pw;
-  double sy = (double)y / ph;
-  cairo_scale(cr, sx, sy);
+  /* double sx = (double)x / pw; */
+  /* double sy = (double)y / ph; */
+  /* cairo_scale(cr, sx, sy); */
 
   /* render at scaled size */
-  poppler_page_render(page, cr);
-  cairo_surface_flush(surface);
+  /* poppler_page_render(page, cr); */
+  /* cairo_surface_flush(surface); */
 
   /* now surface contains the first page image */
-  unsigned char *sdata = cairo_image_surface_get_data(surface);
-  int sw = cairo_image_surface_get_width(surface);
-  int sh = cairo_image_surface_get_height(surface);
-  int stride = cairo_image_surface_get_stride(surface);
-  pdf_book->thumbnail = mem_malloc(x * y);
-  graphic_argb32_to_a1(pdf_book->thumbnail, sw, sh, sdata, stride);
-  cairo_destroy(cr);
-  cairo_surface_destroy(surface);
-  g_object_unref(page);
+  /* unsigned char *sdata = cairo_image_surface_get_data(surface); */
+  /* int sw = cairo_image_surface_get_width(surface); */
+  /* int sh = cairo_image_surface_get_height(surface); */
+  /* int stride = cairo_image_surface_get_stride(surface); */
+ /* palette: 2 x lv_color32_t (ARGB8888) */
+  pdf_book->thumbnail = mem_malloc(x * y + 8);
+  lv_color32_t *pal = (lv_color32_t *)  pdf_book->thumbnail;
+  pal[0] = (lv_color32_t){ .red=255, .green=255, .blue=255, .alpha=255 }; // index 0 = white
+  pal[1] = (lv_color32_t){ .red=0,   .green=0,   .blue=0,   .alpha=255 }; // index 1 = black
+  memset(pdf_book->thumbnail + 8, 0xFF, x * y );
+  
+  /* graphic_argb32_to_a1(pdf_book->thumbnail, sw, sh, sdata, stride); */
 
+ /* pdf_book->thumbnail =   pdf_book->thumbnail + 8;   */
+  /* cairo_destroy(cr); */
+  /* cairo_surface_destroy(surface); */
+  /* g_object_unref(page); */
+
+  log_info("Thumbnail generated");
+
+  printf("%s\n", pdf_book->thumbnail?"NOT NULL":"NULL");
+  
   return pdf_book->thumbnail;
 };
 
