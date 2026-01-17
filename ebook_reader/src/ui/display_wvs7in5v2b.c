@@ -44,6 +44,7 @@ err_t ui_display_wvs7in5v2b_init(ui_display_t module, ui_t ui) {
           .bsy = {.gpio_chip_path = "/dev/gpiochip6", .pin_no = 3},
           .pwr = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 4},
           .spi = {.spidev_path = "/dev/spidev0.0"},
+	  .rotate = true,
       });
   if (err) {
     err_o = ERR_FROM_DD(err);

@@ -113,7 +113,7 @@ dd_error_t dd_wvs75v2b_probe(struct dd_DisplayDriver *driver, void *config) {
   struct dd_Wvs75V2bConfig *conf = config;
   if (conf->rotate) {
     driver_data->is_rotated = true;
-    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN);
+    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN *2);
   }
 
   dd_errno = dd_gpio_init(&driver_data->gpio);
