@@ -31,5 +31,5 @@ struct UiDisplay {
 extern const int ui_display_color_format;
 
 err_t ui_display_x11_init(ui_display_t, ui_t);
-
+err_t ui_display_wvs7in5v2b_init(ui_display_t module, ui_t ui);
 #endif // UI_DISPLAY_H

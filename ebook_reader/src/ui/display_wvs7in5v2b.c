@@ -30,7 +30,7 @@ static void ui_display_wvs7in5v2b_flush_dd_callback(lv_display_t *,
                                                     const lv_area_t *,
                                                     uint8_t *);
 
-err_t ui_display_wvs7in5v2b_init(ui_display_t module) {
+err_t ui_display_wvs7in5v2b_init(ui_display_t module, ui_t ui) {
   puts(__func__);
 
   wvs7in5v2b_t wvs = mem_malloc(sizeof(struct UiDisplayWvs7in5V2b));

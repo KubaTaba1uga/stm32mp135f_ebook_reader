@@ -33,7 +33,8 @@ err_t ui_init(ui_t *out,
                                void *arg),
               void *data) {
   static err_t (*displays_inits[])(ui_display_t, ui_t) = {
-      [UiDisplayEnum_X11] = ui_display_x11_init,
+    [UiDisplayEnum_X11] = ui_display_x11_init,
+      [UiDisplayEnum_WVS7IN5V2B] = ui_display_wvs7in5v2b_init,    
   };
   ui_t ui = *out = mem_malloc(sizeof(struct Ui));
   *ui = (struct Ui){
