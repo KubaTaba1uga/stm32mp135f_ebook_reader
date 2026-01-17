@@ -1,4 +1,8 @@
-#include "core.h"
+#include "app/core.h"
+#include "app/state_error.h"
+#include "app/state_menu.h"
+#include "app/state_reader.h"
+#include "app/state.h"
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -17,9 +21,9 @@ enum AppStateEnum {
 };
 
 struct App {
-  struct AppModule modules[AppStateEnum_MAX];
+  app_state_t states[AppStateEnum_MAX];
+  enum AppStateEnum current_state;
   struct AppEventData ev_data;
-  enum AppStateEnum state;
   struct AppCtx ctx;
   bool is_running;
 };
@@ -32,7 +36,7 @@ struct AppFsmTransition {
      Action does not return error, because once app is running all errors should
      be reported via app_error_raise.
    */
-  void (*action)(app_module_t, app_ctx_t, void *);
+  void (*action)(app_state_t, app_ctx_t, void *);
 };
 
 static const struct AppFsmTransition
@@ -57,7 +61,7 @@ static const struct AppFsmTransition
                 [AppEventEnum_BTN_ENTER] =
                     {
                         .next_state = AppStateEnum_MENU,
-                        .action = app_menu_select_book,
+                        .action = app_state_menu_select_book,
                     },
                 [AppEventEnum_BOOK_SELECTED] =
                     {
@@ -95,40 +99,40 @@ static const struct AppFsmTransition
 static void app_input_callback(enum UiInputEventEnum event, void *data,
                                void *arg);
 static const char *app_state_dump(enum AppStateEnum);
-static void app_modules_destroy(app_module_t, int);
+static void app_states_destroy(app_state_t *, int);
 static void app_step(app_t);
 
-err_t app_init(app_t *out) {
+err_t app_create(app_t *out) {
   app_t app = *out = mem_malloc(sizeof(struct App));
   *app = (struct App){
-      .state = AppStateEnum_BOOT,
+      .current_state = AppStateEnum_BOOT,
   };
-
-  err_o = ui_init(&app->ctx.ui, app_input_callback, app);
+  
+  err_o = ui_create(&app->ctx.ui, app_input_callback, app);
   ERR_TRY(err_o);
 
-  err_o = book_api_init(&app->ctx.book_api);
+  err_o = book_api_create(&app->ctx.book_api);
   ERR_TRY_CATCH(err_o, error_ui_cleanup);
 
-  static err_t (*modules_inits[AppStateEnum_MAX])(app_module_t, app_t) = {
-      [AppStateEnum_MENU] = app_menu_init,
-      [AppStateEnum_ERROR] = app_error_init,
-      [AppStateEnum_READER] = app_reader_init,
+  static err_t (*states_creates[AppStateEnum_MAX])(app_state_t *, app_t) = {
+      [AppStateEnum_MENU] = app_state_menu_create,
+      [AppStateEnum_ERROR] = app_state_error_create,
+      [AppStateEnum_READER] = app_state_reader_create,
   };
 
-  int inits_status;
-  for (inits_status = AppStateEnum_MENU; inits_status < AppStateEnum_MAX;
-       inits_status++) {
-    err_o = modules_inits[inits_status](&app->modules[inits_status], app);
-    ERR_TRY_CATCH(err_o, error_modules_cleanup);
+  int creates_status;
+  for (creates_status = AppStateEnum_MENU; creates_status < AppStateEnum_MAX;
+       creates_status++) {
+    err_o = states_creates[creates_status](&app->states[creates_status], app);
+    ERR_TRY_CATCH(err_o, error_states_cleanup);
   }
 
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
 
   return 0;
 
-error_modules_cleanup:
-  app_modules_destroy((*out)->modules, inits_status);
+error_states_cleanup:
+  app_states_destroy((*out)->states, creates_status);
   book_api_destroy(&app->ctx.book_api);
 error_ui_cleanup:
   ui_destroy(&app->ctx.ui);
@@ -157,9 +161,9 @@ void app_destroy(app_t *out) {
     return;
   }
 
-  app_modules_destroy((*out)->modules, AppStateEnum_MAX);
+  app_states_destroy((*out)->states, AppStateEnum_MAX);
   book_api_destroy(&(*out)->ctx.book_api);
-  ui_destroy(&(*out)->ctx.ui);  
+  ui_destroy(&(*out)->ctx.ui);
   mem_free(*out);
   *out = NULL;
 };
@@ -188,9 +192,9 @@ const char *app_event_dump(enum AppEventEnum event) {
 
 void app_event_post(app_t app, enum AppEventEnum event, void *data) {
 
-  if (!fsm_table[app->state][event].next_state) {
+  if (!fsm_table[app->current_state][event].next_state) {
     log_warn("Requested unsupported transition: %s:%s -> STATE_NONE",
-             app_state_dump(app->state), app_event_dump(event));
+             app_state_dump(app->current_state), app_event_dump(event));
     goto out;
   }
 
@@ -207,7 +211,7 @@ void app_event_post(app_t app, enum AppEventEnum event, void *data) {
   // some time.
   if (app->ev_data.event) {
     log_warn("Overwriting existing event %s with event %s",
-             app_state_dump(app->state), app_event_dump(event));
+             app_state_dump(app->current_state), app_event_dump(event));
   }
 
   app->ev_data.event = event;
@@ -246,24 +250,24 @@ static void app_step(app_t app) {
   struct AppEventData ev_data = app->ev_data;
   memset(&app->ev_data, 0, sizeof(struct AppEventData));
 
-  struct AppFsmTransition trans = fsm_table[app->state][ev_data.event];
-  app_module_t next_module = &app->modules[trans.next_state];
-  app_module_t current_module = &app->modules[app->state];
+  struct AppFsmTransition trans = fsm_table[app->current_state][ev_data.event];
+  app_state_t next_state = app->states[trans.next_state];
+  app_state_t current_state = app->states[app->current_state];
 
-  log_debug("%s -> %s", app_state_dump(app->state),
+  log_debug("%s -> %s", app_state_dump(app->current_state),
             app_state_dump(trans.next_state));
 
-  if (!trans.action && next_module->open) {
-    trans.action = next_module->open;
+  if (!trans.action && app->states[trans.next_state]) {
+    trans.action = app_state_open;
   }
 
-  trans.action(next_module, &app->ctx, ev_data.data);
+  trans.action(next_state, &app->ctx, ev_data.data);
 
-  if (app->state != trans.next_state && current_module->close) {
-    current_module->close(current_module);
+  if (app->current_state != trans.next_state && app->states[app->current_state]) {
+    app_state_close(current_state);
   }
 
-  app->state = trans.next_state;
+  app->current_state = trans.next_state;
 
 out:;
 }
@@ -272,13 +276,9 @@ void app_raise_error(app_t app, err_t error) {
   app_event_post(app, AppEventEnum_ERROR_RAISED, error);
 }
 
-static void app_modules_destroy(app_module_t modules, int modules_len) {
-  while (modules_len--) {
-
-    if (!modules[modules_len].destroy) {
-      continue;
-    }
-    modules[modules_len].destroy(&modules[modules_len]);
+static void app_states_destroy(app_state_t *states, int states_len) {
+  while (states_len--) {
+    app_state_destroy(&states[states_len]);
   }
 }
 

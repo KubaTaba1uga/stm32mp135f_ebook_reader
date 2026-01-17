@@ -32,8 +32,8 @@ err_t (*book_create)(book_t);
   void *private;
 };
 
-err_t book_module_pdf_init(book_module_t, book_api_t);
+err_t book_module_pdf_create(book_module_t, book_api_t);
 
-/* err_t book_init(); */
+/* err_t book_create(); */
 
 #endif // EBOOK_READER_BOOK_CORE_H

@@ -19,7 +19,7 @@ int main(void) {
     goto error_out;
   }
 
-  err_o = app_init(&app);
+  err_o = app_create(&app);
 
   ERR_TRY(err_o);
 

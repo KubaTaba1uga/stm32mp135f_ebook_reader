@@ -12,7 +12,7 @@ typedef struct Book *book_t;
    resposnible for handling all objects from book
    subsystem.
 */
-err_t book_api_init(book_api_t *);
+err_t book_api_create(book_api_t *);
 void book_api_destroy(book_api_t *);
 const char *book_get_title(book_t);
 const unsigned char *book_get_thumbnail(book_t, int x,

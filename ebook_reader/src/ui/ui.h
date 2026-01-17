@@ -15,7 +15,7 @@ enum UiInputEventEnum {
   UiInputEventEnum_MENU,
 };
 
-err_t ui_init(ui_t *out,
+err_t ui_create(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
                                void *arg),
               void *data);
@@ -29,10 +29,10 @@ void ui_destroy(ui_t *out);
 */
 void ui_panic(ui_t ui);
 /**
-   In init we show boot img which for some drivers require allocating a buffer.
+   In create we show boot img which for some drivers require allocating a buffer.
    Once you know that boot is done you should call this function.
 */
-void ui_init_cleanup(ui_t ui);
+void ui_render_cleanup(ui_t ui);
 /**
    @brief Create menu screen.
 */

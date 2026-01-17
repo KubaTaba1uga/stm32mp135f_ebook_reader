@@ -9,7 +9,7 @@ struct UiScreen {
   ui_t owner;
 };
 
-err_t ui_screen_init(ui_screen_t *out, ui_t ui, void (*destroy)(void *),
+err_t ui_screen_create(ui_screen_t *out, ui_t ui, void (*destroy)(void *),
                      void *private) {
   ui_screen_t screen = *out = mem_malloc(sizeof(struct UiScreen));
   screen->destroy = destroy;

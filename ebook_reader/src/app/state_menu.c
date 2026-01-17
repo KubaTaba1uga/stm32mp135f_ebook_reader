@@ -1,12 +1,13 @@
 #include <stdio.h>
 
 #include "app/core.h"
+#include "app/state.h"
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
-typedef struct AppMenu *app_menu_t;
+typedef struct AppMenu *app_state_menu_t;
 
 struct AppMenu {
   app_t owner;
@@ -15,26 +16,28 @@ struct AppMenu {
   books_list_t blist;
 };
 
-static void app_menu_open(app_module_t, app_ctx_t, void *);
-static void app_menu_close(app_module_t);
-static void app_menu_destroy(app_module_t);
+static void app_state_menu_open(void *, app_ctx_t, void *);
+static void app_state_menu_close(void *);
+static void app_state_menu_destroy(void *);
 
-err_t app_menu_init(app_module_t module, app_t app) {
-  app_menu_t menu = mem_malloc(sizeof(struct AppMenu));
+err_t app_state_menu_create(app_state_t *out, app_t app) {
+  app_state_menu_t menu = mem_malloc(sizeof(struct AppMenu));
   *menu = (struct AppMenu){
       .owner = app,
   };
 
-  module->open = app_menu_open;
-  module->close = app_menu_close;
-  module->destroy = app_menu_destroy;
-  module->private = menu;
+  err_o = app_state_create(out, app_state_menu_open, app_state_menu_close,
+                           app_state_menu_destroy, menu);
+  ERR_TRY(err_o);
 
   return 0;
+
+error_out:
+  return err_o;
 };
 
-static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
-  app_menu_t menu = module->private;
+static void app_state_menu_open(void *state, app_ctx_t ctx, void *arg) {
+  app_state_menu_t menu = state;
 
   menu->blist = book_api_find_books(ctx->book_api);
   menu->current_book_i = 0;
@@ -49,7 +52,7 @@ static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
   err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);
   ERR_TRY_CATCH(err_o, error_blist_cleanup);
 
-  ui_init_cleanup(ctx->ui);
+  ui_render_cleanup(ctx->ui);
 
   return;
 
@@ -59,8 +62,8 @@ error_out:
   app_raise_error(menu->owner, err_o);
 }
 
-static void app_menu_close(app_module_t module) {
-  app_menu_t menu = module->private;
+static void app_state_menu_close(void *state) {
+  app_state_menu_t menu = state;
 
   if (menu->ui) {
     ui_menu_destroy(menu->ui);
@@ -72,23 +75,19 @@ static void app_menu_close(app_module_t module) {
   }
 };
 
-static void app_menu_destroy(app_module_t module) {
+static void app_state_menu_destroy(void *state) {
   puts(__func__);
-  if (!module->private) {
-    return;
-  }
-
-  app_menu_close(module);
-  mem_free(module->private);
-  module->private = NULL;
+  app_state_menu_close(state);
+  mem_free(state);
+  state = NULL;
 };
 
 /**
    @todo Instead of NULL add book. Propably need sth like list_pop to receive
    book.
  */
-void app_menu_select_book(app_module_t module, app_ctx_t app, void *arg) {
-  app_menu_t menu = module->private;
+void app_state_menu_select_book(app_state_t astate, app_ctx_t app, void *__) {
+  app_state_menu_t menu = app_state_get_private(astate);
 
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
 }

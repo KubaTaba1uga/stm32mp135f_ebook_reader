@@ -25,7 +25,7 @@ struct Ui {
 
 static void ui_menu_book_event_cb(lv_event_t *e);
 
-err_t ui_init(ui_t *out,
+err_t ui_create(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
                                void *arg),
               void *data) {
@@ -89,7 +89,7 @@ void ui_panic(ui_t ui) {
   ui_display_panic(ui->display);
 };
 
-void ui_init_cleanup(ui_t ui) { ui_display_render_destroy(ui->display); };
+void ui_render_cleanup(ui_t ui) { ui_display_render_destroy(ui->display); };
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);

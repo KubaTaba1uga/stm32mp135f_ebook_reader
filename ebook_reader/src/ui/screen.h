@@ -15,7 +15,7 @@ typedef struct UiScreen *ui_screen_t;
 /*   UiScreenEnum_MAX, */
 /* }; */
 
-err_t ui_screen_init(ui_screen_t *, ui_t, void (*destroy)(void *), void *);
+err_t ui_screen_create(ui_screen_t *, ui_t, void (*destroy)(void *), void *);
 void ui_screen_destroy(ui_screen_t *);
 ui_t ui_screen_get_ui(ui_screen_t);
 

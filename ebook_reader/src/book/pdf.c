@@ -34,7 +34,7 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
-err_t book_module_pdf_init(book_module_t module, book_api_t api) {
+err_t book_module_pdf_create(book_module_t module, book_api_t api) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
   pdf->owner = api;
   module->book_create = book_module_pdf_book_create;

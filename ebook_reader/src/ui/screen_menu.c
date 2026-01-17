@@ -25,7 +25,7 @@ err_t ui_screen_menu_create(ui_screen_t *screen, ui_t ui, books_list_t books,
       .owner = ui,
   };
 
-  err_o = ui_screen_init(screen, ui, ui_screen_menu_destroy, menu);
+  err_o = ui_screen_create(screen, ui, ui_screen_menu_destroy, menu);
   ERR_TRY(err_o);
 
   menu->menu = ui_wx_menu_create();

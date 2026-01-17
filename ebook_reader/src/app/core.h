@@ -8,16 +8,6 @@
 
 typedef struct App *app_t;
 typedef struct AppCtx *app_ctx_t;
-typedef struct AppModule *app_module_t;
-
-#define EBK_CORE_STATE_ENUM_INIT -1
-
-struct AppModule {
-  void (*open)(app_module_t, app_ctx_t, void *);
-  void (*close)(app_module_t);
-  void (*destroy)(app_module_t);
-  void *private;
-};
 
 struct AppCtx {
   ui_t ui;
@@ -74,7 +64,6 @@ struct AppEventData {
   void *data;
 };
 
-
 /**
   @brief Post event to the app.
   @param app Pointer to initialized instance of app.
@@ -98,11 +87,5 @@ const char *app_event_dump(enum AppEventEnum event);
    @param error Error which will be handled by error module.
 */
 void app_raise_error(app_t app, err_t error);
-
-err_t app_menu_init(app_module_t menu, app_t app);
-void app_menu_select_book(app_module_t, app_ctx_t, void *);
-
-err_t app_error_init(app_module_t menu, app_t app);
-err_t app_reader_init(app_module_t menu, app_t app);
 
 #endif // EBOOK_READER_APP_CORE_H
