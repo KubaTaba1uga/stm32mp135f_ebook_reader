@@ -90,7 +90,7 @@ static void ui_display_wvs7in5v2b_flush_dd_callback(lv_display_t *display,
                                                     uint8_t *px_map) {
   ui_display_t appdisplay = lv_display_get_driver_data(display);
   wvs7in5v2b_t wvs = appdisplay->private;
-  dd_error_t dd_err = dd_display_driver_write(wvs->dd, px_map, 48000);
+  dd_error_t dd_err = dd_display_driver_write(wvs->dd, px_map + 8, 48000);
 
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);
