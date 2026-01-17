@@ -69,37 +69,37 @@ err_t ui_init(ui_t *out,
     goto error_out;
   }
 
-  /**
-     @todo This should be in display render boot img.
-  */
-  FILE *boot_screen_fd = fopen(settings_boot_screen_path, "r");
-  if (!boot_screen_fd) {
-    err_o = err_errnof(ENOENT, "There is no file like %s",
-                       settings_boot_screen_path);
-    goto error_display_cleanup;
-  }
+  /* /\** */
+  /*    @todo This should be in display render boot img. */
+  /* *\/ */
+  /* FILE *boot_screen_fd = fopen(settings_boot_screen_path, "r"); */
+  /* if (!boot_screen_fd) { */
+  /*   err_o = err_errnof(ENOENT, "There is no file like %s", */
+  /*                      settings_boot_screen_path); */
+  /*   goto error_display_cleanup; */
+  /* } */
 
-  unsigned char *img_buf = mem_malloc(48000);
-  const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
-  if (ret_code != 48000) {
-    err_o =
-        err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
-    goto error_boot_screen_cleanup;
-  }
-  fclose(boot_screen_fd);
+  /* unsigned char *img_buf = mem_malloc(48000); */
+  /* const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd); */
+  /* if (ret_code != 48000) { */
+  /*   err_o = */
+  /*       err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path); */
+  /*   goto error_boot_screen_cleanup; */
+  /* } */
+  /* fclose(boot_screen_fd); */
 
-  if (ui->display.render)  {
-  err_o = ui->display.render(&ui->display, (unsigned char *)img_buf);
-  ERR_TRY_CATCH(err_o, error_boot_screen_cleanup);
-  }
+  /* if (ui->display.render)  { */
+  /* err_o = ui->display.render(&ui->display, (unsigned char *)img_buf); */
+  /* ERR_TRY_CATCH(err_o, error_boot_screen_cleanup); */
+  /* } */
   
   return 0;
 
-error_boot_screen_cleanup:
-  fclose(boot_screen_fd);
-  mem_free(img_buf);
-error_display_cleanup:
-  ui->display.destroy(&ui->display);
+/* error_boot_screen_cleanup: */
+  /* fclose(boot_screen_fd); */
+  /* mem_free(img_buf); */
+/* error_display_cleanup: */
+  /* ui->display.destroy(&ui->display); */
 error_out:
   mem_free(*out);
   *out = NULL;
