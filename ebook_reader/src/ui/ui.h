@@ -19,17 +19,27 @@ err_t ui_init(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
                                void *arg),
               void *data);
-err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
-void  ui_menu_destroy(ui_t ui);
 int ui_tick(ui_t ui);
 void ui_destroy(ui_t *out);
-
 /**
-   @brief When system crashes we need to do smallest possible
-          cleanup available in ui. Mainly to reset display driver
-          to not leave it in wierd state which may cause malfunction
-          if not changed for long period of time.
+   When system crashes we need to do smallest possible
+   cleanup available in ui. Mainly to reset display driver
+   to not leave it in wierd state which may cause malfunction
+   if not changed for long period of time.
 */
 void ui_panic(ui_t ui);
+/**
+   In init we show boot img which for some drivers require allocating a buffer.
+   Once you know that boot is done you should call this function.
+*/
+void ui_init_cleanup(ui_t ui);
+/**
+   @brief Create menu screen.
+*/
+err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
+/**
+   @brief Delete menu screen.
+*/
+void  ui_menu_destroy(ui_t ui);
 
 #endif // UI_H

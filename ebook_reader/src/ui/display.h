@@ -6,30 +6,22 @@
 
 #include "ui/ui.h"
 #include "utils/err.h"
+#include "utils/settings.h"
 
 typedef struct UiDisplay *ui_display_t;
 
-enum UiDisplayEnum {
-  UiDisplayEnum_X11 = 0,
-  UiDisplayEnum_WVS7IN5V2B,
-  UiDisplayEnum_MAX,
-};
+err_t ui_display_supported_create(ui_display_t *, ui_t, enum DisplayModelEnum);
+err_t ui_display_create(ui_display_t *, lv_display_t *, ui_t,
+                        err_t (*render_create)(void *, unsigned char *,
+                                               uint32_t),
+                        void (*render_destroy)(void *), void (*destroy)(void *),
+                        void (*panic)(void *), void *);
+err_t ui_display_render_create(ui_display_t , unsigned char *, uint32_t);
+void ui_display_render_destroy(ui_display_t);
+void ui_display_panic(ui_display_t);
+void ui_display_destroy(ui_display_t *);
+ui_t ui_display_get_ui(ui_display_t);
+lv_display_t *ui_display_get_lv_obj(ui_display_t);
+err_t ui_display_show_boot_img(ui_display_t, const char *);
 
-struct UiDisplay {
-  lv_display_t *(*get_lv_display)(ui_display_t);
-  err_t (*render)(ui_display_t, unsigned char *);
-  void (*render_cleanup)(ui_display_t);
-  int (*get_render_size)(ui_display_t);
-  int (*get_render_x)(ui_display_t);
-  int (*get_render_y)(ui_display_t);
-  int (*get_color_format)(ui_display_t);
-  void (*destroy)(ui_display_t);
-  void (*panic)(ui_display_t);
-  void *private;
-};
-
-extern const int ui_display_color_format;
-
-err_t ui_display_x11_init(ui_display_t, ui_t);
-err_t ui_display_wvs7in5v2b_init(ui_display_t module, ui_t ui);
 #endif // UI_DISPLAY_H

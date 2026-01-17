@@ -19,7 +19,7 @@
 #endif
 
 #if EBK_DISPLAY_WVS7IN5V2B
-#define EBK_DISPLAY_MODEL DisplayModelEnum_Wvs7in5V2b
+#define EBK_DISPLAY_MODEL DisplayModelEnum_WVS7IN5V2B
 #define EBK_DISPLAY_BOOT_SCREEN_PATH "data/480x800_1bit_boot_screen"
 #elif EBK_DISPLAY_X11
 #define EBK_DISPLAY_MODEL DisplayModelEnum_X11

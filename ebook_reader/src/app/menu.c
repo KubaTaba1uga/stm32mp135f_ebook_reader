@@ -2,6 +2,7 @@
 
 #include "app/core.h"
 #include "book/book.h"
+#include "ui/ui.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
@@ -44,10 +45,11 @@ static void app_menu_open(app_module_t module, app_ctx_t ctx, void *arg) {
     err_o = err_errnos(ENOENT, "No books");
     goto error_out;
   }
-  
 
   err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);
   ERR_TRY_CATCH(err_o, error_blist_cleanup);
+
+  ui_init_cleanup(ctx->ui);
 
   return;
 
@@ -82,10 +84,11 @@ static void app_menu_destroy(app_module_t module) {
 };
 
 /**
-   @todo Instead of NULL add book. Propably need sth like list_pop to receive book.
+   @todo Instead of NULL add book. Propably need sth like list_pop to receive
+   book.
  */
 void app_menu_select_book(app_module_t module, app_ctx_t app, void *arg) {
   app_menu_t menu = module->private;
-  
+
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
 }

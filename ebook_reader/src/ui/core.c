@@ -20,8 +20,8 @@ struct Ui {
     void *data;
   } inputh;
 
-  enum UiDisplayEnum current_display;
-  struct UiDisplay display;
+  ui_display_t display;
+  /* ui_screen_t screen;   */
   struct UiMenu menu;
   ui_wx_bar_t bar;
 };
@@ -32,74 +32,28 @@ err_t ui_init(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
                                void *arg),
               void *data) {
-  static err_t (*displays_inits[])(ui_display_t, ui_t) = {
-    [UiDisplayEnum_X11] = ui_display_x11_init,
-      [UiDisplayEnum_WVS7IN5V2B] = ui_display_wvs7in5v2b_init,    
-  };
   ui_t ui = *out = mem_malloc(sizeof(struct Ui));
   *ui = (struct Ui){
-      .inputh = {.callback = callback, .data = data},
+      .inputh =
+          {
+              .callback = callback,
+              .data = data,
+          },
   };
 
   lv_init();
   lv_tick_set_cb(time_now);
 
-  /**
-     @todo This should be in display_init
-  */
-  bool is_display_found = false;
-  for (int i = UiDisplayEnum_X11; i < sizeof(displays_inits) / sizeof(void *);
-       i++) {
-    if (!displays_inits[i]) {
-      continue;
-    }
+  err_o = ui_display_supported_create(&ui->display, ui, settings_display_model);
+  ERR_TRY(err_o);
 
-    err_o = displays_inits[i](&ui->display, ui);
-    if (!err_o) {
-      ui->current_display = i;
-      is_display_found = true;
-      break;
-    }
+  err_o = ui_display_show_boot_img(ui->display, settings_boot_screen_path);
+  ERR_TRY_CATCH(err_o, error_display_cleanup);
 
-    log_error(err_o);
-  }
-
-  if (!is_display_found) {
-    err_o = err_errnos(ENODEV, "Cannot initialize display");
-    goto error_out;
-  }
-
-  /* /\** */
-  /*    @todo This should be in display render boot img. */
-  /* *\/ */
-  /* FILE *boot_screen_fd = fopen(settings_boot_screen_path, "r"); */
-  /* if (!boot_screen_fd) { */
-  /*   err_o = err_errnof(ENOENT, "There is no file like %s", */
-  /*                      settings_boot_screen_path); */
-  /*   goto error_display_cleanup; */
-  /* } */
-
-  /* unsigned char *img_buf = mem_malloc(48000); */
-  /* const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd); */
-  /* if (ret_code != 48000) { */
-  /*   err_o = */
-  /*       err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path); */
-  /*   goto error_boot_screen_cleanup; */
-  /* } */
-  /* fclose(boot_screen_fd); */
-
-  /* if (ui->display.render)  { */
-  /* err_o = ui->display.render(&ui->display, (unsigned char *)img_buf); */
-  /* ERR_TRY_CATCH(err_o, error_boot_screen_cleanup); */
-  /* } */
-  
   return 0;
 
-/* error_boot_screen_cleanup: */
-  /* fclose(boot_screen_fd); */
-  /* mem_free(img_buf); */
-/* error_display_cleanup: */
-  /* ui->display.destroy(&ui->display); */
+error_display_cleanup:
+  ui_display_destroy(&ui->display);
 error_out:
   mem_free(*out);
   *out = NULL;
@@ -114,7 +68,7 @@ void ui_destroy(ui_t *out) {
   }
 
   ui_t ui = *out;
-  ui->display.destroy(&ui->display);
+  ui_display_destroy(&ui->display);
   mem_free(*out);
   *out = NULL;
 };
@@ -124,9 +78,7 @@ err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
   ui->menu.menu = ui_wx_menu_create();
   ui->menu.books.buf = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
   ui->menu.books.len = books_list_len(books);
-  if (ui->display.render_cleanup)  {
-  ui->display.render_cleanup(&ui->display);
-  }
+
   if (!ui->bar || !ui->menu.menu) {
     err_o = err_errnos(EINVAL, "`ui->bar` && `ui->menu.menu` cannot be NULL");
     goto error_out;
@@ -203,9 +155,9 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
 
 void ui_panic(ui_t ui) {
   puts(__func__);
-  if (!ui || !ui->display.panic) {
-    return;
-  }
+  ui_display_panic(ui->display);
+};
 
-  ui->display.panic(&ui->display);
+void ui_init_cleanup(ui_t ui){
+  ui_display_render_destroy(ui->display);  
 };

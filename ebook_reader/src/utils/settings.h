@@ -2,8 +2,9 @@
 #define SETTINGS_H
 
 enum DisplayModelEnum {
-  DisplayModelEnum_Wvs7in5V2b,
-  DisplayModelEnum_X11,
+  DisplayModelEnum_X11 = 0,
+  DisplayModelEnum_WVS7IN5V2B,
+  DisplayModelEnum_MAX,  
 };
 
 extern const enum DisplayModelEnum settings_display_model;
