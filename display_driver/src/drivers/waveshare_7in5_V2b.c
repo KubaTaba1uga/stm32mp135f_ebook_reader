@@ -410,9 +410,6 @@ static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     DD_TRY(dd_errno);
     dd_sleep_ms(200);
   }  
-  /* if (dd_gpio_read_pin(dd->pwr, &dd->gpio) == 1) { */
-  /*   goto out; */
-  /* } */
 
   dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
   DD_TRY(dd_errno);

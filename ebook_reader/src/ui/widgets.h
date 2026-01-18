@@ -12,8 +12,7 @@
 
   Because lvgl havily uses concept of generic obj we distinguish different objs
   based on it's role in our app. For example we have bar object wich stands for
-  upper bar with date, battery status and clock. We also have menu object wich
-  stands for the are under the bar wich is used when we are opening menu.
+  upper bar with date, battery status and clock.
 
   There is no precise definition telling what should be placed in this wrapper
   other files can use lvgl directly, i would say that as a rule of thumb, if you
@@ -31,8 +30,6 @@ extern const int menu_book_text_y;
 typedef lv_obj_t *ui_wx_bar_t;
 ui_wx_bar_t ui_wx_bar_create(void);
 void ui_wx_bar_destroy(ui_wx_bar_t);
-
-lv_obj_t *ui_wx_obj_create(void *parent);
 
 typedef lv_obj_t *ui_wx_menu_t;
 ui_wx_menu_t ui_wx_menu_create(void);
