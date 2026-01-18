@@ -25,7 +25,7 @@ class Point:
     @classmethod
     def is_black(cls, pix, threshold):
         return pix[0] <= threshold and pix[1] <= threshold and pix[2] <= threshold
-    
+
 def main():
     ap = argparse.ArgumentParser(description="Convert BW image to packed C byte array")
     ap.add_argument("input", help="Input image path (png, jpg, ...)")
@@ -34,13 +34,14 @@ def main():
     ap.add_argument("--threshold", default=128, help="When pixel should be considered black and when white")
     ap.add_argument("--name", default="output", help="Name of generated variable")
     ap.add_argument("--rotate", default=False, help="Rotate")
+    ap.add_argument("--raw-bytes", default=False, help="Write raw bytes to output instead of creating .h file")    
     args = ap.parse_args()
     
     img = Image.open(args.input).convert("RGBA")
     width, heigth = img.size
     pix = img.load()
 
-    if not args.rotate:x
+    if not args.rotate:
         points = [Point(x=x, y=y, is_black=Point.is_black(pix[x, y], args.threshold)) for y in range(heigth) for x in range(width)]
     else:
         # Now we need to transform this bytes to layout 480x800
@@ -49,12 +50,16 @@ def main():
         for x in range(width-1, 0, -1):
             for y in range(0, heigth, 1):
                 points.append(Point(x=x, y=y, is_black=Point.is_black(pix[x, y], args.threshold)))
-    
-    with open(args.output, "w") as fp:
-        fp.write(f"unsigned char {args.name}[] = {{")
-        fp.write(" ".join("0x%.2X," % byte for byte in convert_points(points, args.bit_order)))
-        fp.write("};")
 
+    if not args.raw_bytes:
+       with open(args.output, "w") as fp:
+           fp.write(f"unsigned char {args.name}[] = {{")
+           fp.write(" ".join("0x%.2X," % byte for byte in convert_points(points, args.bit_order)))
+           fp.write("};")
+    else:
+       with open(args.output, "wb") as fp:
+           for byte in convert_points(points, args.bit_order):
+               fp.write(byte.to_bytes(1, "little"))
 
 def convert_points(points, bit_order):
     points_bytes = []

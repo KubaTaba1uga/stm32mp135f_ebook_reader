@@ -28,7 +28,7 @@ test_link_args = [
 
 test_deps = [unity_dep] + display_driver_deps
 
-test_lib = static_library(
+test_lib = library(
   'test_lib',
   sources: display_driver_src,
   dependencies: display_driver_deps,

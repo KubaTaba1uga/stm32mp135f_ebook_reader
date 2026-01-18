@@ -2,13 +2,18 @@
 tc = 'PLACEHOLDER/build/buildroot/host/bin/arm-linux-'
 
 [binaries]
-c       = tc + 'gcc'
+c       = ['ccache', tc + 'gcc']
 ar      = tc + 'gcc-ar'
 ld      = tc + 'ld'
-cpp     = tc + 'g++'
+cpp     = ['ccache', tc + 'g++']
 strip   = tc + 'strip'
 objcopy = tc + 'objcopy'
 objdump = tc + 'objdump'
+pkg-config = 'PLACEHOLDER/build/buildroot/host/bin/pkg-config'
+
+[properties]
+sys_root = 'PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot'
+needs_exe_wrapper = true
 
 [host_machine]
 system = 'linux'

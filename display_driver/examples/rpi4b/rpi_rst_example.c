@@ -13,7 +13,7 @@ int main(void) {
     goto error;
   }
 
-  err = dd_display_driver_destroy(&dd);
+  dd_display_driver_destroy(&dd);
   if (err) {
     goto error;
   }

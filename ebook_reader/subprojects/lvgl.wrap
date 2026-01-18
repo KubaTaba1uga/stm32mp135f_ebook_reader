@@ -1,0 +1,14 @@
+[wrap-file]
+directory = lvgl-9.4.0
+source_url = https://github.com/lvgl/lvgl/archive/refs/tags/v9.4.0.tar.gz
+source_filename = lvgl-9.4.0.tar.gz
+source_hash = 932c864de98431b38c5758a87f1de12bbee7b76943b8312bcf13d2f29ac14627
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/lvgl_9.4.0-1/lvgl-9.4.0.tar.gz
+patch_filename = lvgl_9.4.0-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/lvgl_9.4.0-1/get_patch
+patch_hash = c1470a1e3a6415f25dbdd47b775b76d9d9febce7cd3ed2800f21d6761cd68c60
+wrapdb_version = 9.4.0-1
+diff_files = lvgl/lv_conf.h.patch
+
+[provide]
+dependency_names = lvgl, lvgl_demos, lvgl_examples, lvgl_thorvg

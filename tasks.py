@@ -1,4 +1,3 @@
-import glob
 import os
 
 from invoke import task
@@ -40,20 +39,45 @@ def install(c):
               which sed make binutils build-essential diffutils \
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk wget \
-              git libncurses5-dev python3"
+              git libncurses5-dev python3 libpoppler-glib-dev"
         )
 
         c.run("virtualenv .venv")
         c.run(
-            "pip install sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
+            "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
-
+        install_libgpiod(c)
+        
     except Exception:
         _pr_error("Installing failed")
         raise
 
     _pr_info(f"Installing dependencies completed")
 
+@task
+def install_libgpiod(c):
+    r = c.run("pkg-config --modversion libgpiod", warn=True)
+
+    if r.ok and "1.6.5" in r.stdout.strip():
+        return;
+
+    _pr_info(f"Installing libgpiod dependency...")
+    
+    try:
+        c.run("wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz")
+        c.run("tar -xf /tmp/libpiod.tar.xz -C /tmp/")
+        with c.cd("/tmp/libgpiod-1.6.5"):
+            c.run("./configure --prefix=/usr/")
+            c.run("make")
+            c.run("sudo make install")            
+
+    except Exception:
+        _pr_error("Installing failed")
+        raise
+
+    _pr_info(f"Installing libgpiod completed")
+
+    
 
 @task
 def build_docs(c):
@@ -151,7 +175,6 @@ def build_linux(c, config="ebook_reader_dev_defconfig", target=None):
         c.run(
             "python scripts/clang-tools/gen_compile_commands.py && cp compile_commands.json ../../../../third_party/linux"
         )
-    # TO-DO get compile_commands and copy to third_party/linux
 
     _pr_info(f"Building linux completed")
 
@@ -253,6 +276,80 @@ def fbuild_linux_dt(c):
 
 
 @task
+def fbuild_ebook_reader(c, recompile=False, local=False):
+    ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(ereader_path):
+        return
+
+    _pr_info("Fast building ebook reader...")
+
+    cross_tpl_path = os.path.join(
+        "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
+    )
+
+    with c.cd(ereader_path):
+        build_dir = os.path.join(BUILD_PATH, os.path.basename(ereader_path))
+        if recompile:
+            c.run(f"rm -rf {build_dir}")
+
+        c.run(f"mkdir -p {build_dir}")
+        root = os.path.abspath(ROOT_PATH)
+        with open(cross_tpl_path, "r", encoding="utf-8") as f:
+            cross_txt = f.read()
+            cross_txt = cross_txt.replace("PLACEHOLDER", root)
+
+        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
+        with open(cross_out_path, "w", encoding="utf-8") as f:
+            f.write(cross_txt)
+
+        c.run(
+            f"rm -rf subprojects/display_driver && "
+            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
+            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
+        )
+
+        c.run(
+            f"meson setup -Dbuildtype=debug {build_dir} "
+            + (" --wipe " if recompile else " ")
+            + (
+                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false "
+                if not local
+                else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
+            )
+        )
+
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"meson compile -v -C {build_dir}")
+
+    _pr_info("Fast building ebook reader completed")
+
+
+@task
+def fbuild_ebook_reader_test(c):
+    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Fast building ebook reader tests...")
+
+    with c.cd(tests_path):
+        build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
+        c.run(
+            f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+        )
+        c.run(
+            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
+        )
+
+        c.run(f"LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH meson compile -v -C {build_dir}")
+
+    _pr_info("Fast building ebook reader tests completed")
+
+
+@task
 def fbuild_display_driver(c):
     driver_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(driver_path):
@@ -289,6 +386,25 @@ def fbuild_display_driver(c):
 
 
 @task
+def test_ebook_reader(c, asan_options=None):
+    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    if not os.path.exists(tests_path):
+        return
+
+    _pr_info("Testing display driver...")
+
+    build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
+
+    c.run(
+        (f"ASAN_OPTIONS={asan_options} "
+        if asan_options
+        else "") + f"meson test -v -C {build_dir}"
+    )
+
+    _pr_info("Testing display driver completed")
+
+
+@task
 def fbuild_display_driver_test(c):
     tests_path = os.path.join(ROOT_PATH, "display_driver")
     if not os.path.exists(tests_path):
@@ -320,7 +436,11 @@ def test_display_driver(c, asan_options=None):
 
     build_dir = os.path.join(BUILD_PATH, "test_display_driver")
 
-    c.run(f"ASAN_OPTIONS={asan_options} " if asan_options else "" + f"meson test --print-errorlogs -v -C {build_dir}")
+    c.run(
+        f"ASAN_OPTIONS={asan_options} "
+        if asan_options
+        else "" + f"meson test --print-errorlogs -v -C {build_dir}"
+    )
 
     _pr_info("Testing display driver completed")
 
@@ -350,12 +470,18 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
             c.run(f"sudo tar xvf rootfs.tar -C {directory}")
 
     if sanitizers:
-        with c.cd("build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"):
+        with c.cd(
+            "build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"
+        ):
             c.run(f"sudo cp lib*san* {directory}/lib")
-            
+
     with c.cd("build/display_driver"):
         c.run(f"sudo cp *example {directory}/root/")
+    with c.cd("build/ebook_reader"):
+        c.run(f"sudo cp ebook_reader {directory}/root/")
+        c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
 
+        
     _pr_info(f"Deploy to NFS completed")
 
 
