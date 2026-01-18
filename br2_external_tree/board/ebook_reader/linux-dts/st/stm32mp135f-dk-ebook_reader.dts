@@ -1231,7 +1231,6 @@
     spidev@0 {
       compatible = "dh,dhcom-board";
       reg = <0>;
-      // spi-max-frequency = <10000000>; // 10MHz
-      spi-max-frequency = <1000000>; // 1MHz      
+      spi-max-frequency = <10000000>; // 10MHz
     };    
 };
