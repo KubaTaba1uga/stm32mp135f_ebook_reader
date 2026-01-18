@@ -36,3 +36,9 @@ Currently supported configurations are:
    buildroot/ebook_reader_prod_defconfig
    buildroot/ebook_reader_dev_defconfig
 
+App dependencies
+----------------
+
+Buildroot owns sysroot, meson produces apps wich should dynamically link against dependencies build by buildroot.
+
+

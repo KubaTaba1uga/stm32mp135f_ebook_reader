@@ -51,10 +51,10 @@ error_out:
 }
 
 /**
- * \brief Display picture on whole screen.
- * \param dd Driver instance.
- * \param image Image to displayed.
- * \return Error on failure, NULL on success.
+   @brief Display picture on whole screen.
+   @param dd Driver instance.
+   @param image Image to displayed.
+   @return Error on failure, NULL on success.
  */
 dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
                                   uint32_t buf_len) {

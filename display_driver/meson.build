@@ -8,19 +8,12 @@ project('display_driver', 'c',
 	 default_options: [
             'werror=true',
             'c_std=c11',
-	    'default_library=static',
          ],
 )
 
 # ******************************************************************************
 # *    Library
 # ******************************************************************************
-libgpiod_dep = dependency('libgpiod',
-  fallback: ['libgpiod', 'gpiod_dep'],
-  required: true,
-  static: true,
-)
-
 display_driver_inc = include_directories(['include', 'src'])
 
 display_driver_src = [files('src/display_driver.c',
@@ -34,8 +27,9 @@ display_driver_src = [files('src/display_driver.c',
 			    # Add more drivers here
 )]
 
-display_driver_deps = [
-   libgpiod_dep,
+display_driver_deps = [dependency('libgpiod',
+		                   required: true,
+		       )
 ]
 
 display_driver_lib = library('display_driver',
@@ -47,6 +41,7 @@ display_driver_lib = library('display_driver',
 display_driver_dep = declare_dependency(
   link_with: display_driver_lib,
   include_directories: display_driver_inc,
+  dependencies: display_driver_deps,
 )
 
 # ******************************************************************************
