@@ -82,14 +82,15 @@ ebook_reader_src = [files('src/main.c',
 			  'src/ui/display_x11.c',
 			  'src/ui/display_wvs7in5v2b.c',
 			  'src/app/core.c',
-			  'src/app/state.c',			  
-			  'src/app/state_menu.c',
-			  'src/app/state_reader.c',
-			  'src/app/state_error.c',
+			  'src/app/module.c',			  
+			  'src/app/module_menu.c',
+			  'src/app/module_reader.c',
+			  'src/app/module_error.c',
 			  'src/book/core.c',
 			  'src/book/pdf.c',
 			  # Add more files here
-			 )]
+			 )
+]
 
 buildtype = get_option('buildtype')
 if buildtype == 'debug' or buildtype == 'debugoptimized'

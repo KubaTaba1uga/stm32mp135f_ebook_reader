@@ -36,7 +36,7 @@ error_out:
   return err_o;
 };
 
-static void app_module_menu_open(void *module, app_ctx_t ctx, void *arg) {
+static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
   app_module_menu_t menu = module;
 
   menu->blist = book_api_find_books(ctx->book_api);
@@ -79,14 +79,13 @@ static void app_module_menu_destroy(void *module) {
   puts(__func__);
   app_module_menu_close(module);
   mem_free(module);
-  module = NULL;
 };
 
 /**
    @todo Instead of NULL add book. Propably need sth like list_pop to receive
    book.
  */
-void app_module_menu_select_book(app_module_t module, app_ctx_t app, void *__) {
+void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
   app_module_menu_t menu = app_module_get_module_data(module);
   
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
