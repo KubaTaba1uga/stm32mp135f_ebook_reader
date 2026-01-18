@@ -1,7 +1,10 @@
 #ifndef UI_SCREEN_H
 #define UI_SCREEN_H
 /**
-    Each app state has corresponding screen. 
+    Each screen is in 1:1 relation with app module.
+    So we have screen for menu module, we have state for reader module etc.
+    Role of modules is to manage the screen memory, role of the screen itself
+    is to present module's data in consistent way.
 */
 
 #include <lvgl.h>
