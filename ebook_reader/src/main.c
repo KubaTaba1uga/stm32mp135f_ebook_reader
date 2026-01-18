@@ -69,7 +69,12 @@ static int main_setup(void) {
   struct sigaction sa = {0};
   sa.sa_handler = signal_handler;
   sigemptyset(&sa.sa_mask);
-  int signals[] = {SIGINT, SIGTERM, SIGHUP};
+  int signals[] = {
+    SIGINT,
+    SIGTERM,
+    SIGHUP,
+    SIGABRT, // SIGABRT is triggered by assert
+    };
   for (size_t i = 0; i < sizeof(signals) / sizeof(signals[0]); i++) {
     if (sigaction(signals[i], &sa, NULL) == -1) {
       err_o = err_errnof(errno, "Cannot sonfigure signal handler for %d",
