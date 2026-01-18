@@ -113,7 +113,7 @@ dd_error_t dd_wvs75v2b_probe(struct dd_DisplayDriver *driver, void *config) {
   struct dd_Wvs75V2bConfig *conf = config;
   if (conf->rotate) {
     driver_data->is_rotated = true;
-    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN);
+    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN *2);
   }
 
   dd_errno = dd_gpio_init(&driver_data->gpio);
@@ -404,9 +404,12 @@ static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     goto error_out;
   }
 
-  if (dd_gpio_read_pin(dd->pwr, &dd->gpio) == 1) {
-    goto out;
-  }
+
+  if (dd_gpio_read_pin(dd->pwr, &dd->gpio) != 1) {
+    dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
+    DD_TRY(dd_errno);
+    dd_sleep_ms(200);
+  }  
 
   dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
   DD_TRY(dd_errno);
@@ -490,7 +493,6 @@ static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_wvs75v2b_wait(dd);
 
-out:
   return 0;
 
 error_dd_cleanup:
@@ -530,6 +532,7 @@ static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {
   dd_errno = dd_wvs75v2b_send_cmd(dd, dd_Wvs75V2bCmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_sleep_ms(100);
+  dd_sleep_ms(1000);  
   dd_wvs75v2b_wait(dd);
 
   return 0;

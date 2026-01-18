@@ -43,7 +43,6 @@ dd_error_t dd_spi_init(const char *path, struct dd_Spi *spi) {
     goto error_spi_cleanup;
   }
 
-  /* spi_priv->transfer.speed_hz = 1000000; // 1MHz */
   spi_priv->transfer.speed_hz = 10000000; // 10MHz
   if (dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_MAX_SPEED_HZ,
             &spi_priv->transfer.speed_hz) == -1) {

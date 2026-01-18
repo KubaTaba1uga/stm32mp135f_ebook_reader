@@ -1,14 +1,14 @@
-#ifndef RPI4B_EXAMPLE_H
-#define RPI4B_EXAMPLE_H
+#ifndef STM32MP135F_EXAMPLE_H
+#define STM32MP135F_EXAMPLE_H
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "display_driver.h"
 
-static dd_wvs75v2b_t dd;
+static dd_display_driver_t dd;
 
-static inline void signal_handler(int signum) { dd_wvs75v2b_destroy(&dd); }
+static inline void signal_handler(int signum) {  dd_display_driver_destroy(&dd); }
 
 static inline dd_error_t init_rpi4b(void) {
   dd = NULL;
@@ -26,44 +26,23 @@ static inline dd_error_t init_rpi4b(void) {
 
   dd_error_t err;
 
-  err = dd_wvs75v2b_init(&dd);
+  err = dd_display_driver_init( // Reset is done on init in Wvs7in5V2b
+      &dd, dd_DisplayDriverEnum_Wvs7in5V2b,
+      &(struct dd_Wvs75V2bConfig){
+          .dc = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 25},
+          .rst = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 17},
+          .bsy = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 24},
+          .pwr = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 18},
+          .spi = {.spidev_path = "/dev/spidev0.0"},
+      });
   if (err) {
     goto error;
   }
 
-  puts("Configuring gpio");
-  err = dd_wvs75v2b_set_up_gpio_dc(dd, "/dev/gpiochip0", 25);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_rst(dd, "/dev/gpiochip0", 17);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_bsy(dd, "/dev/gpiochip0", 24);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  err = dd_wvs75v2b_set_up_gpio_pwr(dd, "/dev/gpiochip0", 18);
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
-  puts("Configuring spi");
-  err = dd_wvs75v2b_set_up_spi_master(dd, "/dev/spidev0.0");
-  if (err) {
-    goto error_dd_cleanup;
-  }
-
   return 0;
 
-error_dd_cleanup:
-  dd_wvs75v2b_destroy(&dd);
 error:
   return err;
 }
 
-#endif // RPI4B_EXAMPLE_H
+#endif
