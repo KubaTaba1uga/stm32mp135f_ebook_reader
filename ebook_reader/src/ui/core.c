@@ -26,9 +26,9 @@ struct Ui {
 static void ui_menu_book_event_cb(lv_event_t *e);
 
 err_t ui_create(ui_t *out,
-              void (*callback)(enum UiInputEventEnum event, void *data,
-                               void *arg),
-              void *data) {
+                void (*callback)(enum UiInputEventEnum event, void *data,
+                                 void *arg),
+                void *data) {
   ui_t ui = *out = mem_malloc(sizeof(struct Ui));
   *ui = (struct Ui){
       .inputh =
@@ -65,7 +65,7 @@ void ui_destroy(ui_t *out) {
   }
 
   ui_t ui = *out;
-  ui_screen_destroy(&ui->screen);    
+  ui_screen_destroy(&ui->screen);
   ui_display_destroy(&ui->display);
   mem_free(*out);
   *out = NULL;
@@ -96,14 +96,12 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_t ui = ui_wx_menu_book_get_ui(book);
   int id = ui_wx_menu_book_get_id(book);
 
-  if (lv_event_get_code(e) == LV_EVENT_KEY) {
-    lv_key_t key = lv_event_get_key(e);
-    if (key == '\r' || key == '\n') {
-      key = LV_KEY_ENTER;
-    }
+  lv_key_t key = lv_event_get_key(e);
+  if (key == '\r' || key == '\n') {
+    key = LV_KEY_ENTER;
+  }
 
-    if (key == LV_KEY_ENTER) {
-      ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
-    }
+  if (key == LV_KEY_ENTER) {
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
   }
 }

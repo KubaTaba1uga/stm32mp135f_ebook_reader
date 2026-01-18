@@ -27,6 +27,7 @@ void ui_screen_destroy(ui_screen_t *out) {
   if ((*out)->destroy) {
     (*out)->destroy((*out)->private);
   }
+  
   mem_free(*out);
   *out = NULL;
 };
