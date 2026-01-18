@@ -106,6 +106,9 @@ ebook_reader_exe = executable('ebook_reader',
   dependencies: ebook_reader_deps,
 )
 
+pkgdatadir = 'assets'
+install_subdir('data', install_dir: pkgdatadir)
+
 # ******************************************************************************
 # *    Tests
 # ******************************************************************************

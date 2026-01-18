@@ -479,6 +479,7 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         c.run(f"sudo cp *example {directory}/root/")
     with c.cd("build/ebook_reader"):
         c.run(f"sudo cp ebook_reader {directory}/root/")
+        c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
 
         
     _pr_info(f"Deploy to NFS completed")
