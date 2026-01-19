@@ -1,8 +1,11 @@
 #include <dirent.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "book/book.h"
 #include "book/core.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/zlist.h"
@@ -83,9 +86,17 @@ books_list_t book_api_find_books(book_api_t api) {
       .owner = api,
   };
 
-  books_dir = opendir(settings_books_dir);
+  log_info("LUL");
 
+  books_dir = opendir(settings_books_dir);
+  if (!books_dir) {
+    err_o = err_errnof(errno, "Cannot open directory: %s", books_dir);
+    goto error_out;
+  }
+
+  log_info("POP");
   while ((dirent = readdir(books_dir)) != NULL) {
+    log_info("HIT");
     if (strcmp(".", dirent->d_name) == 0 || strcmp("..", dirent->d_name) == 0) {
       continue;
     }
@@ -186,7 +197,7 @@ const char *book_get_title(book_t book) {
   return book->owner->modules[book->extension].book_get_title(book);
 }
 
-const unsigned char *book_get_thumbnail(book_t book, int x, int y) {  
+const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
   return book->owner->modules[book->extension].book_get_thumbnail(book, x, y);
 }
 

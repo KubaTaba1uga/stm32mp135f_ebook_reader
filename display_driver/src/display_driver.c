@@ -1,26 +1,33 @@
 #include "display_driver.h"
-#include "drivers/driver.h"
+#include "drivers/waveshare_7in5_V2.h"
+#include "drivers/waveshare_7in5_V2b.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
 dd_error_t dd_display_driver_init(dd_display_driver_t *out,
-                                 enum dd_DisplayDriverEnum model,
-                                 void *config) {
+                                  enum dd_DisplayDriverEnum model,
+                                  void *config) {
   if (!out || !config) {
     dd_errno = dd_errnos(EINVAL, "`out` and `config` cannot be NULL");
     goto error_out;
   }
 
-  *out = dd_malloc(sizeof(struct dd_DisplayDriver));
-
-  dd_errno = dd_driver_init(*out, model, config);
-  DD_TRY_CATCH(dd_errno, error_out_cleanup);
+  switch (model) {
+  case dd_DisplayDriverEnum_Wvs7in5V2:
+    dd_errno = dd_driver_wvs7in5v2_create(out, config);
+    DD_TRY_CATCH(dd_errno, error_out_cleanup);
+    break;
+  case dd_DisplayDriverEnum_Wvs7in5V2b:
+    dd_errno = dd_driver_wvs7in5v2b_create(out, config);
+    DD_TRY_CATCH(dd_errno, error_out_cleanup);
+    break;
+  }
 
   return 0;
 
 error_out_cleanup:
   dd_free((void *)*out);
-  *out = NULL;  
+  *out = NULL;
 error_out:
   return dd_errno;
 }
@@ -30,9 +37,7 @@ void dd_display_driver_destroy(dd_display_driver_t *out) {
     return;
   }
 
-  dd_driver_destroy(*out);
-  dd_free((void *)*out);  
-  *out = NULL;
+  dd_driver_destroy(out);
 }
 
 dd_error_t dd_display_driver_clear(dd_display_driver_t dd, bool white) {
@@ -57,7 +62,7 @@ error_out:
    @return Error on failure, NULL on success.
  */
 dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
-                                  uint32_t buf_len) {
+                                   uint32_t buf_len) {
   if (!dd || !buf) {
     dd_errno = dd_errnos(EINVAL, "`dd` and `buf` cannot be NULL");
     goto error_out;
@@ -70,4 +75,40 @@ dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
 
 error_out:
   return dd_errno;
+}
+
+int dd_display_driver_get_x(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_x(dd);
+
+error_out:
+  return -1;
+}
+
+int dd_display_driver_get_y(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_y(dd);
+
+error_out:
+  return -1;
+}
+
+int dd_display_driver_get_stride(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_stride(dd);
+
+error_out:
+  return -1;
 }
