@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 
 #include "app/core.h"
@@ -36,17 +37,21 @@ error_out:
   return err_o;
 };
 
+/**
+   @todo We should display sth wich would indicate lack of books instead of raising error.
+*/
 static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
+  assert(module != NULL);
+  assert(ctx->book_api != NULL);
+  
   app_module_menu_t menu = module;
-
+  
   menu->blist = book_api_find_books(ctx->book_api);
   menu->current_book_i = 0;
   menu->ui = ctx->ui;
 
-  if (menu->blist == NULL) { // We should display sth wich would indicate
-                             // lack of books instead of raising error.
-    err_o = err_errnos(ENOENT, "No books");
-    goto error_out;
+  if (menu->blist == NULL) {
+    ERR_TRY(err_o);
   }
 
   err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);

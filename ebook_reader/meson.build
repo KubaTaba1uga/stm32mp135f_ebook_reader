@@ -22,6 +22,8 @@ if get_option('display') == 'x11'
    add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
 elif get_option('display') == 'wvs7in5v2b'
    add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
+elif get_option('display') == 'wvs7in5v2'
+   add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2=1', language: ['c', 'cpp'])
 endif
 
 # Beautify logs, without these directives every log start with `../../`
@@ -79,6 +81,7 @@ ebook_reader_src = [files('src/main.c',
                           'src/ui/screen_menu.c',                                                    
                           'src/ui/display.c',
                           'src/ui/display_x11.c',
+                          'src/ui/display_wvs7in5v2.c',			  
                           'src/ui/display_wvs7in5v2b.c',
                           'src/book/core.c',
                           'src/book/pdf.c',

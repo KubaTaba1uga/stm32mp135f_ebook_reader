@@ -4,30 +4,17 @@
 
 #include "display_driver.h"
 
-struct dd_DisplayDriver {
-  // Detect whether display can be configured, create new driver instance and
-  // assign supported ops.
-  dd_error_t (*probe)(struct dd_DisplayDriver *dd, void *config);
-
-  // Delete driver instance.
-  void (*remove)(struct dd_DisplayDriver *dd);
-
-  // Clear screen.
-  dd_error_t (*clear)(struct dd_DisplayDriver *dd, bool white);
-
-  // Write buf to screen with full refresh.
-  dd_error_t (*write)(struct dd_DisplayDriver *dd, unsigned char *buf,
-                      uint32_t buf_len);
-
-  // Placeholder for driver instance data.
-  void *driver_data;
-};
-
-dd_error_t dd_driver_init(dd_display_driver_t driver, enum dd_DisplayDriverEnum model,
-                   void *config);
-void dd_driver_destroy(dd_display_driver_t driver);
+dd_error_t
+dd_driver_create(dd_display_driver_t *out, int x, int y, int stride,
+                 void (*remove)(void *), dd_error_t (*clear)(void *, bool),
+                 dd_error_t (*write)(void *, unsigned char *, uint32_t),
+                 void *driver_data);
+void dd_driver_destroy(dd_display_driver_t *out);
 dd_error_t dd_driver_write(dd_display_driver_t driver, unsigned char *buf,
-                    uint32_t buf_len);
+                           int buf_len);
 dd_error_t dd_driver_clear(dd_display_driver_t driver, bool white);
+int dd_driver_get_x(dd_display_driver_t driver);
+int dd_driver_get_y(dd_display_driver_t driver);
+int dd_driver_get_stride(dd_display_driver_t driver);
 
 #endif // DISPLAY_DRIVER_DRIVER_H

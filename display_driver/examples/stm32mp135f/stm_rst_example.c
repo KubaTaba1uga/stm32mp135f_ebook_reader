@@ -9,7 +9,7 @@ int main(void) {
   dd_error_t err;
 
   puts("Starting driver");
-  err = init_stm32mp135f();
+  err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2, false);
   if (err) {
     goto error;
   }
