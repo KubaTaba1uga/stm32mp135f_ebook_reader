@@ -23,7 +23,7 @@
 /* USER CODE END includes */
 
 / {
-	model = "STMicroelectronics STM32MP135F-DK STM32CubeMX board - openstlinux-6.6-yocto-scarthgap-mpu-v25.06.11";
+	model = "Ebook reader: STM32MP135F-DK";
 	compatible = "st,stm32mp135f-dk-mx", "st,stm32mp135f-dk", "st,stm32mp135";
 
 	memory@c0000000 {
@@ -40,7 +40,6 @@
 		ranges;
 
 		/* USER CODE BEGIN reserved-memory */
-
 		optee@dd000000{
 			reg = <0xdd000000 0x3000000>;
 			no-map;
@@ -180,7 +179,6 @@
 }; /*root*/
 
 &pinctrl {
-
 	adc1_pins_mx: adc1_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('A', 3, ANALOG)>, /* ADC1_INP12 */
@@ -579,28 +577,28 @@
 };
 
 &adc_1 {
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&adc1_pins_mx>;
-	pinctrl-1 = <&adc1_sleep_pins_mx>;
-	status = "okay";
+	// pinctrl-names = "default", "sleep";
+	// pinctrl-0 = <&adc1_pins_mx>;
+	// pinctrl-1 = <&adc1_sleep_pins_mx>;
+	status = "disabled";
 
 	/* USER CODE BEGIN adc_1 */
-	vdda-supply = <&scmi_vdd_adc>;
-	vref-supply = <&scmi_vdd_adc>;
+	// vdda-supply = <&scmi_vdd_adc>;
+	// vref-supply = <&scmi_vdd_adc>;
 
-	adc1:adc@0{
-		status = "okay";
+	// adc1:adc@0{
+	// 	status = "okay";
 
-		channel@6{
-			reg = <6>;
-			st,min-sample-time-ns = <5000>;
-		};
+	// 	channel@6{
+	// 		reg = <6>;
+	// 		st,min-sample-time-ns = <5000>;
+	// 	};
 
-		channel@12{
-			reg = <12>;
-			st,min-sample-time-ns = <5000>;
-		};
-	};
+	// 	channel@12{
+	// 		reg = <12>;
+	// 		st,min-sample-time-ns = <5000>;
+	// 	};
+	// };
 	/* USER CODE END adc_1 */
 };
 
@@ -763,9 +761,8 @@
 		compatible = "st,stm32g0-typec";
 		reg = <0x53>;
 		interrupts-extended = <&optee 1>;
-		firmware-name = "stm32g0-ucsi.mp135f-dk.fw";
 		wakeup-source;
-
+                // firmware-name = "stm32g0-ucsi.mp135f-dk.fw";
 		connector{
 			compatible = "usb-c-connector";
 			label = "USB-C";
