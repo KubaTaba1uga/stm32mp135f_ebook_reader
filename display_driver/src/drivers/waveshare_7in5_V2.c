@@ -284,15 +284,15 @@ static void dd_wvs75v2_remove(struct dd_DisplayDriver *dd) {
 }
 
 static void dd_wvs75v2_wait(struct dd_Wvs75v2 *display) {
-  puts("Busy waiting");
+  // puts("Busy waiting");
   while (dd_gpio_read_pin(display->bsy, &display->gpio) != dd_Wvs75v2Bsy_IDLE) {
     dd_sleep_ms(10);
   }
-  puts("Waiting done");
+  // puts("Waiting done");
 }
 
 static dd_error_t dd_wvs75v2_ops_reset(dd_wvs75v2_t dd) {
-  puts(__func__);
+  // puts(__func__);
   assert(dd != NULL);
   assert(dd->pwr != NULL);
   assert(dd->rst != NULL);
@@ -353,7 +353,7 @@ error_out:
 }
 
 static dd_error_t dd_wvs75v2_ops_power_on(dd_wvs75v2_t dd) {
-  puts(__func__);
+  // puts(__func__);
   assert(dd != NULL);
   assert(dd->dc != NULL);
   assert(dd->rst != NULL);
@@ -465,7 +465,7 @@ error_out:
 }
 
 static dd_error_t dd_wvs75v2_ops_clear(dd_wvs75v2_t dd, bool white) {
-  puts(__func__);
+  // puts(__func__);
   assert(dd != NULL);
   assert(dd->dc != NULL);
   assert(dd->rst != NULL);
@@ -511,7 +511,7 @@ error_dd_cleanup:
 }
 
 static dd_error_t dd_wvs75v2_ops_power_off(dd_wvs75v2_t dd) {
-  puts(__func__);
+  // puts(__func__);
   assert(dd != NULL);
   assert(dd->dc != NULL);
   assert(dd->rst != NULL);
@@ -603,7 +603,7 @@ static unsigned char *dd_wvs75v2_rotate(dd_wvs75v2_t dd, int width, int heigth,
 static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
                                               unsigned char *buf,
                                               uint32_t buf_len) {
-  puts(__func__);
+  // puts(__func__);
   assert(dd != NULL);
   assert(dd->dc != NULL);
   assert(dd->rst != NULL);
@@ -622,7 +622,7 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   uint8_t chunk[1024] = {0};
-  for (int i = 0; i < buf_len; i+=sizeof(chunk)) {
+  for (int i = 0; i < buf_len; i += sizeof(chunk)) {
     dd_errno = dd_wvs75v2_send_data(dd, chunk, sizeof(chunk));
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
@@ -630,8 +630,12 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  for (int i=0; i < buf_len; i += sizeof(chunk)) {
-    dd_errno = dd_wvs75v2_send_data(dd, buf + i, sizeof(chunk));
+  for (int i = 0; i < buf_len; i += sizeof(chunk)) {
+    for (int chunk_i = 0; chunk_i < sizeof(chunk); chunk_i++) {
+      chunk[chunk_i] = ~(*(buf + i + chunk_i));
+    }
+
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, sizeof(chunk));
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
 

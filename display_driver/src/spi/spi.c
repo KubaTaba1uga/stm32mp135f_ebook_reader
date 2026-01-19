@@ -43,7 +43,8 @@ dd_error_t dd_spi_init(const char *path, struct dd_Spi *spi) {
     goto error_spi_cleanup;
   }
 
-  spi_priv->transfer.speed_hz = 10000000; // 10MHz
+  spi_priv->transfer.speed_hz = 20000000; // 20MHz  
+  /* spi_priv->transfer.speed_hz = 10000000; // 10MHz */
   if (dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_MAX_SPEED_HZ,
             &spi_priv->transfer.speed_hz) == -1) {
     dd_errno = dd_errnof(errno, "Cannot set speed for %s", path);
@@ -89,7 +90,6 @@ void dd_spi_destroy(struct dd_Spi *spi) {
 
 dd_error_t dd_spi_send_bytes(uint8_t *bytes, uint32_t len, struct dd_Spi *spi) {
   struct dd_SpiPrivate *spi_priv = spi->private;
-  /* uint8_t rbuf; */
 
   spi_priv->transfer.len = len;
   spi_priv->transfer.tx_buf = (unsigned long)bytes;
