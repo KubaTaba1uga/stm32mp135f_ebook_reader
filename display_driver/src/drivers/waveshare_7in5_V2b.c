@@ -62,43 +62,30 @@ struct dd_Wvs75V2b {
 
 typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
 
-static void dd_wvs75v2b_remove(struct dd_DisplayDriver *dd);
-static dd_error_t dd_wvs75v2b_clear(struct dd_DisplayDriver *dd, bool white);
-static dd_error_t dd_wvs75v2b_write(struct dd_DisplayDriver *dd,
-                                    unsigned char *buf, uint32_t buf_len);
-static dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t dd,
-                                             const char *gpio_chip_path,
-                                             int pin_no);
-static dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no);
-static dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no);
-static dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no);
-static dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd,
-                                                const char *spidev_path);
-static dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd);
-static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd);
-static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white);
-static dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t dd);
-static int dd_wvs75v2b_get_bit(int i, unsigned char *buf, uint32_t buf_len);
-static void dd_wvs75v2b_set_bit(int i, int val, unsigned char *buf,
-                                uint32_t buf_len);
-static int dd_wvs75v2b_get_pixel(int x, int y, int width, unsigned char *buf,
-                                 uint32_t buf_len);
-static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
-                                         int heigth, unsigned char *buf,
-                                         uint32_t buf_len);
-static dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd,
-                                               unsigned char *buf,
-                                               uint32_t buf_len);
-static dd_error_t dd_wvs75v2b_send_cmd(struct dd_Wvs75V2b *dd, uint8_t cmd);
-static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *dd, uint8_t *data,
-                                        uint32_t len);
-static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *display);
+static void dd_wvs75v2b_remove(struct dd_DisplayDriver *);
+static dd_error_t dd_wvs75v2b_clear(struct dd_DisplayDriver *, bool);
+static dd_error_t dd_wvs75v2b_write(struct dd_DisplayDriver *, unsigned char *,
+                                    uint32_t);
+static dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t, const char *, int);
+static dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t, const char *, int);
+static dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t, const char *, int);
+static dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t, const char *, int);
+static dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t, const char *);
+static dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t);
+static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t);
+static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t, bool);
+static dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t);
+static int dd_wvs75v2b_get_bit(int, unsigned char *, uint32_t);
+static void dd_wvs75v2b_set_bit(int, int, unsigned char *, uint32_t);
+static int dd_wvs75v2b_get_pixel(int, int, int, unsigned char *, uint32_t);
+static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t, int, int,
+                                         unsigned char *, uint32_t);
+static dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t, unsigned char *,
+                                               uint32_t);
+static dd_error_t dd_wvs75v2b_send_cmd(struct dd_Wvs75V2b *, uint8_t);
+static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *, uint8_t *,
+                                        uint32_t);
+static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *);
 
 dd_error_t dd_wvs75v2b_probe(struct dd_DisplayDriver *driver, void *config) {
   if (!driver || !config) {
@@ -113,7 +100,7 @@ dd_error_t dd_wvs75v2b_probe(struct dd_DisplayDriver *driver, void *config) {
   struct dd_Wvs75V2bConfig *conf = config;
   if (conf->rotate) {
     driver_data->is_rotated = true;
-    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN *2);
+    driver_data->rotation_buf = dd_malloc(DD_WVS75V2B_BUF_LEN * 2);
   }
 
   dd_errno = dd_gpio_init(&driver_data->gpio);
@@ -144,7 +131,7 @@ dd_error_t dd_wvs75v2b_probe(struct dd_DisplayDriver *driver, void *config) {
   driver->remove = dd_wvs75v2b_remove;
   driver->clear = dd_wvs75v2b_clear;
   driver->write = dd_wvs75v2b_write;
-  
+
   return 0;
 
 error_dd_cleanup:
@@ -404,12 +391,11 @@ static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t dd) {
     goto error_out;
   }
 
-
   if (dd_gpio_read_pin(dd->pwr, &dd->gpio) != 1) {
     dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
     DD_TRY(dd_errno);
     dd_sleep_ms(200);
-  }  
+  }
 
   dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
   DD_TRY(dd_errno);
@@ -532,7 +518,7 @@ static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t dd, bool white) {
   dd_errno = dd_wvs75v2b_send_cmd(dd, dd_Wvs75V2bCmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_sleep_ms(100);
-  dd_sleep_ms(1000);  
+  dd_sleep_ms(1000);
   dd_wvs75v2b_wait(dd);
 
   return 0;

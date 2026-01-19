@@ -4,6 +4,7 @@
 #include "display_driver.h"
 #include "drivers/driver.h"
 #include "drivers/waveshare_7in5_V2b.h"
+#include "drivers/waveshare_7in5_V2.h"
 #include "utils/err.h"
 
 dd_error_t dd_driver_init(dd_display_driver_t driver, enum dd_DisplayDriverEnum model,
@@ -11,8 +12,12 @@ dd_error_t dd_driver_init(dd_display_driver_t driver, enum dd_DisplayDriverEnum 
   switch (model) {
   case dd_DisplayDriverEnum_Wvs7in5V2b:
     driver->probe = dd_wvs75v2b_probe;
+    break;    
+  case dd_DisplayDriverEnum_Wvs7in5V2:
+    driver->probe = dd_wvs75v2_probe;
     break;
-  default:
+
+    default:
     dd_errno = dd_errnos(EINVAL, "Unsupported display model");
     goto error_out;
   }

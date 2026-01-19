@@ -111,11 +111,39 @@ struct dd_Wvs75V2bConfig {
 };
 
 /******************************************************************
+ *              Waveshare 7.5 inch V2 Display Driver
+ ******************************************************************
+ */
+struct dd_Wvs75V2Config {
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } dc;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } rst;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } bsy;
+  struct {
+    const char *gpio_chip_path;
+    int pin_no;
+  } pwr;
+  struct {
+    const char *spidev_path;
+  } spi;
+};
+
+
+/******************************************************************
  *                     Generic Display Driver
  ******************************************************************
  */
 enum dd_DisplayDriverEnum {
   dd_DisplayDriverEnum_Wvs7in5V2b,
+  dd_DisplayDriverEnum_Wvs7in5V2,  
 };
 typedef struct dd_DisplayDriver *dd_display_driver_t;
 

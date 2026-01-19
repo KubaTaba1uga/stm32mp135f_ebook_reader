@@ -24,6 +24,7 @@ display_driver_src = [files('src/display_driver.c',
 			    'src/utils/time.c',
                             'src/drivers/driver.c',			    			    
                             'src/drivers/waveshare_7in5_V2b.c',
+                            'src/drivers/waveshare_7in5_V2.c',			    
 			    # Add more drivers here
 )]
 

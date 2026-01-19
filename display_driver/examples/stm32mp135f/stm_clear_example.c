@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   }
   
   puts("Starting driver");
-  err = init_stm32mp135f();
+  err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2);
   if (err) {
     goto error;
   }
