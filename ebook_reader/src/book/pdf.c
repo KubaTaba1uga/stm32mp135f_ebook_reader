@@ -140,18 +140,12 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   lv_color32_t *pal = (lv_color32_t *)  pdf_book->thumbnail;
   pal[0] = (lv_color32_t){ .red=255, .green=255, .blue=255, .alpha=255 }; // index 0 = white
   pal[1] = (lv_color32_t){ .red=0,   .green=0,   .blue=0,   .alpha=255 }; // index 1 = black
-  /* memset(pdf_book->thumbnail + 8, 0xFF, x * y ); */
   
   graphic_argb32_to_i1(pdf_book->thumbnail, sw, sh, sdata, stride);
 
- /* pdf_book->thumbnail =   pdf_book->thumbnail + 8;   */
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
   g_object_unref(page);
-
-  log_info("Thumbnail generated");
-
-  printf("%s\n", pdf_book->thumbnail?"NOT NULL":"NULL");
   
   return pdf_book->thumbnail;
 };

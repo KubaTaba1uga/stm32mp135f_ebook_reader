@@ -8,6 +8,7 @@
 #include "ui/ui.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include "utils/log.h"
 #include "utils/settings.h"
 
 struct UiDisplay {
@@ -63,6 +64,7 @@ void ui_display_panic(ui_display_t display) {
   if (!display->panic) {
     return;
   };
+  log_info("Cleaning up display");
 
   display->panic(display->private);
 }
