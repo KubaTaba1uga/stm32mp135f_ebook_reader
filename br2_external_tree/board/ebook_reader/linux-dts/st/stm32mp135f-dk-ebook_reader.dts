@@ -762,7 +762,7 @@
 		reg = <0x53>;
 		interrupts-extended = <&optee 1>;
 		wakeup-source;
-
+                // firmware-name = "stm32g0-ucsi.mp135f-dk.fw";
 		connector{
 			compatible = "usb-c-connector";
 			label = "USB-C";
