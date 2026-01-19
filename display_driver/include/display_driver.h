@@ -134,6 +134,9 @@ struct dd_Wvs75V2Config {
   struct {
     const char *spidev_path;
   } spi;
+
+  bool rotate; // same as in v2b
+  
 };
 
 
