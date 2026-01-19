@@ -1,5 +1,6 @@
 #include <display_driver.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "ui/display.h"
 #include "ui/ui.h"
@@ -35,8 +36,8 @@ static err_t ui_display_wvs7in5v2_render(void *, unsigned char *, uint32_t);
 static void ui_display_wvs7in5v2_destroy(void *);
 static void ui_display_wvs7in5v2_panic(void *);
 static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *,
-                                                    const lv_area_t *,
-                                                    uint8_t *);
+                                                   const lv_area_t *,
+                                                   uint8_t *);
 
 err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
   puts(__func__);
@@ -73,8 +74,8 @@ err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
   lv_display_set_buffers(disp, wvs->render_buf.data, NULL, wvs->render_buf.len,
                          LV_DISPLAY_RENDER_MODE_FULL);
 
-  err_o = ui_display_create(module, disp, ui, ui_display_wvs7in5v2_render,
-                            NULL, ui_display_wvs7in5v2_destroy,
+  err_o = ui_display_create(module, disp, ui, ui_display_wvs7in5v2_render, NULL,
+                            ui_display_wvs7in5v2_destroy,
                             ui_display_wvs7in5v2_panic, wvs);
   ERR_TRY_CATCH(err_o, error_display_cleanup);
 
@@ -97,8 +98,11 @@ static void ui_display_wvs7in5v2_destroy(void *display) {
 }
 
 static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *display,
-                                                    const lv_area_t *area,
-                                                    uint8_t *px_map) {
+                                                   const lv_area_t *area,
+                                                   uint8_t *px_map) {
+  printf("wvs hardcoded len=%d\n", wvs7in5v2_width * wvs7in5v2_heigth / 8);
+  printf("%d * %d / 8 = %d\n", area->x2 - area->x1, area->y2 - area->y1,
+         (area->x2 - area->x1) * (area->y2 - area->y1) / 8);
   wvs7in5v2_t wvs = lv_display_get_driver_data(display);
   dd_error_t dd_err = dd_display_driver_write(
       wvs->dd, px_map + 8, wvs7in5v2_width * wvs7in5v2_heigth / 8);
@@ -115,7 +119,8 @@ error_out:
 }
 
 static err_t ui_display_wvs7in5v2_render(void *display, unsigned char *buf,
-                                          uint32_t len) {
+                                         uint32_t len) {
+  log_info("buf_len=%d\n", len);
   wvs7in5v2_t wvs = display;
   dd_error_t dd_err = dd_display_driver_write(wvs->dd, buf, len);
 

@@ -120,9 +120,9 @@ dd_error_t dd_wvs75v2_probe(struct dd_DisplayDriver *driver, void *config) {
   if (conf->rotate) {
     driver_data->is_rotated = true;
     /**
-       Working value: DD_WVS75V2_BUF_LEN + 1024 * 20
+       Working value: 48256, 48128
     */
-    driver_data->rotation_buf = dd_malloc(DD_WVS75V2_BUF_LEN + 1024 * 18);
+    driver_data->rotation_buf = dd_malloc(48000);
   }
 
   driver->remove = dd_wvs75v2_remove;
@@ -572,6 +572,7 @@ static void dd_wvs75v2_set_bit(int i, int val, unsigned char *buf,
     return;
   int byte = i / 8;
   int bit = 7 - (i % 8);
+
   int hhuhuh = buf[byte]; // Here is crash
   (void)hhuhuh;
   if (val)
@@ -595,6 +596,7 @@ static unsigned char *dd_wvs75v2_rotate(dd_wvs75v2_t dd, int width, int heigth,
                                         unsigned char *buf, uint32_t buf_len) {
   int dst_i = 0;
   int v;
+
   for (int x = width - 1; x >= 0; --x) {
     for (int y = 0; y < heigth; ++y) {
       v = dd_wvs75v2_get_pixel(x, y, width, buf, buf_len);
@@ -614,33 +616,41 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
   assert(dd->rst != NULL);
   assert(dd->bsy != NULL);
   assert(dd->pwr != NULL);
-  assert(dd->spi.path != NULL);  
-
+  assert(dd->spi.path != NULL);
+  printf("buf_len=%d\n", buf_len);
   if (dd->is_rotated) {
     buf = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH, buf,
                             buf_len);
   }
 
-  // The display does full refresh in about 18 seconds so sending
-  // byte by byte does not affect this time much. Real bottleneck is in screen.
-  // TO-DO: However we should use buffer here.
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   uint8_t chunk[1024] = {0};
   for (int i = 0; i < buf_len; i += sizeof(chunk)) {
-    dd_errno = dd_wvs75v2_send_data(dd, chunk, sizeof(chunk));
+    int chunk_size = sizeof(chunk);
+    if (i + chunk_size > buf_len) {
+      chunk_size = buf_len - i;
+    }
+    
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
   dd_wvs75v2_wait(dd);
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
   for (int i = 0; i < buf_len; i += sizeof(chunk)) {
-    for (int chunk_i = 0; chunk_i < sizeof(chunk); chunk_i++) {
+    int chunk_size = sizeof(chunk);
+    if (i + chunk_size > buf_len) {
+      chunk_size = buf_len - i;
+    }
+
+    for (int chunk_i = 0; chunk_i < chunk_size; chunk_i++) {
       chunk[chunk_i] = ~(*(buf + i + chunk_i));
     }
 
-    dd_errno = dd_wvs75v2_send_data(dd, chunk, sizeof(chunk));
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
 

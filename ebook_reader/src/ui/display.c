@@ -110,7 +110,7 @@ err_t ui_display_show_boot_img(ui_display_t display, const char *img_path) {
     goto error_out;
   }
 
-  unsigned char *img_buf = mem_malloc(48000 + 8);
+  unsigned char *img_buf = mem_malloc(48000+1);
   const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
   if (ret_code != 48000) {
     err_o = err_errnof(ENOENT, "Cannot read file %s", img_path);
