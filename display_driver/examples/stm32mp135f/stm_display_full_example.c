@@ -23,7 +23,8 @@ static void usage(const char *prog) {
 
 int main(int argc, char *argv[]) {
   unsigned char *buf = (unsigned char *)turtle_7in5_v2;
-  int buf_len = sizeof(turtle_7in5_v2);;
+  int buf_len = sizeof(turtle_7in5_v2);
+  bool is_rotated = false;
   dd_error_t err;
 
   /* classic argv parsing */
@@ -37,6 +38,7 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "--cat_sm") == 0) {
       buf = (unsigned char *)cat_sm;
       buf_len = sizeof(cat_sm);
+      is_rotated = true;
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       usage(argv[0]);
       return EXIT_SUCCESS;
@@ -48,7 +50,7 @@ int main(int argc, char *argv[]) {
   }
 
   puts("Starting driver");
-  err = init_stm32mp135f();
+  err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2, is_rotated);
   if (err) {
     goto error;
   }

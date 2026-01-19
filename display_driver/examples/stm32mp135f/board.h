@@ -8,9 +8,12 @@
 
 static dd_display_driver_t dd;
 
-static inline void signal_handler(int signum) {  dd_display_driver_destroy(&dd); }
+static inline void signal_handler(int signum) {
+  dd_display_driver_destroy(&dd);
+}
 
-static inline dd_error_t init_stm32mp135f(void) {
+static inline dd_error_t init_stm32mp135f(enum dd_DisplayDriverEnum model,
+                                          bool is_rotated) {
   dd = NULL;
   struct sigaction sa = {0};
   sa.sa_handler = signal_handler;
@@ -26,14 +29,15 @@ static inline dd_error_t init_stm32mp135f(void) {
 
   dd_error_t err;
 
-  err = dd_display_driver_init( // Reset is done on init in Wvs7in5V2b
-      &dd, dd_DisplayDriverEnum_Wvs7in5V2b,
+  err = dd_display_driver_init(
+      &dd, model,
       &(struct dd_Wvs75V2bConfig){
           .dc = {.gpio_chip_path = "/dev/gpiochip8", .pin_no = 0},
           .rst = {.gpio_chip_path = "/dev/gpiochip2", .pin_no = 2},
           .bsy = {.gpio_chip_path = "/dev/gpiochip6", .pin_no = 3},
           .pwr = {.gpio_chip_path = "/dev/gpiochip0", .pin_no = 4},
           .spi = {.spidev_path = "/dev/spidev0.0"},
+          .rotate = is_rotated,
       });
   if (err) {
     goto error;

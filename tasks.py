@@ -47,29 +47,32 @@ def install(c):
             "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
         )
         install_libgpiod(c)
-        
+
     except Exception:
         _pr_error("Installing failed")
         raise
 
     _pr_info(f"Installing dependencies completed")
 
+
 @task
 def install_libgpiod(c):
     r = c.run("pkg-config --modversion libgpiod", warn=True)
 
     if r.ok and "1.6.5" in r.stdout.strip():
-        return;
+        return
 
     _pr_info(f"Installing libgpiod dependency...")
-    
+
     try:
-        c.run("wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz")
+        c.run(
+            "wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz"
+        )
         c.run("tar -xf /tmp/libpiod.tar.xz -C /tmp/")
         with c.cd("/tmp/libgpiod-1.6.5"):
             c.run("./configure --prefix=/usr/")
             c.run("make")
-            c.run("sudo make install")            
+            c.run("sudo make install")
 
     except Exception:
         _pr_error("Installing failed")
@@ -77,7 +80,6 @@ def install_libgpiod(c):
 
     _pr_info(f"Installing libgpiod completed")
 
-    
 
 @task
 def build_docs(c):
@@ -276,7 +278,7 @@ def fbuild_linux_dt(c):
 
 
 @task
-def fbuild_ebook_reader(c, recompile=False, local=False):
+def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
     ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
     if not os.path.exists(ereader_path):
         return
@@ -312,7 +314,8 @@ def fbuild_ebook_reader(c, recompile=False, local=False):
             f"meson setup -Dbuildtype=debug {build_dir} "
             + (" --wipe " if recompile else " ")
             + (
-                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false "
+                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false"
+                f" -Ddisplay={display} "
                 if not local
                 else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
             )
@@ -344,7 +347,9 @@ def fbuild_ebook_reader_test(c):
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )
 
-        c.run(f"LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH meson compile -v -C {build_dir}")
+        c.run(
+            f"LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH meson compile -v -C {build_dir}"
+        )
 
     _pr_info("Fast building ebook reader tests completed")
 
@@ -374,7 +379,7 @@ def fbuild_display_driver(c):
             f.write(cross_txt)
 
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug {build_dir}"
+            f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
@@ -396,9 +401,8 @@ def test_ebook_reader(c, asan_options=None):
     build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
 
     c.run(
-        (f"ASAN_OPTIONS={asan_options} "
-        if asan_options
-        else "") + f"meson test -v -C {build_dir}"
+        (f"ASAN_OPTIONS={asan_options} " if asan_options else "")
+        + f"meson test -v -C {build_dir}"
     )
 
     _pr_info("Testing display driver completed")
@@ -481,7 +485,6 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         c.run(f"sudo cp ebook_reader {directory}/root/")
         c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
 
-        
     _pr_info(f"Deploy to NFS completed")
 
 
