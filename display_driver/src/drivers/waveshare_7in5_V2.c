@@ -119,7 +119,10 @@ dd_error_t dd_wvs75v2_probe(struct dd_DisplayDriver *driver, void *config) {
 
   if (conf->rotate) {
     driver_data->is_rotated = true;
-    driver_data->rotation_buf = dd_malloc(DD_WVS75V2_BUF_LEN * 2);
+    /**
+       Working value: DD_WVS75V2_BUF_LEN + 1024 * 20
+    */
+    driver_data->rotation_buf = dd_malloc(DD_WVS75V2_BUF_LEN + 1024 * 18);
   }
 
   driver->remove = dd_wvs75v2_remove;
@@ -569,6 +572,8 @@ static void dd_wvs75v2_set_bit(int i, int val, unsigned char *buf,
     return;
   int byte = i / 8;
   int bit = 7 - (i % 8);
+  int hhuhuh = buf[byte]; // Here is crash
+  (void)hhuhuh;
   if (val)
     buf[byte] |= (1u << bit);
   else
@@ -609,7 +614,7 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
   assert(dd->rst != NULL);
   assert(dd->bsy != NULL);
   assert(dd->pwr != NULL);
-  assert(dd->spi.path != NULL);
+  assert(dd->spi.path != NULL);  
 
   if (dd->is_rotated) {
     buf = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH, buf,
