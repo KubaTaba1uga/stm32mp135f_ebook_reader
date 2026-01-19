@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "display_driver.h"
@@ -66,7 +67,7 @@ struct dd_Wvs75v2 {
 
   // Settings
   bool is_rotated;
-  unsigned char *rotation_buf;  
+  unsigned char *rotation_buf;
 };
 
 typedef struct dd_Wvs75v2 *dd_wvs75v2_t;
@@ -78,9 +79,6 @@ static dd_error_t dd_wvs75v2_set_up_gpio_dc(dd_wvs75v2_t, const char *, int);
 static dd_error_t dd_wvs75v2_set_up_spi_master(dd_wvs75v2_t, const char *);
 static void dd_wvs75v2_remove(struct dd_DisplayDriver *);
 static dd_error_t dd_wvs75v2_clear(struct dd_DisplayDriver *, bool);
-/* static dd_error_t dd_wvs75v2_write(struct dd_DisplayDriver *, unsigned char
- * *, */
-/*                                    uint32_t); */
 static dd_error_t dd_wvs75v2_display_full(struct dd_DisplayDriver *,
                                           unsigned char *, uint32_t);
 static dd_error_t dd_wvs75v2_ops_reset(dd_wvs75v2_t);
@@ -123,12 +121,12 @@ dd_error_t dd_wvs75v2_probe(struct dd_DisplayDriver *driver, void *config) {
     driver_data->is_rotated = true;
     driver_data->rotation_buf = dd_malloc(DD_WVS75V2_BUF_LEN * 2);
   }
-  
+
   driver->remove = dd_wvs75v2_remove;
   driver->clear = dd_wvs75v2_clear;
   driver->write = dd_wvs75v2_display_full;
 
-      return 0;
+  return 0;
 
 error_dd_cleanup:
   dd_wvs75v2_remove(driver);
@@ -530,7 +528,7 @@ static dd_error_t dd_wvs75v2_ops_power_off(dd_wvs75v2_t dd) {
   dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){0xA5}, 1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   dd_sleep_ms(300); // In deep sleep busy does not work so we need to estimate
-                    // time required display perform deep sleep ops
+                    // time required display to perform deep sleep operation.
 
   return 0;
 
@@ -566,7 +564,7 @@ static int dd_wvs75v2_get_bit(int i, unsigned char *buf, uint32_t buf_len) {
 }
 
 static void dd_wvs75v2_set_bit(int i, int val, unsigned char *buf,
-                                uint32_t buf_len) {
+                               uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8)
     return;
   int byte = i / 8;
@@ -578,7 +576,7 @@ static void dd_wvs75v2_set_bit(int i, int val, unsigned char *buf,
 }
 
 static int dd_wvs75v2_get_pixel(int x, int y, int width, unsigned char *buf,
-                                 uint32_t buf_len) {
+                                uint32_t buf_len) {
   if (x < 0 || y < 0) {
     return -1;
   }
@@ -588,9 +586,8 @@ static int dd_wvs75v2_get_pixel(int x, int y, int width, unsigned char *buf,
   return dd_wvs75v2_get_bit(bit, buf, buf_len);
 }
 
-static unsigned char *dd_wvs75v2_rotate(dd_wvs75v2_t dd, int width,
-                                         int heigth, unsigned char *buf,
-                                         uint32_t buf_len) {
+static unsigned char *dd_wvs75v2_rotate(dd_wvs75v2_t dd, int width, int heigth,
+                                        unsigned char *buf, uint32_t buf_len) {
   int dst_i = 0;
   int v;
   for (int x = width - 1; x >= 0; --x) {
@@ -607,17 +604,16 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
                                               unsigned char *buf,
                                               uint32_t buf_len) {
   puts(__func__);
-  if (!dd || !dd->dc || !dd->rst || !dd->bsy || !dd->pwr || !dd->spi.path ||
-      !buf) {
-    dd_errno =
-        dd_errnos(EINVAL, "`dd`, `dd->dc`, `dd->rst`, `dd->bsy`, "
-                          "`dd->pwr`, `dd->spi.path` and `buf` cannot be NULL");
-    goto error_out;
-  }
+  assert(dd != NULL);
+  assert(dd->dc != NULL);
+  assert(dd->rst != NULL);
+  assert(dd->bsy != NULL);
+  assert(dd->pwr != NULL);
+  assert(dd->spi.path != NULL);
 
   if (dd->is_rotated) {
     buf = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH, buf,
-                             buf_len);
+                            buf_len);
   }
 
   // The display does full refresh in about 18 seconds so sending
@@ -625,18 +621,20 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
   // TO-DO: However we should use buffer here.
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  for (int i = 0; i < buf_len; i++) {
-    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){0x00}, 1);
+  uint8_t chunk[1024] = {0};
+  for (int i = 0; i < buf_len; i+=sizeof(chunk)) {
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, sizeof(chunk));
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
   dd_wvs75v2_wait(dd);
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  for (int i = 0; i < buf_len; i++) {
-    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){~buf[i]}, 1);
+  for (int i=0; i < buf_len; i += sizeof(chunk)) {
+    dd_errno = dd_wvs75v2_send_data(dd, buf + i, sizeof(chunk));
     DD_TRY_CATCH(dd_errno, error_dd_cleanup);
   }
+
   dd_wvs75v2_wait(dd);
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
@@ -647,7 +645,6 @@ static dd_error_t dd_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
 
 error_dd_cleanup:
   dd_wvs75v2_ops_reset(dd);
-error_out:
   return dd_errno;
 };
 
