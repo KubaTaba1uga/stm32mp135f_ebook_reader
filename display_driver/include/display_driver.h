@@ -172,4 +172,8 @@ dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
 
 void dd_display_driver_destroy(dd_display_driver_t *out);
 
+int dd_display_driver_get_x(dd_display_driver_t dd);
+int dd_display_driver_get_y(dd_display_driver_t dd);
+int dd_display_driver_get_stride(dd_display_driver_t dd);
+
 #endif // DISPLAY_DRIVER_H

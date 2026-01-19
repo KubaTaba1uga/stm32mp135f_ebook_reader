@@ -29,9 +29,6 @@ struct UiDisplayWvs7in5V2 {
 };
 
 static int wvs7in5v2_color_format = LV_COLOR_FORMAT_I1;
-static int wvs7in5v2_heigth = 800;
-static int wvs7in5v2_width = 480;
-
 static err_t ui_display_wvs7in5v2_render(void *, unsigned char *, uint32_t);
 static void ui_display_wvs7in5v2_destroy(void *);
 static void ui_display_wvs7in5v2_panic(void *);
@@ -60,13 +57,16 @@ err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
     goto error_out;
   }
 
-  lv_display_t *disp = lv_display_create(wvs7in5v2_width, wvs7in5v2_heigth);
+  lv_display_t *disp = lv_display_create(dd_display_driver_get_x(wvs->dd),
+                                         dd_display_driver_get_y(wvs->dd));
   if (!disp) {
     goto error_wvs_cleanup;
   }
 
   // 1 pixel per color and + colour palette size
-  wvs->render_buf.len = (wvs7in5v2_width * wvs7in5v2_heigth / 8) + 8;
+  wvs->render_buf.len = (dd_display_driver_get_x(wvs->dd) *
+                         dd_display_driver_get_y(wvs->dd) / 8) +
+                        8;
   wvs->render_buf.data = mem_malloc(wvs->render_buf.len);
   lv_display_set_color_format(disp, wvs7in5v2_color_format);
   lv_display_set_driver_data(disp, wvs);
@@ -100,12 +100,10 @@ static void ui_display_wvs7in5v2_destroy(void *display) {
 static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *display,
                                                    const lv_area_t *area,
                                                    uint8_t *px_map) {
-  printf("wvs hardcoded len=%d\n", wvs7in5v2_width * wvs7in5v2_heigth / 8);
-  printf("%d * %d / 8 = %d\n", area->x2 - area->x1, area->y2 - area->y1,
-         (area->x2 - area->x1) * (area->y2 - area->y1) / 8);
   wvs7in5v2_t wvs = lv_display_get_driver_data(display);
   dd_error_t dd_err = dd_display_driver_write(
-      wvs->dd, px_map + 8, wvs7in5v2_width * wvs7in5v2_heigth / 8);
+      wvs->dd, px_map + 8,
+      dd_display_driver_get_x(wvs->dd) * dd_display_driver_get_y(wvs->dd) / 8);
 
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);

@@ -1,6 +1,6 @@
 #include "display_driver.h"
-#include "drivers/waveshare_7in5_V2b.h"
 #include "drivers/waveshare_7in5_V2.h"
+#include "drivers/waveshare_7in5_V2b.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
@@ -21,7 +21,6 @@ dd_error_t dd_display_driver_init(dd_display_driver_t *out,
     dd_errno = dd_driver_wvs7in5v2b_create(out, config);
     DD_TRY_CATCH(dd_errno, error_out_cleanup);
     break;
-    
   }
 
   return 0;
@@ -76,4 +75,40 @@ dd_error_t dd_display_driver_write(dd_display_driver_t dd, unsigned char *buf,
 
 error_out:
   return dd_errno;
+}
+
+int dd_display_driver_get_x(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_x(dd);
+
+error_out:
+  return -1;
+}
+
+int dd_display_driver_get_y(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_y(dd);
+
+error_out:
+  return -1;
+}
+
+int dd_display_driver_get_stride(dd_display_driver_t dd) {
+  if (!dd) {
+    dd_errno = dd_errnos(EINVAL, "`dd` cannot be NULL");
+    goto error_out;
+  }
+
+  return dd_driver_get_stride(dd);
+
+error_out:
+  return -1;
 }
