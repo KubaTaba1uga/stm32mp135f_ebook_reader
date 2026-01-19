@@ -4,6 +4,7 @@
 enum DisplayModelEnum {
   DisplayModelEnum_X11 = 0,
   DisplayModelEnum_WVS7IN5V2B,
+  DisplayModelEnum_WVS7IN5V2,  
   DisplayModelEnum_MAX,  
 };
 
