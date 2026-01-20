@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "drivers/evdev/lv_evdev.h"
+#include "indev/lv_indev.h"
 #include "ui/display.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -26,6 +28,7 @@ struct UiDisplayWvs7in5V2 {
     unsigned char *data;
     uint32_t len;
   } render_buf;
+  lv_group_t * wx_group;
 };
 
 static int wvs7in5v2_color_format = LV_COLOR_FORMAT_I1;
@@ -35,6 +38,18 @@ static void ui_display_wvs7in5v2_panic(void *);
 static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *,
                                                    const lv_area_t *,
                                                    uint8_t *);
+/* static void discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, */
+/*                          void *user_data) { */
+/*   LV_LOG_USER("new '%s' device discovered", type == LV_EVDEV_TYPE_REL   ? "REL" */
+/*                                             : type == LV_EVDEV_TYPE_ABS ? "ABS" */
+/*                                             : type == LV_EVDEV_TYPE_KEY */
+/*                                                 ? "KEY" */
+/*                                                 : "unknown"); */
+
+/*   if (type == LV_EVDEV_TYPE_REL) { */
+/*     lv_evdev_discovery_stop(); */
+/*   } */
+/* } */
 
 err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
   puts(__func__);
@@ -63,6 +78,12 @@ err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
     goto error_wvs_cleanup;
   }
 
+  lv_indev_t *indev = lv_evdev_create(LV_INDEV_TYPE_KEYPAD,
+  settings_input_path);
+  lv_indev_set_display(indev, disp);
+  lv_group_t * wx_group = wvs->wx_group = lv_group_create();
+  lv_indev_set_group(indev, wx_group);
+
   // 1 pixel per color and + colour palette size
   wvs->render_buf.len = (dd_display_driver_get_x(wvs->dd) *
                          dd_display_driver_get_y(wvs->dd) / 8) +
@@ -76,7 +97,7 @@ err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
 
   err_o = ui_display_create(module, disp, ui, ui_display_wvs7in5v2_render, NULL,
                             ui_display_wvs7in5v2_destroy,
-                            ui_display_wvs7in5v2_panic, wvs);
+                            ui_display_wvs7in5v2_panic, NULL, wvs);
   ERR_TRY_CATCH(err_o, error_display_cleanup);
 
   wvs->owner = *module;
@@ -85,6 +106,7 @@ err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
 
 error_display_cleanup:
   lv_display_delete(disp);
+  lv_group_delete(wx_group);
 error_wvs_cleanup:
   mem_free(wvs);
 error_out:
@@ -93,6 +115,8 @@ error_out:
 
 static void ui_display_wvs7in5v2_destroy(void *display) {
   wvs7in5v2_t wvs = display;
+  dd_display_driver_destroy(&wvs->dd);
+  lv_group_delete(wvs->wx_group);
   mem_free(wvs->render_buf.data);
   mem_free(wvs);
 }
@@ -110,9 +134,11 @@ static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *display,
     goto error_out;
   }
 
+  lv_display_flush_ready(display);
   return;
 
 error_out:
+  lv_display_flush_ready(display);
   log_error(err_o);
 }
 
@@ -137,5 +163,11 @@ static void ui_display_wvs7in5v2_panic(void *display) {
   wvs7in5v2_t wvs = display;
   dd_display_driver_destroy(&wvs->dd);
 }
+
+lv_group_t * ui_display_wvs7in5v2_get_input_group(ui_display_t display){
+  wvs7in5v2_t wvs = lv_display_get_driver_data(ui_display_get_lv_obj(display));
+  return wvs->wx_group;
+
+};
 
 #endif

@@ -1,5 +1,4 @@
-#include "display/lv_display.h"
-#include "misc/lv_color.h"
+#include "ui/display_x11.h"
 #include "ui/display.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -7,7 +6,7 @@
 #include <stdint.h>
 
 #if !EBK_DISPLAY_X11
-err_t ui_display_x11_create(ui_display_t __, ui_t ___) {
+err_t ui_display_x11_create(ui_display_t* __, ui_t ___) {
   return err_errnos(EINVAL, "X11 is not supported!");
 };
 #else
@@ -32,6 +31,7 @@ static err_t ui_display_x11_render(void *, unsigned char *, uint32_t);
 static void ui_display_x11_destroy(void *);
 static void ui_display_x11_render_cleanup(void *);
 static void ui_display_x11_render_event_cb(lv_event_t *);
+static err_t ui_display_x11_input_create(void *);
 
 err_t ui_display_x11_create(ui_display_t *display, ui_t ui) {
   puts(__func__);
@@ -45,12 +45,11 @@ err_t ui_display_x11_create(ui_display_t *display, ui_t ui) {
     err_o = err_errnos(errno, "Cannot initialize X11 display");
     goto error_out;
   }
-  lv_x11_inputs_create(lv_obj, NULL);
   lv_display_set_default(lv_obj);
 
-  err_o = ui_display_create(display, lv_obj, ui, ui_display_x11_render,
-                            ui_display_x11_render_cleanup,
-                            ui_display_x11_destroy, NULL, x11);
+  err_o = ui_display_create(
+      display, lv_obj, ui, ui_display_x11_render, ui_display_x11_render_cleanup,
+      ui_display_x11_destroy, NULL, ui_display_x11_input_create, x11);
   ERR_TRY_CATCH(err_o, error_x11_cleanup);
 
   x11->display = *display;
@@ -115,7 +114,7 @@ static void ui_display_x11_render_cleanup(void *display) {
     x11->render.img = NULL;
   }
   if (x11->render.dsc) {
-    
+
     mem_free((void *)x11->render.dsc->data);
     mem_free(x11->render.dsc);
     x11->render.dsc = NULL;
@@ -125,6 +124,12 @@ static void ui_display_x11_render_cleanup(void *display) {
 static void ui_display_x11_render_event_cb(lv_event_t *lv_ev) {
   ui_display_x11_t x11 = lv_event_get_user_data(lv_ev);
   x11->render.counter++;
+}
+
+static err_t ui_display_x11_input_create(void *disp) {
+  ui_display_x11_t x11 = disp;
+  lv_x11_inputs_create(ui_display_get_lv_obj(x11->display), NULL);
+  return 0;
 }
 
 #endif

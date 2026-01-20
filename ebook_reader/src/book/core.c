@@ -86,7 +86,7 @@ books_list_t book_api_find_books(book_api_t api) {
       .owner = api,
   };
 
-  log_info("LUL");
+
 
   books_dir = opendir(settings_books_dir);
   if (!books_dir) {
@@ -94,9 +94,7 @@ books_list_t book_api_find_books(book_api_t api) {
     goto error_out;
   }
 
-  log_info("POP");
   while ((dirent = readdir(books_dir)) != NULL) {
-    log_info("HIT");
     if (strcmp(".", dirent->d_name) == 0 || strcmp("..", dirent->d_name) == 0) {
       continue;
     }

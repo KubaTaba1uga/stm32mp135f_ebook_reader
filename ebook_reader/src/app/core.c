@@ -1,8 +1,8 @@
 #include "app/core.h"
+#include "app/module.h"
 #include "app/module_error.h"
 #include "app/module_menu.h"
 #include "app/module_reader.h"
-#include "app/module.h"
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -54,15 +54,32 @@ static const struct AppFsmTransition
             },
         [AppStateEnum_MENU] =
             {
-                // In menu we use LVGL flex layout which can handle
-                // changes in selection on it's own, so we just receive
-                // info that book is selected and which index in list
-                // was it.
+                [AppEventEnum_BTN_LEFT] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = app_module_menu_left_book,
+                    },
+                [AppEventEnum_BTN_UP] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = app_module_menu_up_book,
+                    },
+                [AppEventEnum_BTN_DOWN] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = app_module_menu_down_book,
+                    },
+                [AppEventEnum_BTN_RIGTH] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = app_module_menu_rigth_book,
+                    },
                 [AppEventEnum_BTN_ENTER] =
                     {
                         .next_state = AppStateEnum_MENU,
                         .action = app_module_menu_select_book,
                     },
+
                 [AppEventEnum_BOOK_SELECTED] =
                     {
                         .next_state = AppStateEnum_READER,
@@ -107,7 +124,7 @@ err_t app_create(app_t *out) {
   *app = (struct App){
       .current_state = AppStateEnum_BOOT,
   };
-  
+
   err_o = ui_create(&app->ctx.ui, app_input_callback, app);
   ERR_TRY(err_o);
 
@@ -263,7 +280,8 @@ static void app_step(app_t app) {
 
   trans.action(next_module, &app->ctx, ev_data.data);
 
-  if (app->current_state != trans.next_state && app->modules[app->current_state]) {
+  if (app->current_state != trans.next_state &&
+      app->modules[app->current_state]) {
     app_module_close(current_module);
   }
 

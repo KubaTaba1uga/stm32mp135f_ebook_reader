@@ -127,19 +127,6 @@
 
 	};
 
-
-// /* GPIO config */
-// &pinctrl{
-//   btn_pins: btn-pins {
-//       pins {
-// 	  pinmux = <STM32_PINMUX('E', 1, GPIO)>; /* Enter Btn  */
-// 	  bias-pull-down;
-// 	  slew-rate = <0>;
-//       };
-//   };
-// };
-
-
 	leds{
 		compatible = "gpio-leds";
 

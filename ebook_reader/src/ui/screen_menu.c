@@ -1,7 +1,10 @@
+#include "core/lv_group.h"
 #include "ui/screen.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct UiScreenMenu *ui_screen_menu_t;
 
@@ -20,7 +23,8 @@ static void ui_screen_menu_destroy(void *);
 
 err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
                             int book_i, int event,
-                            void (*event_cb)(lv_event_t *e)) {
+                            void (*event_cb)(lv_event_t *e),
+                            lv_group_t *group) {
   puts(__func__);
   ui_wx_bar_t bar = ui_wx_bar_create();
   if (!bar) {
@@ -33,22 +37,25 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
     err_o = err_errnos(EINVAL, "Cannot create menu widget");
     goto error_bar_cleanup;
   }
-  
+
   lv_obj_t **lv_books = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
   int lv_books_len = books_list_len(books);
   lv_obj_t *lv_book = NULL;
   int i = 0;
 
-  lv_group_t *group = lv_group_create();
-  lv_group_set_default(group);
-  for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
-    if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
-      lv_indev_set_group(i, group);
-      break;
-    }
-  }
-  lv_group_add_obj(group, menu);
-  lv_group_set_editing(group, false);
+  /* lv_group_t *group = lv_group_create(); */
+  /* lv_group_set_default(group); */
+  /* for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i))
+   * { */
+  /*   if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) { */
+  /*     log_info("Found indev"); */
+  /*     lv_indev_set_group(i, group); */
+  /*     break; */
+  /*   } */
+  /* } */
+  /* lv_group_focus_obj(menu);    */
+  /* lv_group_add_obj(group, menu); */
+  /* lv_group_set_editing(group, false); */
 
   for (book_t book = books_list_get(books); book != NULL;
        book = books_list_get(books)) {
@@ -57,6 +64,7 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
         book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
         i, ui);
     lv_obj_add_event_cb(lv_book, event_cb, event, lv_book);
+    lv_group_add_obj(group, lv_book);
     lv_books[i++] = lv_book;
   }
 
@@ -95,6 +103,15 @@ static void ui_screen_menu_destroy(void *screen) {
   mem_free(menu->books.buf);
   ui_wx_menu_destroy(menu->menu);
   ui_wx_bar_destroy(menu->bar);
-  lv_group_del(menu->group);
+  /* lv_group_del(menu->group); */
   mem_free(menu);
+}
+
+err_t ui_screen_menu_focus_book(ui_screen_t screen, int book_i) {
+  puts(__func__)  ;
+  ui_screen_menu_t menu = ui_screen_get_private(screen);
+  ui_wx_menu_book_t book = menu->books.buf[book_i];
+  lv_group_focus_obj(book);
+
+  return 0;
 }

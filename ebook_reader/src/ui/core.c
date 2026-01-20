@@ -2,12 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "core/lv_group.h"
 #include "ui/display.h"
+#include "ui/display_wvs7in5v2.h"
 #include "ui/screen.h"
 #include "ui/screen_menu.h"
 #include "ui/ui.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
@@ -57,7 +60,11 @@ error_out:
   return err_o;
 }
 
-int ui_tick(ui_t ui) { return lv_timer_handler(); };
+int ui_tick(ui_t ui) {
+  puts(__func__);
+  (void)lv_timer_handler();
+  return 1000;
+};
 
 void ui_destroy(ui_t *out) {
   if (!out || !*out) {
@@ -72,8 +79,9 @@ void ui_destroy(ui_t *out) {
 };
 
 err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
+  lv_group_t *group = ui_display_wvs7in5v2_get_input_group(ui->display);
   err_o = ui_screen_menu_create(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
-                                ui_menu_book_event_cb);
+                                ui_menu_book_event_cb, group);
   ERR_TRY(err_o);
 
   return 0;
@@ -97,11 +105,38 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   int id = ui_wx_menu_book_get_id(book);
 
   lv_key_t key = lv_event_get_key(e);
+
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
 
-  if (key == LV_KEY_ENTER) {
-    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
+  enum UiInputEventEnum inev;
+  switch (key) {
+  case LV_KEY_ENTER:
+    inev = UiInputEventEnum_ENTER;
+    break;
+  case LV_KEY_UP:
+    inev = UiInputEventEnum_UP;
+    break;
+  case LV_KEY_DOWN:
+    inev = UiInputEventEnum_DOWN;
+    break;
+  case LV_KEY_LEFT:
+    inev = UiInputEventEnum_LEFT;
+    break;
+  case LV_KEY_RIGHT:
+    inev = UiInputEventEnum_RIGTH;
+    break;
+  default:
+    return;
   }
+
+  log_info("KEY = `%d`\n", key);
+  printf("pointer=%p\n", book);
+  ui->inputh.callback(inev, ui->inputh.data, &id);
 }
+
+err_t ui_menu_focus_book(ui_t ui, int book_i) {
+  puts(__func__);
+  return   ui_screen_menu_focus_book(ui->screen,  book_i);
+  }

@@ -75,7 +75,7 @@ err_t ui_display_wvs7in5v2b_create(ui_display_t *module, ui_t ui) {
 
   err_o = ui_display_create(module, disp, ui, ui_display_wvs7in5v2b_render,
                             NULL, ui_display_wvs7in5v2b_destroy,
-                            ui_display_wvs7in5v2b_panic, wvs);
+                            ui_display_wvs7in5v2b_panic, NULL,wvs);
   ERR_TRY_CATCH(err_o, error_display_cleanup);
 
   wvs->owner = *module;
