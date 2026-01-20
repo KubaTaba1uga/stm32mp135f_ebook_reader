@@ -23,7 +23,6 @@ struct Ui {
 
   ui_display_t display;
   ui_screen_t screen;
-  ui_wx_bar_t bar;
 };
 
 static void ui_menu_book_event_cb(lv_event_t *e);
@@ -109,34 +108,10 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
-
-  enum UiInputEventEnum inev;
-  switch (key) {
-  case LV_KEY_ENTER:
-    inev = UiInputEventEnum_ENTER;
-    break;
-  case LV_KEY_UP:
-    inev = UiInputEventEnum_UP;
-    break;
-  case LV_KEY_DOWN:
-    inev = UiInputEventEnum_DOWN;
-    break;
-  case LV_KEY_LEFT:
-    inev = UiInputEventEnum_LEFT;
-    break;
-  case LV_KEY_RIGHT:
-    inev = UiInputEventEnum_RIGTH;
-    break;
-  default:
-    return;
-  }
-
   log_info("KEY = `%d`\n", key);
   printf("pointer=%p\n", book);
-  ui->inputh.callback(inev, ui->inputh.data, &id);
-}
 
-err_t ui_menu_focus_book(ui_t ui, int book_i) {
-  puts(__func__);
-  return   ui_screen_menu_focus_book(ui->screen,  book_i);
+  if (key == LV_KEY_ENTER) {
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
   }
+}

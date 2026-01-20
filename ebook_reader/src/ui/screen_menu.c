@@ -54,7 +54,7 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
   /*   } */
   /* } */
   /* lv_group_focus_obj(menu);    */
-  /* lv_group_add_obj(group, menu); */
+  lv_group_add_obj(group, menu);
   /* lv_group_set_editing(group, false); */
 
   for (book_t book = books_list_get(books); book != NULL;
@@ -64,7 +64,7 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
         book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
         i, ui);
     lv_obj_add_event_cb(lv_book, event_cb, event, lv_book);
-    lv_group_add_obj(group, lv_book);
+    /* lv_group_add_obj(group, lv_book); */
     lv_books[i++] = lv_book;
   }
 
@@ -105,13 +105,4 @@ static void ui_screen_menu_destroy(void *screen) {
   ui_wx_bar_destroy(menu->bar);
   /* lv_group_del(menu->group); */
   mem_free(menu);
-}
-
-err_t ui_screen_menu_focus_book(ui_screen_t screen, int book_i) {
-  puts(__func__)  ;
-  ui_screen_menu_t menu = ui_screen_get_private(screen);
-  ui_wx_menu_book_t book = menu->books.buf[book_i];
-  lv_group_focus_obj(book);
-
-  return 0;
 }

@@ -54,26 +54,6 @@ static const struct AppFsmTransition
             },
         [AppStateEnum_MENU] =
             {
-                [AppEventEnum_BTN_LEFT] =
-                    {
-                        .next_state = AppStateEnum_MENU,
-                        .action = app_module_menu_left_book,
-                    },
-                [AppEventEnum_BTN_UP] =
-                    {
-                        .next_state = AppStateEnum_MENU,
-                        .action = app_module_menu_up_book,
-                    },
-                [AppEventEnum_BTN_DOWN] =
-                    {
-                        .next_state = AppStateEnum_MENU,
-                        .action = app_module_menu_down_book,
-                    },
-                [AppEventEnum_BTN_RIGTH] =
-                    {
-                        .next_state = AppStateEnum_MENU,
-                        .action = app_module_menu_rigth_book,
-                    },
                 [AppEventEnum_BTN_ENTER] =
                     {
                         .next_state = AppStateEnum_MENU,

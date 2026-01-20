@@ -37,7 +37,6 @@ void ui_render_cleanup(ui_t ui);
    @brief Create menu screen.
 */
 err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
-err_t ui_menu_focus_book(ui_t ui, int book_i);
 /**
    @brief Delete menu screen.
 */

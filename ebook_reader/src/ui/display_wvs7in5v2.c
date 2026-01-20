@@ -38,18 +38,6 @@ static void ui_display_wvs7in5v2_panic(void *);
 static void ui_display_wvs7in5v2_flush_dd_callback(lv_display_t *,
                                                    const lv_area_t *,
                                                    uint8_t *);
-/* static void discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, */
-/*                          void *user_data) { */
-/*   LV_LOG_USER("new '%s' device discovered", type == LV_EVDEV_TYPE_REL   ? "REL" */
-/*                                             : type == LV_EVDEV_TYPE_ABS ? "ABS" */
-/*                                             : type == LV_EVDEV_TYPE_KEY */
-/*                                                 ? "KEY" */
-/*                                                 : "unknown"); */
-
-/*   if (type == LV_EVDEV_TYPE_REL) { */
-/*     lv_evdev_discovery_stop(); */
-/*   } */
-/* } */
 
 err_t ui_display_wvs7in5v2_create(ui_display_t *module, ui_t ui) {
   puts(__func__);

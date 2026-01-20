@@ -96,26 +96,3 @@ void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
 
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
 }
-
-void app_module_menu_up_book(app_module_t module, app_ctx_t ctx, void *arg) {
-  app_module_menu_t menu = app_module_get_module_data(module);
-
-  ui_menu_focus_book(ctx->ui, ++menu->current_book_i);
-};
-void app_module_menu_down_book(app_module_t module, app_ctx_t ctx, void *arg) {
-  app_module_menu_t menu = app_module_get_module_data(module);
-
-  ui_menu_focus_book(ctx->ui, ++menu->current_book_i);
-  
-};
-void app_module_menu_left_book(app_module_t module, app_ctx_t ctx, void *arg) {
-  app_module_menu_t menu = app_module_get_module_data(module);
-
-  ui_menu_focus_book(ctx->ui, ++menu->current_book_i);
-};
-void app_module_menu_rigth_book(app_module_t module, app_ctx_t ctx, void *arg) {
-  puts(__func__);
-  app_module_menu_t menu = app_module_get_module_data(module);
-
-  ui_menu_focus_book(ctx->ui, ++menu->current_book_i);
-};
