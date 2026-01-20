@@ -4,7 +4,6 @@
 
 #include "core/lv_group.h"
 #include "ui/display.h"
-#include "ui/display_wvs7in5v2.h"
 #include "ui/screen.h"
 #include "ui/screen_menu.h"
 #include "ui/ui.h"
@@ -21,7 +20,7 @@ struct Ui {
     void *data;
   } inputh;
 
-  ui_display_t display;
+  struct UiDisplay display;
   ui_screen_t screen;
 };
 
@@ -43,16 +42,16 @@ err_t ui_create(ui_t *out,
   lv_init();
   lv_tick_set_cb(time_now);
 
-  err_o = ui_display_supported_create(&ui->display, ui, settings_display_model);
+  err_o = ui_display_init(&ui->display, ui, settings_display_model);
   ERR_TRY(err_o);
 
-  err_o = ui_display_show_boot_img(ui->display, settings_boot_screen_path);
-  ERR_TRY_CATCH(err_o, error_display_cleanup);
+  /* err_o = ui_display_show_boot_img(ui->display, settings_boot_screen_path); */
+  /* ERR_TRY_CATCH(err_o, error_display_cleanup); */
 
   return 0;
 
-error_display_cleanup:
-  ui_display_destroy(&ui->display);
+/* error_display_cleanup: */
+/*   ui_display_destroy(&ui->display); */
 error_out:
   mem_free(*out);
   *out = NULL;
@@ -78,7 +77,7 @@ void ui_destroy(ui_t *out) {
 };
 
 err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
-  lv_group_t *group = ui_display_wvs7in5v2_get_input_group(ui->display);
+  lv_group_t *group = ui_display_get_input_group(&ui->display);
   err_o = ui_screen_menu_create(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
                                 ui_menu_book_event_cb, group);
   ERR_TRY(err_o);
@@ -93,10 +92,9 @@ void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
 
 void ui_panic(ui_t ui) {
   puts(__func__);
-  ui_display_panic(ui->display);
+  ui_display_panic(&ui->display);
 };
 
-void ui_render_cleanup(ui_t ui) { ui_display_render_destroy(ui->display); };
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);

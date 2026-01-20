@@ -29,11 +29,6 @@ void ui_destroy(ui_t *out);
 */
 void ui_panic(ui_t ui);
 /**
-   In create we show boot img which for some drivers require allocating a buffer.
-   Once you know that boot is done you should call this function.
-*/
-void ui_render_cleanup(ui_t ui);
-/**
    @brief Create menu screen.
 */
 err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);

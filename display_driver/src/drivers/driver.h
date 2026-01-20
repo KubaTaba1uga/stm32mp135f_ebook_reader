@@ -16,5 +16,4 @@ dd_error_t dd_driver_clear(dd_display_driver_t driver, bool white);
 int dd_driver_get_x(dd_display_driver_t driver);
 int dd_driver_get_y(dd_display_driver_t driver);
 int dd_driver_get_stride(dd_display_driver_t driver);
-
 #endif // DISPLAY_DRIVER_DRIVER_H

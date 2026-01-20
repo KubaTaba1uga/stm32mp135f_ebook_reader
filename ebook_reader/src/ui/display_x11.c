@@ -1,12 +1,9 @@
-#include "ui/display_x11.h"
 #include "ui/display.h"
 #include "ui/ui.h"
 #include "utils/err.h"
-#include "utils/mem.h"
-#include <stdint.h>
 
 #if !EBK_DISPLAY_X11
-err_t ui_display_x11_create(ui_display_t* __, ui_t ___) {
+err_t ui_display_x11_init(ui_display_t __, ui_t ___) {
   return err_errnos(EINVAL, "X11 is not supported!");
 };
 #else
@@ -33,31 +30,34 @@ static void ui_display_x11_render_cleanup(void *);
 static void ui_display_x11_render_event_cb(lv_event_t *);
 static err_t ui_display_x11_input_create(void *);
 
-err_t ui_display_x11_create(ui_display_t *display, ui_t ui) {
+err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
   puts(__func__);
 
   ui_display_x11_t x11 = mem_malloc(sizeof(struct UiDisplayX11));
-  *x11 = (struct UiDisplayX11){0};
+  *x11 = (struct UiDisplayX11){
+      .display = display,
+  };
 
-  lv_display_t *lv_obj = lv_x11_window_create(
+  lv_display_t *lv_disp = lv_x11_window_create(
       "ebook_reader", ui_display_x11_width, ui_display_x11_heigth);
-  if (!lv_obj) {
+  if (!lv_disp) {
     err_o = err_errnos(errno, "Cannot initialize X11 display");
     goto error_out;
   }
-  lv_display_set_default(lv_obj);
+  lv_x11_inputs_create(lv_display, NULL);
 
-  err_o = ui_display_create(
-      display, lv_obj, ui, ui_display_x11_render, ui_display_x11_render_cleanup,
-      ui_display_x11_destroy, NULL, ui_display_x11_input_create, x11);
-  ERR_TRY_CATCH(err_o, error_x11_cleanup);
-
-  x11->display = *display;
+  *display = (struct UiDisplay){
+      .destroy = ui_display_x11_destroy,
+      .render = ui_display_x11_render,
+      .lv_disp = lv_disp,
+      .owner = x11,
+      .ui = ui,
+  };
 
   return 0;
 
 error_x11_cleanup:
-  lv_display_delete(lv_obj);
+  lv_display_delete(lv_disp);
 error_out:
   mem_free(x11);
   return err_o;
@@ -68,6 +68,7 @@ static err_t ui_display_x11_render(void *display, unsigned char *render_buf,
   ui_display_x11_t x11 = display;
   lv_display_t *lv_obj = ui_display_get_lv_obj(x11->display);
 
+  ui_display_x11_render_cleanup(display);
   x11->render.img = lv_image_create(lv_screen_active());
   x11->render.dsc = mem_malloc(sizeof(lv_img_dsc_t));
   *x11->render.dsc = (lv_img_dsc_t){
@@ -81,6 +82,7 @@ static err_t ui_display_x11_render(void *display, unsigned char *render_buf,
   lv_obj_set_pos(x11->render.img, 0, 0);
   lv_obj_set_size(x11->render.img, x11->render.dsc->header.w,
                   x11->render.dsc->header.h);
+
   lv_display_add_event_cb(lv_obj, ui_display_x11_render_event_cb,
                           LV_EVENT_REFR_READY, x11);
 
@@ -114,7 +116,6 @@ static void ui_display_x11_render_cleanup(void *display) {
     x11->render.img = NULL;
   }
   if (x11->render.dsc) {
-
     mem_free((void *)x11->render.dsc->data);
     mem_free(x11->render.dsc);
     x11->render.dsc = NULL;
@@ -124,12 +125,6 @@ static void ui_display_x11_render_cleanup(void *display) {
 static void ui_display_x11_render_event_cb(lv_event_t *lv_ev) {
   ui_display_x11_t x11 = lv_event_get_user_data(lv_ev);
   x11->render.counter++;
-}
-
-static err_t ui_display_x11_input_create(void *disp) {
-  ui_display_x11_t x11 = disp;
-  lv_x11_inputs_create(ui_display_get_lv_obj(x11->display), NULL);
-  return 0;
 }
 
 #endif

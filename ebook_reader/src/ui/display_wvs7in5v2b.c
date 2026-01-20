@@ -88,6 +88,7 @@ error_wvs_cleanup:
   mem_free(wvs);
 error_out:
   return err_o;
+
 }
 
 static void ui_display_wvs7in5v2b_destroy(void *display) {

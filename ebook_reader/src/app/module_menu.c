@@ -58,8 +58,6 @@ static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
   err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);
   ERR_TRY_CATCH(err_o, error_blist_cleanup);
 
-  ui_render_cleanup(ctx->ui);
-
   return;
 
 error_blist_cleanup:
