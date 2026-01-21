@@ -29,80 +29,92 @@ int main(int argc, char *argv[]) {
   /* bool is_rotated = false; */
   dd_error_t err;
 
-  /* /\* classic argv parsing *\/ */
-  /* for (int i = 1; i < argc; ++i) { */
-  /*   if (strcmp(argv[i], "--wvs") == 0) { */
-  /*     buf = (unsigned char *)image_7in5_v2; */
-  /*     buf_len = sizeof(image_7in5_v2); */
-  /*   } else if (strcmp(argv[i], "--turtle") == 0) { */
-  /*     buf = (unsigned char *)turtle_7in5_v2; */
-  /*     buf_len = sizeof(turtle_7in5_v2); */
-  /*   } else if (strcmp(argv[i], "--cat_sm") == 0) { */
-  /*     buf = (unsigned char *)cat_sm; */
-  /*     buf_len = sizeof(cat_sm); */
-  /*     is_rotated = true; */
-  /*   } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
-   * { */
-  /*     usage(argv[0]); */
-  /*     return EXIT_SUCCESS; */
-  /*   } else { */
-  /*     fprintf(stderr, "Unknown option: %s\n", argv[i]); */
-  /*     usage(argv[0]); */
-  /*     return EXIT_FAILURE; */
-  /*   } */
-  /* } */
-
   puts("Starting driver");
   err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2, false);
   if (err) {
     goto error;
   }
 
-  int x = 150;
-  int y = 100;
-  unsigned char buf[150 * 100];
-  
+  const int x = 20;
+  const int y = 20;
+  unsigned char black_buf[20 * 20];
+  unsigned char white_buf[20 * 20];
   int start_x = 0;
-  int start_y = 0;
+  int start_y = 240;
   puts("Working");
-  memset(buf, 0xFF, sizeof(buf));
+  memset(black_buf, 0xFF, sizeof(black_buf));
+  memset(white_buf, 0x00, sizeof(white_buf));
 
+  
   int bytes_per_row = (x + 7) / 8;
- int buf_len = bytes_per_row * y;
+  int buf_len = bytes_per_row * y;
 
   puts("PARTIAL START");
-  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x,
-                                        start_x + x, start_y, start_y + y);
-  if (err) {
-    goto error_dd_cleanup;
-  }
 
-  start_x += x;
-  start_y += y;
-  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x,
-                                        start_x + x, start_y, start_y + y);
-  if (err) {
-    goto error_dd_cleanup;
-  }
+  /* int x_mod = 1; */
+  /* int y_mod = 1; */
+  int i = 0;
+  while (true) {
+    err = dd_display_driver_write_partial(dd, black_buf, buf_len, start_x,
+                                          start_x + x, start_y, start_y + y);
+    if (err) {
+      goto error_dd_cleanup;
+    }
+    sleep(2);
+    if (i >= 3) {
+      err = dd_display_driver_write_partial(dd, white_buf, buf_len, start_x - x*3,
+                                            start_x -x*2, start_y, start_y + y);
+      if (err) {
+        goto error_dd_cleanup;
+      }
+    }
+      puts("");
+    /* if (start_x + x >= 800) { */
+    /*   x_mod = -1; */
+    /* } */
+    /* if (start_y + y >= 480) { */
 
-  start_x += x;
-  start_y += y;  
-  x = 50;
-  y = 100;
-  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x,
-                                        start_x + x, start_y, start_y + y);
-  if (err) {
-    goto error_dd_cleanup;
+    /*   y_mod = -1; */
+    /* } */
+    i++;
+    start_x += x;
+    /* start_y += y * y_mod; */
   }
+  /* err = dd_display_driver_write_partial(dd, buf, buf_len, start_x, */
+  /*                                       start_x + x, start_y, start_y + y);
+   */
+  /* if (err) { */
+  /*   goto error_dd_cleanup; */
+  /* } */
 
-  start_x += x;
-  start_y += y;
-  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x,
-                                        start_x + x, start_y, start_y + y);
-  if (err) {
-    goto error_dd_cleanup;
-  }
+  /* start_x += x; */
+  /* start_y += y; */
+  /* err = dd_display_driver_write_partial(dd, buf, buf_len, start_x, */
+  /*                                       start_x + x, start_y, start_y + y);
+   */
+  /* if (err) { */
+  /*   goto error_dd_cleanup; */
+  /* } */
 
+  /* start_x += x; */
+  /* start_y += y;   */
+  /* x = 50; */
+  /* y = 100; */
+  /* err = dd_display_driver_write_partial(dd, buf, buf_len, start_x, */
+  /*                                       start_x + x, start_y, start_y + y);
+   */
+  /* if (err) { */
+  /*   goto error_dd_cleanup; */
+  /* } */
+
+  /* start_x += x; */
+  /* start_y += y; */
+  /* err = dd_display_driver_write_partial(dd, buf, buf_len, start_x, */
+  /*                                       start_x + x, start_y, start_y + y);
+   */
+  /* if (err) { */
+  /*   goto error_dd_cleanup; */
+  /* } */
 
   puts("I'm done");
 

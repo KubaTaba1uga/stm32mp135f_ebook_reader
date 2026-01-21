@@ -751,7 +751,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   DD_TRY(dd_errno);
 
   for (int i = 0; i < w*h/8; i++) {
-    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){0xFF}, 1);
+    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){buf[i]}, 1);
     DD_TRY(dd_errno);
   }
 
