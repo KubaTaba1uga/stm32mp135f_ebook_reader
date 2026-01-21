@@ -6,8 +6,5 @@
 
 err_t app_module_menu_create(app_module_t *, app_t);
 void app_module_menu_select_book(app_module_t, app_ctx_t, void *);
-void app_module_menu_up_book(app_module_t, app_ctx_t, void *);
-void app_module_menu_down_book(app_module_t, app_ctx_t, void *);
-void app_module_menu_left_book(app_module_t, app_ctx_t, void *);
-void app_module_menu_rigth_book(app_module_t, app_ctx_t, void *);
+
 #endif // APP_MODULE_MENU_H

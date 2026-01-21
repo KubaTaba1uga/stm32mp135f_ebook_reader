@@ -118,11 +118,11 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
 
   lv_key_t key = lv_event_get_key(e);
 
+  log_debug("Ui received key: %d'", key);
+  
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
-  log_info("KEY = `%d`\n", key);
-  printf("pointer=%p\n", book);
 
   if (key == LV_KEY_ENTER) {
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
