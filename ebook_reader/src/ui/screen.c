@@ -33,3 +33,5 @@ void ui_screen_destroy(ui_screen_t *out) {
 };
 
 ui_t ui_screen_get_ui(ui_screen_t screen) { return screen->owner; }
+
+void * ui_screen_get_private(ui_screen_t screen) { return screen->private;}

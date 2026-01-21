@@ -28,7 +28,7 @@ err_t app_module_menu_create(app_module_t *out, app_t app) {
   };
 
   err_o = app_module_create(out, app_module_menu_open, app_module_menu_close,
-                           app_module_menu_destroy, menu);
+                            app_module_menu_destroy, menu);
   ERR_TRY(err_o);
 
   return 0;
@@ -38,12 +38,13 @@ error_out:
 };
 
 /**
-   @todo We should display sth wich would indicate lack of books instead of raising error.
+   @todo We should display sth wich would indicate lack of books instead of
+   raising error.
 */
 static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
   assert(module != NULL);
   assert(ctx->book_api != NULL);
-  
+
   app_module_menu_t menu = module;
   
   menu->blist = book_api_find_books(ctx->book_api);
@@ -56,8 +57,6 @@ static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
 
   err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);
   ERR_TRY_CATCH(err_o, error_blist_cleanup);
-
-  ui_render_cleanup(ctx->ui);
 
   return;
 
@@ -81,7 +80,6 @@ static void app_module_menu_close(void *module) {
 };
 
 static void app_module_menu_destroy(void *module) {
-  puts(__func__);
   app_module_menu_close(module);
   mem_free(module);
 };
@@ -92,6 +90,6 @@ static void app_module_menu_destroy(void *module) {
  */
 void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
   app_module_menu_t menu = app_module_get_module_data(module);
-  
+
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
 }

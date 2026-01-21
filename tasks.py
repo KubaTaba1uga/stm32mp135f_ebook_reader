@@ -38,7 +38,7 @@ def install(c):
             "sudo apt-get install -y doxygen virtualenv \
               which sed make binutils build-essential diffutils \
               gcc g++ bash patch gzip bzip2 perl tar cpio \
-              unzip rsync file bc findutils gawk wget \
+              unzip rsync file bc findutils gawk curl \
               git libncurses5-dev python3 libpoppler-glib-dev"
         )
 
@@ -66,7 +66,7 @@ def install_libgpiod(c):
 
     try:
         c.run(
-            "wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -O /tmp/libpiod.tar.xz"
+            "curl https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.5.tar.xz -o /tmp/libpiod.tar.xz"
         )
         c.run("tar -xf /tmp/libpiod.tar.xz -C /tmp/")
         with c.cd("/tmp/libgpiod-1.6.5"):
