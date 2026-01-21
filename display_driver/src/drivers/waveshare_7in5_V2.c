@@ -708,10 +708,6 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_IN);
   DD_TRY(dd_errno);
 
-  /* double w, h; */
-  /* w = ((x2 - x1) % 8 == 0) ? ((x2 - x1) / 8) : ((x2 - x1) / 8 + 1); */
-  /* h = y2 - y1; */
-
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_WINDOW);
   DD_TRY(dd_errno);
 
