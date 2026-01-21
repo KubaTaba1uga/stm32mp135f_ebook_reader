@@ -58,16 +58,23 @@ int main(int argc, char *argv[]) {
     goto error;
   }
 
-  int x = 128;
-  int y = 128;
-  unsigned char buf[128 * 128];
+  /* int x = 128; */
+  /* int y = 128; */
+  /* unsigned char buf[128 * 128]; */
+  int x = 150;
+  int y = 100;
+  unsigned char buf[150 * 100];
+  
   int start_x = 0;
   int start_y = 0;
   puts("Working");
   memset(buf, 0xFF, sizeof(buf));
 
+  int bytes_per_row = (x + 7) / 8;
+ int buf_len = bytes_per_row * y;
+
   puts("PARTIAL START");
-  err = dd_display_driver_write_partial(dd, buf, x * y / 8, start_x,
+  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x,
                                         start_x + x, start_y, start_y + y);
   /* err = dd_display_driver_write_partial(dd, buf, sizeof(buf), start_x, */
   /*                                       start_x + x, start_y, start_y + y); */
@@ -79,7 +86,7 @@ int main(int argc, char *argv[]) {
   int x_off = 0;  
   /* int x_off = 5; */
   int y_off = 0;
-  err = dd_display_driver_write_partial(dd, buf, x * y / 8, start_x + x+x_off,
+  err = dd_display_driver_write_partial(dd, buf, buf_len, start_x + x+x_off,
                                         start_x + x * 2+x_off, start_y + y + y_off,
                                         start_y + y * 2 + y_off);
   if (err) {
