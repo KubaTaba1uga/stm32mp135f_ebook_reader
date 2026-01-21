@@ -82,7 +82,6 @@ void ui_wx_bar_destroy(ui_wx_bar_t bar) {
 }
 
 ui_wx_menu_t ui_wx_menu_create(void) {
-  puts(__func__);
   lv_obj_t *menu_container = ui_wx_obj_create(lv_screen_active());
   lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_NONE);
 
@@ -112,7 +111,6 @@ ui_wx_menu_t ui_wx_menu_create(void) {
 }
 
 void ui_wx_menu_destroy(ui_wx_menu_t menu) {
-  puts(__func__);
   lv_obj_del(menu);
 }
 

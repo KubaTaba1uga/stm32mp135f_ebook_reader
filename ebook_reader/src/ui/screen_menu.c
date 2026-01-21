@@ -1,7 +1,10 @@
+#include "core/lv_group.h"
 #include "ui/screen.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct UiScreenMenu *ui_screen_menu_t;
 
@@ -20,8 +23,8 @@ static void ui_screen_menu_destroy(void *);
 
 err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
                             int book_i, int event,
-                            void (*event_cb)(lv_event_t *e)) {
-  puts(__func__);
+                            void (*event_cb)(lv_event_t *e),
+                            lv_group_t *group) {
   ui_wx_bar_t bar = ui_wx_bar_create();
   if (!bar) {
     err_o = err_errnos(EINVAL, "Cannot create bar widget");
@@ -33,22 +36,13 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
     err_o = err_errnos(EINVAL, "Cannot create menu widget");
     goto error_bar_cleanup;
   }
-  
+
   lv_obj_t **lv_books = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
   int lv_books_len = books_list_len(books);
   lv_obj_t *lv_book = NULL;
   int i = 0;
 
-  lv_group_t *group = lv_group_create();
-  lv_group_set_default(group);
-  for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
-    if (lv_indev_get_type(i) == LV_INDEV_TYPE_KEYPAD) {
-      lv_indev_set_group(i, group);
-      break;
-    }
-  }
   lv_group_add_obj(group, menu);
-  lv_group_set_editing(group, false);
 
   for (book_t book = books_list_get(books); book != NULL;
        book = books_list_get(books)) {
@@ -95,6 +89,5 @@ static void ui_screen_menu_destroy(void *screen) {
   mem_free(menu->books.buf);
   ui_wx_menu_destroy(menu->menu);
   ui_wx_bar_destroy(menu->bar);
-  lv_group_del(menu->group);
   mem_free(menu);
 }
