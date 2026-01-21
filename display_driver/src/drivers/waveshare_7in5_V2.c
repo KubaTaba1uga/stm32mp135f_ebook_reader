@@ -669,7 +669,7 @@ static dd_error_t dd_driver_wvs75v2_write_part(void *dd, unsigned char *buf,
   /* DD_TRY(dd_errno); */
   /* dd_driver_wvs75v2_ops_power_off(wvs); */
   /* DD_TRY(dd_errno); */
-  
+
   dd_driver_wvs75v2_ops_power_on_part(wvs);
   DD_TRY(dd_errno);
   dd_errno =
@@ -708,8 +708,26 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_IN);
   DD_TRY(dd_errno);
 
+  double w, h;
+  w = ((x2 - x1) % 8 == 0) ? ((x2 - x1) / 8) : ((x2 - x1) / 8 + 1);
+  h = y2 - y1;
+  
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_WINDOW);
   DD_TRY(dd_errno);
+  /* dd_errno = dd_wvs75v2_send_data(dd, */
+  /*                                 (uint8_t[]){ */
+  /*                                     x1 / 256, */
+  /*                                     x1 % 256, */
+  /*                                     x2 / 256, */
+  /*                                     (x2-1) % 256, */
+  /*                                     y1 / 256, */
+  /*                                     y1 % 256, */
+  /*                                     y2 / 256, */
+  /*                                     (y2-1) % 256, */
+  /*                                     0x01, */
+  /*                                 }, */
+  /*                                 9); */
+  
   dd_errno = dd_wvs75v2_send_data(dd,
                                   (uint8_t[]){
                                       x1 / 256,
@@ -725,36 +743,20 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
                                   9);
   DD_TRY(dd_errno);
 
+
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY(dd_errno);
 
-  unsigned char chunk[1024] = {0};
-  for (int i = 0; i < buf_len; i += sizeof(chunk)) {
-    int chunk_size = sizeof(chunk);
-    if (i + chunk_size > buf_len) {
-      chunk_size = buf_len - i;
-    }
-    for (int chunk_i = 0; chunk_i < chunk_size; chunk_i++) {
-      chunk[chunk_i] = (*(buf + i + chunk_i));
-    }
-
-    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
+  for (int i = 0; i < w*h; i++) {
+    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){0xFF}, 1);
     DD_TRY(dd_errno);
   }
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY(dd_errno);
-  for (int i = 0; i < buf_len; i += sizeof(chunk)) {
-    int chunk_size = sizeof(chunk);
-    if (i + chunk_size > buf_len) {
-      chunk_size = buf_len - i;
-    }
-
-    for (int chunk_i = 0; chunk_i < chunk_size; chunk_i++) {
-      chunk[chunk_i] = ~(*(buf + i + chunk_i));
-    }
-
-    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
+  
+  for (int i = 0; i < w*h; i++) {
+    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){~buf[i]}, 1);
     DD_TRY(dd_errno);
   }
 
