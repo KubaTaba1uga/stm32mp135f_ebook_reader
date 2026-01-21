@@ -15,4 +15,4 @@ ebook_reader/subprojects/openjpeg-2.5.4
 ebook_reader/subprojects/cmake_poppler
 ebook_reader/subprojects/poppler/include/*
 old*
-
+docs/.$ebook_reader_fsm.drawio.bkp

@@ -186,11 +186,11 @@ error_out:
 }
 
 static void dd_wvs75v2_wait(struct dd_Wvs75v2 *display) {
-  puts("Busy waiting");
+  /* puts("Busy waiting"); */
   while (dd_gpio_read_pin(display->bsy, &display->gpio) != dd_Wvs75v2Bsy_IDLE) {
     dd_sleep_ms(10);
   }
-  puts("Waiting done");
+  /* puts("Waiting done"); */
 }
 
 static void dd_driver_wvs75v2_remove(void *dd) {

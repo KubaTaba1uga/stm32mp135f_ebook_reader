@@ -33,7 +33,7 @@ index 000000000..6f5175f28
 + *====================*/
 +
 +/** Color depth: 1 (I1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888) */
-+#if EBK_DISPLAY_WVS7IN5V2B == 1
++#if EBK_DISPLAY_WVS7IN5V2 == 1 || EBK_DISPLAY_WVS7IN5V2B == 1
 +#define LV_COLOR_DEPTH 1
 +#elif EBK_DISPLAY_X11 == 1
 +#define LV_COLOR_DEPTH 24
@@ -1334,7 +1334,7 @@ index 000000000..6f5175f28
 +#endif /*LV_USE_LOVYAN_GFX*/
 +
 +/** Driver for evdev input devices */
-+#define LV_USE_EVDEV    0
++#define LV_USE_EVDEV    1
 +
 +/** Driver for libinput input devices */
 +#define LV_USE_LIBINPUT    0
