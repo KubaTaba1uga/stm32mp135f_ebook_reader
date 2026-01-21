@@ -46,7 +46,7 @@ static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
   assert(ctx->book_api != NULL);
 
   app_module_menu_t menu = module;
-
+  
   menu->blist = book_api_find_books(ctx->book_api);
   menu->current_book_i = 0;
   menu->ui = ctx->ui;
