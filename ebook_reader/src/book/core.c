@@ -86,7 +86,6 @@ books_list_t book_api_find_books(book_api_t api) {
       .owner = api,
   };
 
-
   books_dir = opendir(settings_books_dir);
   if (!books_dir) {
     err_o = err_errnof(errno, "Cannot open directory: %s", books_dir);
@@ -103,7 +102,6 @@ books_list_t book_api_find_books(book_api_t api) {
       continue;
     };
 
-    
     int bytes =
         snprintf(NULL, 0, "%s/%s", settings_books_dir, dirent->d_name) + 1;
     char *file_path = mem_malloc(bytes);
