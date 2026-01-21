@@ -712,19 +712,22 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   DD_TRY(dd_errno);
 
   // The displays expect full byte so we cut all missaligned data.
-  if (x1 % 8 != 0) {
-    x1 -= x1 % 8;
-  }
-  if (x2 % 8 != 0) {
-    x2 -= x2 % 8;
-  }
-  if (y1 % 8 != 0) {
-    y1 -= y1 % 8;
-  }
-  if (y2 % 8 != 0) {
-    y2 -= y2 % 8;
-  }
+  /* if (x1 % 8 != 0) { */
+  /*   x1 -= x1 % 8; */
+  /* } */
+  /* if (x2 % 8 != 0) { */
+  /*   x2 -= x2 % 8; */
+  /* } */
+  /* if (y1 % 8 != 0) { */
+  /*   y1 -= y1 % 8; */
+  /* } */
+  /* if (y2 % 8 != 0) { */
+  /*   y2 -= y2 % 8; */
+  /* } */
 
+
+  int w = x2 - x1;
+  int h = y2 - y1;  
   
   dd_errno = dd_wvs75v2_send_data(dd,
                                   (uint8_t[]){
@@ -744,7 +747,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY(dd_errno);
 
-  for (int i = 0; i < buf_len; i++) {
+  for (int i = 0; i < w*h/8; i++) {
     dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){~buf[i]}, 1);
     DD_TRY(dd_errno);
   }
@@ -752,7 +755,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY(dd_errno);
 
-  for (int i = 0; i < buf_len; i++) {
+  for (int i = 0; i < w*h/8; i++) {
     dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){buf[i]}, 1);
     DD_TRY(dd_errno);
   }
