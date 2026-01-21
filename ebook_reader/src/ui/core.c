@@ -45,13 +45,31 @@ err_t ui_create(ui_t *out,
   err_o = ui_display_init(&ui->display, ui, settings_display_model);
   ERR_TRY(err_o);
 
-  /* err_o = ui_display_show_boot_img(ui->display, settings_boot_screen_path); */
-  /* ERR_TRY_CATCH(err_o, error_display_cleanup); */
+  FILE *boot_screen_fd = fopen(settings_boot_screen_path, "r");
+  if (!boot_screen_fd) {
+    err_o = err_errnof(ENOENT, "File does not exist: %s",
+                       settings_boot_screen_path);
+    goto error_display_cleanup;
+  }
+
+  unsigned char *img_buf = mem_malloc(48000 + 8);
+  const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
+  if (ret_code != 48000) {
+    err_o = err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
+    goto error_boot_screen_cleanup;
+  }
+  fclose(boot_screen_fd);
+
+  err_o = ui_display_render(&ui->display, img_buf, 48000);
+  ERR_TRY_CATCH(err_o, error_boot_screen_cleanup);
+  mem_free(img_buf);
 
   return 0;
 
-/* error_display_cleanup: */
-/*   ui_display_destroy(&ui->display); */
+error_boot_screen_cleanup:
+  mem_free(img_buf);
+error_display_cleanup:
+  ui_display_destroy(&ui->display);
 error_out:
   mem_free(*out);
   *out = NULL;
@@ -59,7 +77,6 @@ error_out:
 }
 
 int ui_tick(ui_t ui) {
-  puts(__func__);
   (void)lv_timer_handler();
   return 1000;
 };
@@ -91,10 +108,8 @@ error_out:
 void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
 
 void ui_panic(ui_t ui) {
-  puts(__func__);
   ui_display_panic(&ui->display);
 };
-
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);

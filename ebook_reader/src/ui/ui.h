@@ -21,6 +21,7 @@ err_t ui_create(ui_t *out,
               void *data);
 int ui_tick(ui_t ui);
 void ui_destroy(ui_t *out);
+
 /**
    When system crashes we need to do smallest possible
    cleanup available in ui. Mainly to reset display driver
@@ -28,10 +29,12 @@ void ui_destroy(ui_t *out);
    if not changed for long period of time.
 */
 void ui_panic(ui_t ui);
+
 /**
    @brief Create menu screen.
 */
 err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
+
 /**
    @brief Delete menu screen.
 */

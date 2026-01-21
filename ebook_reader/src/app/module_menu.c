@@ -80,7 +80,6 @@ static void app_module_menu_close(void *module) {
 };
 
 static void app_module_menu_destroy(void *module) {
-  puts(__func__);
   app_module_menu_close(module);
   mem_free(module);
 };

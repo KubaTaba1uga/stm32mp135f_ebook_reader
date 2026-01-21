@@ -25,7 +25,6 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
                             int book_i, int event,
                             void (*event_cb)(lv_event_t *e),
                             lv_group_t *group) {
-  puts(__func__);
   ui_wx_bar_t bar = ui_wx_bar_create();
   if (!bar) {
     err_o = err_errnos(EINVAL, "Cannot create bar widget");

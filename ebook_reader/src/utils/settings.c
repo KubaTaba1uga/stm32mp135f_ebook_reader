@@ -34,5 +34,5 @@
 const enum DisplayModelEnum settings_display_model = EBK_DISPLAY_MODEL;
 const char *settings_boot_screen_path =
     EBK_DISPLAY_BOOT_SCREEN_PATH;
-const char *settings_books_dir = "/mnt/sdcard/";
+const char *settings_books_dir = "/mnt/sdcard";
 const char *settings_input_path = "/dev/input/event0";

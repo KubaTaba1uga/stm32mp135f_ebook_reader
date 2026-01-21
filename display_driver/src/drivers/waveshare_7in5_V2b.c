@@ -668,10 +668,10 @@ error_out:
 }
 
 static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *display) {
-  puts("Busy waiting");
+  /* puts("Busy waiting"); */
   while (dd_gpio_read_pin(display->bsy, &display->gpio) !=
          dd_Wvs75V2bBsy_IDLE) {
     dd_sleep_ms(10);
   }
-  puts("Waiting done");
+  /* puts("Waiting done"); */
 }

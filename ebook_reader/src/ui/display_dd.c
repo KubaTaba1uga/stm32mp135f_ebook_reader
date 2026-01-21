@@ -1,3 +1,15 @@
+#if !EBK_DISPLAY_WVS7IN5V2 && !EBK_DISPLAY_WVS7IN5V2B
+#include <assert.h>
+#include <display_driver.h>
+#include <stdint.h>
+
+#include "ui/display.h"
+
+err_t ui_display_dd_init(ui_display_t __, ui_t ___) {
+  return err_errnos(EINVAL, "Generic display driver is not supported!");
+};
+
+#else
 #include <assert.h>
 #include <display_driver.h>
 #include <stdint.h>
@@ -8,11 +20,6 @@
 #include "utils/mem.h"
 #include "utils/settings.h"
 
-#if !EBK_DISPLAY_WVS7IN5V2 && !EBK_DISPLAY_WVS7IN5V2B
-err_t ui_display_dd_init(ui_display_t *__, ui_t ___) {
-  return err_errnos(EINVAL, "DD is not supported!");
-};
-#else
 
 #define ERR_FROM_DD(err)                                                       \
   err_errnos(dd_error_get_code(err), dd_error_get_msg(err))

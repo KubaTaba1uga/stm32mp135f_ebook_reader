@@ -100,7 +100,6 @@ static const char *book_module_pdf_book_get_title(book_t book) {
 
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
                                                                int x, int y) {
-  puts(__func__);
   pdf_book_t pdf_book = book->private;
   if (pdf_book->thumbnail) {
     return pdf_book->thumbnail;

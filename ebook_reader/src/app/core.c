@@ -284,7 +284,6 @@ void app_panic(app_t app) { ui_panic(app->ctx.ui); }
 
 static void app_input_callback(enum UiInputEventEnum event, void *data,
                                void *arg) {
-  puts(__func__);
   static enum AppEventEnum gui_input_ev_table[] = {
       [UiInputEventEnum_UP] = AppEventEnum_BTN_UP,
       [UiInputEventEnum_DOWN] = AppEventEnum_BTN_DOWN,

@@ -2,8 +2,6 @@
 #include <lvgl.h>
 #include <stdint.h>
 
-#include "display/lv_display.h"
-#include "indev/lv_indev.h"
 #include "ui/display.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -27,11 +25,15 @@ error_out:
 
 err_t ui_display_render(ui_display_t display, unsigned char *buf,
                         uint32_t buf_len) {
-  assert(display->render != NULL); // Wevery display need render
+
+  if (!display->render) {
+    goto out;
+  }
 
   err_o = display->render(display->owner, buf, buf_len);
   ERR_TRY(err_o);
 
+ out:  
   return 0;
 
 error_out:
@@ -44,9 +46,7 @@ void ui_display_destroy(ui_display_t display) {
   }
   if (display->lv_ingroup) {
     lv_group_delete(display->lv_ingroup);
-  }
-  
-  
+  }  
 }
 
 void ui_display_panic(ui_display_t display) {
