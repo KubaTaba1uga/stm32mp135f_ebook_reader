@@ -88,6 +88,19 @@ if get_option('examples') == 'stm'
      include_directories: display_driver_inc,
      dependencies: display_driver_dep,
    )
+
+   stm_part_example = executable('stm_display_part_example',
+     sources: display_driver_src + [files('examples/stm32mp135f/stm_display_part_example.c')],
+     include_directories: display_driver_inc,
+     dependencies: display_driver_dep,
+   )
+
+   stm_part_img_example = executable('stm_display_part_picture_example',
+     sources: display_driver_src + [files('examples/stm32mp135f/stm_display_part_picture_example.c')],
+     include_directories: display_driver_inc,
+     dependencies: display_driver_dep,
+   )
+
 endif
 
 # ******************************************************************************
