@@ -27,6 +27,7 @@ err_t ui_display_dd_init(ui_display_t __, ui_t ___) {
 typedef struct UiDisplayDD *ui_display_dd_t;
 
 struct UiDisplayDD {
+  dd_error_t (*write)(dd_display_driver_t, unsigned char *, uint32_t);
   dd_display_driver_t dd;
   ui_display_t display;
   struct {
@@ -39,8 +40,6 @@ static int ui_dd_color_format = LV_COLOR_FORMAT_I1;
 
 static void ui_display_dd_flush_callback(lv_display_t *, const lv_area_t *,
                                          uint8_t *);
-static void ui_display_dd_flush_callback_partial(lv_display_t *,
-                                                 const lv_area_t *, uint8_t *);
 static err_t ui_display_dd_render(void *, unsigned char *, uint32_t);
 static void ui_display_dd_destroy(void *);
 static void ui_display_dd_panic(void *);
@@ -59,6 +58,7 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
 
   switch (settings_display_model) {
   case DisplayModelEnum_WVS7IN5V2:
+    ui_dd->write = dd_display_driver_write_fast;
     dd_err = dd_display_driver_init(
         &ui_dd->dd, dd_DisplayDriverEnum_Wvs7in5V2,
         &(struct dd_Wvs75V2Config){
@@ -92,6 +92,10 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
     break;
   default:
     assert(false);
+  }
+
+  if (ui_dd->write == NULL) {
+    ui_dd->write = dd_display_driver_write;
   }
 
   lv_disp = lv_display_create(dd_display_driver_get_x(ui_dd->dd),
@@ -140,10 +144,9 @@ static void ui_display_dd_flush_callback(lv_display_t *display,
                                          uint8_t *px_map) {
   ui_display_dd_t ui_dd = lv_display_get_driver_data(display);
 
-  dd_error_t dd_err =
-      dd_display_driver_write(ui_dd->dd, px_map + 8,
-                              dd_display_driver_get_x(ui_dd->dd) *
-                                  dd_display_driver_get_y(ui_dd->dd) / 8);
+  dd_error_t dd_err = ui_dd->write(ui_dd->dd, px_map + 8,
+                                   dd_display_driver_get_x(ui_dd->dd) *
+                                       dd_display_driver_get_y(ui_dd->dd) / 8);
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);
     goto error_out;
@@ -167,7 +170,7 @@ static void ui_display_dd_destroy(void *display) {
 static err_t ui_display_dd_render(void *display, unsigned char *buf,
                                   uint32_t len) {
   ui_display_dd_t ui_dd = display;
-  dd_error_t dd_err = dd_display_driver_write(ui_dd->dd, buf, len);
+  dd_error_t dd_err = ui_dd->write(ui_dd->dd, buf, len);
 
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);

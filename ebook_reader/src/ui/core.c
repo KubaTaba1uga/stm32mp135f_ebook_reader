@@ -77,8 +77,10 @@ error_out:
 }
 
 int ui_tick(ui_t ui) {
-  (void)lv_timer_handler();
-  return 1000;
+  int time = lv_timer_handler();
+  return time;
+  /* (void)  time; */
+  /* return 1000; */
 };
 
 void ui_destroy(ui_t *out) {

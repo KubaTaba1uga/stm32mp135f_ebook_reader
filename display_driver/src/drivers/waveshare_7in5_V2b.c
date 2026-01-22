@@ -63,7 +63,7 @@ struct dd_Wvs75V2b {
 typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
 
 
-static dd_error_t dd_wvs75v2b_write(void *, unsigned char *, uint32_t);
+static dd_error_t dd_wvs75v2b_write(void *, unsigned char *, int);
 static dd_error_t dd_wvs75v2b_clear(void *, bool);
 static void dd_wvs75v2b_remove(void *);
 static dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t);
@@ -71,7 +71,7 @@ static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t);
 static dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t);
 static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t, bool);
 static dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t, unsigned char *,
-                                               uint32_t);
+                                               int);
 
 dd_error_t dd_driver_wvs7in5v2b_init(dd_display_driver_t out, void *config) {
   struct dd_Wvs75V2b *wvs = dd_malloc(sizeof(struct dd_Wvs75V2b));
@@ -164,7 +164,7 @@ error_out:
 
 // Write buf to screen with full refresh.
 static dd_error_t dd_wvs75v2b_write(void *dd, unsigned char *buf,
-                                    uint32_t buf_len) {
+                                    int buf_len) {
   dd_wvs75v2b_t driver_data = dd;
   dd_wvs75v2b_ops_power_on(driver_data);
   DD_TRY(dd_errno);
@@ -215,7 +215,7 @@ error_out:
 }
 
 static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *dd, uint8_t *data,
-                                        uint32_t len) {
+                                        int len) {
   dd_errno = dd_gpio_set_pin(dd_Wvs75V2bDc_DATA, dd->dc, &dd->gpio);
   DD_TRY(dd_errno);
 
@@ -449,7 +449,7 @@ error_out:
 
 static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
                                          int heigth, unsigned char *buf,
-                                         uint32_t buf_len) {
+                                         int buf_len) {
   int dst_i = 0;
   int v;
 
@@ -466,7 +466,7 @@ static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
 
 static dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t dd,
                                                unsigned char *buf,
-                                               uint32_t buf_len) {
+                                               int buf_len) {
   puts(__func__);
   if (dd->is_rotated) {
     buf = dd_wvs75v2b_rotate(dd, DD_WVS75V2B_HEIGTH, DD_WVS75V2B_WIDTH, buf,
