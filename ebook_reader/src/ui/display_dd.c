@@ -40,6 +40,8 @@ static int ui_dd_color_format = LV_COLOR_FORMAT_I1;
 
 static void ui_display_dd_flush_callback(lv_display_t *, const lv_area_t *,
                                          uint8_t *);
+static void ui_display_dd_flush_callback_partial(lv_display_t *,
+                                                 const lv_area_t *, uint8_t *);
 static err_t ui_display_dd_render(void *, unsigned char *, uint32_t);
 static void ui_display_dd_destroy(void *);
 static void ui_display_dd_panic(void *);
