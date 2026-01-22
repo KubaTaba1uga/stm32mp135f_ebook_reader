@@ -83,9 +83,10 @@ struct dd_Wvs75v2 {
   unsigned char *rotation_buf;
 };
 
-static dd_error_t dd_driver_wvs75v2_write_part(void *, unsigned char *,
-                                               uint32_t, int, int, int, int);
-static dd_error_t dd_driver_wvs75v2_write(void *, unsigned char *, uint32_t);
+static dd_error_t dd_driver_wvs75v2_write_part(void *, unsigned char *, int,
+                                               int, int, int, int);
+static dd_error_t dd_driver_wvs75v2_write_fast(void *, unsigned char *, int);
+static dd_error_t dd_driver_wvs75v2_write(void *, unsigned char *, int);
 static dd_error_t dd_driver_wvs75v2_clear(void *, bool);
 static void dd_driver_wvs75v2_remove(void *);
 static dd_error_t dd_driver_wvs75v2_ops_reset(dd_wvs75v2_t);
@@ -93,11 +94,10 @@ static dd_error_t dd_driver_wvs75v2_ops_power_on(dd_wvs75v2_t);
 static dd_error_t dd_driver_wvs75v2_ops_power_off(dd_wvs75v2_t);
 static dd_error_t dd_driver_wvs75v2_ops_clear(dd_wvs75v2_t, bool);
 static dd_error_t dd_driver_wvs75v2_ops_display_full(dd_wvs75v2_t,
-                                                     unsigned char *, uint32_t);
+                                                     unsigned char *, int);
 static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t,
-                                                        unsigned char *,
-                                                        uint32_t, int, int, int,
-                                                        int);
+                                                        unsigned char *, int,
+                                                        int, int, int, int);
 
 dd_error_t dd_driver_wvs7in5v2_init(dd_display_driver_t out, void *config) {
   dd_wvs75v2_t wvs = dd_malloc(sizeof(struct dd_Wvs75v2));
@@ -146,9 +146,10 @@ dd_error_t dd_driver_wvs7in5v2_init(dd_display_driver_t out, void *config) {
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
   *out = (struct dd_DisplayDriver){
-      .write_part = dd_driver_wvs75v2_write_part,
-      .destroy = dd_driver_wvs75v2_remove,
-      .write = dd_driver_wvs75v2_write,
+    .write_fast = dd_driver_wvs75v2_write_fast,
+    .write_part = dd_driver_wvs75v2_write_part,
+    .destroy = dd_driver_wvs75v2_remove,
+    .write = dd_driver_wvs75v2_write,
       .clear = dd_driver_wvs75v2_clear,
       .driver_data = wvs,
       .stride = stride,
@@ -187,7 +188,7 @@ error_out:
 }
 
 static dd_error_t dd_driver_wvs75v2_write(void *dd, unsigned char *buf,
-                                          uint32_t buf_len) {
+                                          int buf_len) {
   dd_wvs75v2_t wvs = dd;
   dd_driver_wvs75v2_ops_power_on(wvs);
   DD_TRY(dd_errno);
@@ -467,7 +468,7 @@ static unsigned char *dd_wvs75v2_rotate(dd_wvs75v2_t dd, int width, int heigth,
 
 static dd_error_t dd_driver_wvs75v2_ops_display_full(dd_wvs75v2_t dd,
                                                      unsigned char *buf,
-                                                     uint32_t buf_len) {
+                                                     int buf_len) {
   if (dd->is_rotated) {
     buf = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH, buf,
                             buf_len);
@@ -577,7 +578,7 @@ error_out:
 }
 
 static dd_error_t dd_driver_wvs75v2_write_part(void *dd, unsigned char *buf,
-                                               uint32_t buf_len, int x1, int x2,
+                                               int buf_len, int x1, int x2,
                                                int y1, int y2) {
   dd_wvs75v2_t wvs = dd;
 
@@ -601,13 +602,13 @@ error_out:
 /**
    @todo Rotation out of the box does not work with partial. We need to adjust
          rotate func to use it in the app. However i noticed during tests that
-         partial leaves a lot of shadows, it may be trhe case that shadowing
+         partial leaves a lot of shadows, it may be the case that shadowing
          in such big degree disqualifies partial usage in this display.
   */
 static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
                                                         unsigned char *buf,
-                                                        uint32_t buf_len,
-                                                        int x1, int x2, int y1,
+                                                        int buf_len, int x1,
+                                                        int x2, int y1,
                                                         int y2) {
   puts(__func__);
 
@@ -616,7 +617,6 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
         dd_errnos(EINVAL, "Rotation is not supported in partial display");
     goto error_out;
   }
-  
 
   dd_errno =
       dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_VCOM_AND_DATA_INTERVAL_SETTING);
@@ -635,12 +635,12 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_WINDOW);
   DD_TRY(dd_errno);
 
-
   /**
      Not all pictures are 8bit aligned, think about 150x100 image it can't be
      aligned to byte without changing img content. If we change 150 to 144
      we need to repack bits as if the image were actually 144 bits wide.
-     It is actual problem for this display but it is not problem for lvgl.
+     It is actual problem for this display but it is not problem for lvgl as
+     lvgl respect byte stride.
   */
   dd_errno = dd_wvs75v2_send_data(dd,
                                   (uint8_t[]){
@@ -681,5 +681,104 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
 
 error_out:
   dd_driver_wvs75v2_ops_reset(dd);
+  return dd_errno;
+}
+
+static dd_error_t dd_driver_wvs75v2_ops_power_on_fast(dd_wvs75v2_t dd) {
+  if (dd_gpio_read_pin(dd->pwr, &dd->gpio) != 1) {
+    dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
+    DD_TRY(dd_errno);
+    dd_sleep_ms(200);
+  }
+
+  dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
+  DD_TRY(dd_errno);
+  dd_sleep_ms(200);
+
+  dd_errno = dd_driver_wvs75v2_ops_reset(dd);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PANEL_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x1F,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno =
+      dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_VCOM_AND_DATA_INTERVAL_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x10,
+                                      0x07,
+                                  },
+                                  2);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_POWER_ON);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_sleep_ms(100);
+  dd_wvs75v2_wait(dd);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_BOOSTER_SOFT_START);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  // I'm not sure what this part does but it is in mainline driver
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x27,
+                                      0x27,
+                                      0x18,
+                                      0x17,
+                                  },
+                                  4);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_CASCADE_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x02,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_FLASH_MODE);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x5A,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_wvs75v2_wait(dd);
+
+  return 0;
+
+error_dd_cleanup:
+  dd_driver_wvs75v2_ops_reset(dd);
+error_out:
+  return dd_errno;
+}
+
+static dd_error_t dd_driver_wvs75v2_write_fast(void *dd, unsigned char *buf,
+                                               int buf_len) {
+  dd_wvs75v2_t wvs = dd;
+
+  dd_driver_wvs75v2_ops_power_on_fast(wvs);
+  DD_TRY(dd_errno);
+  dd_errno = dd_driver_wvs75v2_ops_display_full(wvs, buf, buf_len);
+  DD_TRY_CATCH(dd_errno, error_wvs75v2_cleanup);
+
+  dd_driver_wvs75v2_ops_power_off(wvs);
+  DD_TRY(dd_errno);
+
+  return 0;
+
+error_wvs75v2_cleanup:
+  dd_driver_wvs75v2_ops_power_off(wvs);
+error_out:
   return dd_errno;
 }
