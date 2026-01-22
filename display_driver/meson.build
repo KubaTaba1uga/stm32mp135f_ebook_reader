@@ -101,6 +101,11 @@ if get_option('examples') == 'stm'
      dependencies: display_driver_dep,
    )
 
+   stm_fast_example = executable('stm_display_fast_example',
+     sources: display_driver_src + [files('examples/stm32mp135f/stm_display_fast_example.c')],
+     include_directories: display_driver_inc,
+     dependencies: display_driver_dep,
+   )
 endif
 
 # ******************************************************************************
