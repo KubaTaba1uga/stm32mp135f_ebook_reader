@@ -2,6 +2,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <threads.h>
 
 #include "display_driver.h"
@@ -391,85 +393,6 @@ error_out:
   return dd_errno;
 }
 
-static dd_error_t dd_driver_wvs75v2_ops_power_on_fast(dd_wvs75v2_t dd) {
-  if (dd_gpio_read_pin(dd->pwr, &dd->gpio) != 1) {
-    dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
-    DD_TRY(dd_errno);
-    dd_sleep_ms(200);
-  }
-
-  dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
-  DD_TRY(dd_errno);
-  dd_sleep_ms(200);
-
-  dd_errno = dd_driver_wvs75v2_ops_reset(dd);
-  DD_TRY(dd_errno);
-
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PANEL_SETTING);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75v2_send_data(dd,
-                                  (uint8_t[]){
-                                      0x1F,
-                                  },
-                                  1);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_errno =
-      dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_VCOM_AND_DATA_INTERVAL_SETTING);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75v2_send_data(dd,
-                                  (uint8_t[]){
-                                      0x10,
-                                      0x07,
-                                  },
-                                  2);
-
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_POWER_ON);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_sleep_ms(100);
-  dd_wvs75v2_wait(dd);
-
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_BOOSTER_SOFT_START);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  // I'm not sure what this part does but it is in mainline driver
-  dd_errno = dd_wvs75v2_send_data(dd,
-                                  (uint8_t[]){
-                                      0x27,
-                                      0x27,
-                                      0x18,
-                                      0x17,
-                                  },
-                                  4);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_CASCADE_SETTING);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75v2_send_data(dd,
-                                  (uint8_t[]){
-                                      0x02,
-                                  },
-                                  1);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_FLASH_MODE);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-  dd_errno = dd_wvs75v2_send_data(dd,
-                                  (uint8_t[]){
-                                      0x5A,
-                                  },
-                                  1);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_wvs75v2_wait(dd);
-
-  return 0;
-
-error_dd_cleanup:
-  dd_driver_wvs75v2_ops_reset(dd);
-error_out:
-  return dd_errno;
-}
-
 static dd_error_t dd_driver_wvs75v2_ops_clear(dd_wvs75v2_t dd, bool white) {
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
@@ -657,19 +580,6 @@ static dd_error_t dd_driver_wvs75v2_write_part(void *dd, unsigned char *buf,
                                                uint32_t buf_len, int x1, int x2,
                                                int y1, int y2) {
   dd_wvs75v2_t wvs = dd;
-  /* dd_driver_wvs75v2_ops_power_on(wvs); */
-  /* DD_TRY(dd_errno); */
-  /* dd_driver_wvs75v2_ops_clear(wvs, true); */
-  /* DD_TRY(dd_errno); */
-  /* dd_driver_wvs75v2_ops_power_off(wvs); */
-  /* DD_TRY(dd_errno); */
-  (void)dd_driver_wvs75v2_ops_power_on_fast;
-  /* dd_driver_wvs75v2_ops_power_on_fast(wvs); */
-  /* DD_TRY(dd_errno); */
-  /* dd_driver_wvs75v2_ops_clear(wvs, true); */
-  /* DD_TRY(dd_errno); */
-  /* dd_driver_wvs75v2_ops_power_off(wvs); */
-  /* DD_TRY(dd_errno); */
 
   dd_driver_wvs75v2_ops_power_on_part(wvs);
   DD_TRY(dd_errno);
@@ -688,12 +598,25 @@ error_out:
   return dd_errno;
 }
 
+/**
+   @todo Rotation out of the box does not work with partial. We need to adjust
+         rotate func to use it in the app. However i noticed during tests that
+         partial leaves a lot of shadows, it may be trhe case that shadowing
+         in such big degree disqualifies partial usage in this display.
+  */
 static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
                                                         unsigned char *buf,
                                                         uint32_t buf_len,
                                                         int x1, int x2, int y1,
                                                         int y2) {
   puts(__func__);
+
+  if (dd->is_rotated) {
+    dd_errno =
+        dd_errnos(EINVAL, "Rotation is not supported in partial display");
+    goto error_out;
+  }
+  
 
   dd_errno =
       dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_VCOM_AND_DATA_INTERVAL_SETTING);
@@ -712,86 +635,47 @@ static dd_error_t dd_driver_wvs75v2_ops_display_partial(dd_wvs75v2_t dd,
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PARTIAL_WINDOW);
   DD_TRY(dd_errno);
 
-  // The displays expect full byte so we cut all missaligned data.
-  /* if (x1 % 8 != 0) { */
-  /*   x1 -= x1 % 8; */
-  /* } */
-  /* if (x2 % 8 != 0) { */
-  /*   x2 -= x2 % 8; */
-  /* } */
-  /* if (y1 % 8 != 0) { */
-  /*   y1 -= y1 % 8; */
-  /* } */
-  /* if (y2 % 8 != 0) { */
-  /*   y2 -= y2 % 8; */
-  /* } */
 
-  /* int w = x2 - x1; */
-  /* int h = y2 - y1; */
+  /**
+     Not all pictures are 8bit aligned, think about 150x100 image it can't be
+     aligned to byte without changing img content. If we change 150 to 144
+     we need to repack bits as if the image were actually 144 bits wide.
+     It is actual problem for this display but it is not problem for lvgl.
+  */
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      x1 / 256,
+                                      x1 % 256,
+                                      (x2 - 1) / 256,
+                                      (x2 - 1) % 256,
+                                      y1 / 256,
+                                      y1 % 256,
+                                      (y2 - 1) / 256,
+                                      (y2 - 1) % 256,
+                                      0x01,
+                                  },
+                                  9);
+  DD_TRY(dd_errno);
 
-    dd_errno = dd_wvs75v2_send_data(dd,
-                                    (uint8_t[]){
-                                        x1 / 256,
-                                        x1 % 256,
-                                        (x2 - 1) / 256,
-                                        (x2 - 1) % 256,
-                                        y1 / 256,
-                                        y1 % 256,
-                                        (y2 - 1) / 256,
-                                        (y2 - 1) % 256,
-                                        0x01,
-                                    },
-                                    9);
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
+  DD_TRY(dd_errno);
+
+  for (int i = 0; i < buf_len; i++) {
+    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){~buf[i]}, 1);
     DD_TRY(dd_errno);
+  }
 
-    dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
+  DD_TRY(dd_errno);
+
+  for (int i = 0; i < buf_len; i++) {
+    dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){buf[i]}, 1);
     DD_TRY(dd_errno);
-
-    for (int i = 0; i < buf_len; i++) {
-      dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){~buf[i]}, 1);
-      DD_TRY(dd_errno);
-    }
-
-    dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
-    DD_TRY(dd_errno);
-
-    for (int i = 0; i < buf_len; i++) {
-      dd_errno = dd_wvs75v2_send_data(dd, (uint8_t[]){buf[i]}, 1);
-      DD_TRY(dd_errno);
-    }
-    dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
-    DD_TRY(dd_errno);
-    dd_sleep_ms(100);
-    dd_wvs75v2_wait(dd);
-
-
-  /* int Width, Height; */
-  /* Width =((x2 - x1) % 8 == 0)?((x2 - x1) / 8 ):((x2 - x1) / 8 + 1); */
-  /* Height = y2 - y1; */
-
-  /* dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1); */
-  /* DD_TRY(dd_errno); */
-
-  /* { */
-  /*   unsigned char new_buf[buf_len]; */
-  /*   for (int i=0;i<buf_len; i++) { */
-  /*     new_buf[i] = ~buf[i]; */
-  /* 	} */
-  /*   for (int i = 0; i < Height; i++) { */
-  /*     dd_errno = dd_wvs75v2_send_data(dd, new_buf + i*Width, Width); */
-  /*     DD_TRY(dd_errno); */
-  /*   } */
-  /* } */
-
-  /* dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2); */
-  /* DD_TRY(dd_errno);   */
-  /* { */
-  /*   for (int i = 0; i < Height; i++) { */
-
-  /*     dd_errno = dd_wvs75v2_send_data(dd, buf + i*Width, Width); */
-  /*     DD_TRY(dd_errno); */
-  /*   } */
-  /* } */
+  }
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
+  DD_TRY(dd_errno);
+  dd_sleep_ms(100);
+  dd_wvs75v2_wait(dd);
 
   return 0;
 

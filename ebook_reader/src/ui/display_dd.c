@@ -1,3 +1,4 @@
+#include "display/lv_display.h"
 #if !EBK_DISPLAY_WVS7IN5V2 && !EBK_DISPLAY_WVS7IN5V2B
 #include <assert.h>
 #include <display_driver.h>
@@ -20,7 +21,6 @@ err_t ui_display_dd_init(ui_display_t __, ui_t ___) {
 #include "utils/mem.h"
 #include "utils/settings.h"
 
-
 #define ERR_FROM_DD(err)                                                       \
   err_errnos(dd_error_get_code(err), dd_error_get_msg(err))
 
@@ -39,6 +39,8 @@ static int ui_dd_color_format = LV_COLOR_FORMAT_I1;
 
 static void ui_display_dd_flush_callback(lv_display_t *, const lv_area_t *,
                                          uint8_t *);
+static void ui_display_dd_flush_callback_partial(lv_display_t *,
+                                                 const lv_area_t *, uint8_t *);
 static err_t ui_display_dd_render(void *, unsigned char *, uint32_t);
 static void ui_display_dd_destroy(void *);
 static void ui_display_dd_panic(void *);
@@ -113,7 +115,6 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
   lv_display_set_flush_cb(lv_disp, ui_display_dd_flush_callback);
   lv_display_set_buffers(lv_disp, ui_dd->render.buf, NULL, ui_dd->render.len,
                          LV_DISPLAY_RENDER_MODE_FULL);
-
   *ui_display = (struct UiDisplay){
       .render = ui_display_dd_render,
       .destroy = ui_display_dd_destroy,
@@ -138,11 +139,11 @@ static void ui_display_dd_flush_callback(lv_display_t *display,
                                          const lv_area_t *area,
                                          uint8_t *px_map) {
   ui_display_dd_t ui_dd = lv_display_get_driver_data(display);
+
   dd_error_t dd_err =
       dd_display_driver_write(ui_dd->dd, px_map + 8,
                               dd_display_driver_get_x(ui_dd->dd) *
                                   dd_display_driver_get_y(ui_dd->dd) / 8);
-
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);
     goto error_out;

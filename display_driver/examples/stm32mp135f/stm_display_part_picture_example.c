@@ -7,6 +7,8 @@
 #include "board.h"
 #include "display_driver.h"
 #include "penguin100x150.h"
+#include "penguin160x120.h"
+#include "penguin150x120.h"
 #include "penguin150x100.h"
 #include "penguin256x256.h"
 
@@ -29,6 +31,16 @@ int main(int argc, char *argv[]) {
       buf_len = sizeof(penguin150x100);
       x = 150;
       y = 100;
+    } else if (strcmp(argv[i], "--160x120") == 0) {
+      buf = (unsigned char *)penguin160x120;
+      buf_len = sizeof(penguin160x120);
+      x = 160;
+      y = 120;
+    } else if (strcmp(argv[i], "--150x120") == 0) {
+      buf = (unsigned char *)penguin150x120;
+      buf_len = sizeof(penguin150x120);
+      x = 150;
+      y = 120;
     } 
     else {
       fprintf(stderr, "Unknown option: %s\n", argv[i]);
@@ -45,7 +57,10 @@ int main(int argc, char *argv[]) {
   puts("Working");
 
   int bytes_per_row = (x + 7) / 8;
-  buf_len = bytes_per_row * y;
+  int new_buf_len = bytes_per_row * y;
+
+  printf("Actual size=%d\n", buf_len);
+  printf("Counted size=%d\n", new_buf_len);  
   
   err =  dd_display_driver_write_partial(dd, buf, buf_len, 0, x, 0, y);
   if (err) {
