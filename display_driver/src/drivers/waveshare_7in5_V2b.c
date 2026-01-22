@@ -8,6 +8,7 @@
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
+#include "utils/graphic.h"
 
 #define DD_WVS75V2B_WIDTH 800
 #define DD_WVS75V2B_HEIGTH 480
@@ -61,33 +62,20 @@ struct dd_Wvs75V2b {
 
 typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
 
-static void dd_wvs75v2b_remove(void *);
-static dd_error_t dd_wvs75v2b_clear(void *, bool);
+
 static dd_error_t dd_wvs75v2b_write(void *, unsigned char *, uint32_t);
-static dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t, const char *, int);
-static dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t, const char *, int);
-static dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t, const char *, int);
-static dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t, const char *, int);
-static dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t, const char *);
+static dd_error_t dd_wvs75v2b_clear(void *, bool);
+static void dd_wvs75v2b_remove(void *);
 static dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t);
 static dd_error_t dd_wvs75v2b_ops_power_on(dd_wvs75v2b_t);
-static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t, bool);
 static dd_error_t dd_wvs75v2b_ops_power_off(dd_wvs75v2b_t);
-static int dd_wvs75v2b_get_bit(int, unsigned char *, uint32_t);
-static void dd_wvs75v2b_set_bit(int, int, unsigned char *, uint32_t);
-static int dd_wvs75v2b_get_pixel(int, int, int, unsigned char *, uint32_t);
-static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t, int, int,
-                                         unsigned char *, uint32_t);
+static dd_error_t dd_wvs75v2b_ops_clear(dd_wvs75v2b_t, bool);
 static dd_error_t dd_wvs75v2b_ops_display_full(dd_wvs75v2b_t, unsigned char *,
                                                uint32_t);
-static dd_error_t dd_wvs75v2b_send_cmd(struct dd_Wvs75V2b *, uint8_t);
-static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *, uint8_t *,
-                                        uint32_t);
-static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *);
 
-dd_error_t dd_driver_wvs7in5v2b_create(dd_display_driver_t *out, void *config) {
-  struct dd_Wvs75V2b *driver_data = dd_malloc(sizeof(struct dd_Wvs75V2b));
-  *driver_data = (struct dd_Wvs75V2b){0};
+dd_error_t dd_driver_wvs7in5v2b_init(dd_display_driver_t out, void *config) {
+  struct dd_Wvs75V2b *wvs = dd_malloc(sizeof(struct dd_Wvs75V2b));
+  *wvs = (struct dd_Wvs75V2b){0};
 
   struct dd_Wvs75V2bConfig *conf = config;
   int stride = 800 / 8;
@@ -97,43 +85,60 @@ dd_error_t dd_driver_wvs7in5v2b_create(dd_display_driver_t *out, void *config) {
     stride = 480 / 8;
     x = 480;
     y = 800;
-    driver_data->is_rotated = true;
+    wvs->is_rotated = true;
   }
 
-  dd_errno = dd_gpio_init(&driver_data->gpio);
+  dd_errno = dd_gpio_init(&wvs->gpio);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_spi_init(conf->spi.spidev_path, &wvs->spi);
+  DD_TRY_CATCH(dd_errno, error_gpio_cleanup);
+
+  dd_errno = dd_gpio_add_pin(conf->dc.gpio_chip_path, conf->dc.pin_no, &wvs->dc,
+                             &wvs->gpio);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_gpio_set_pin_output(wvs->dc, true);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  dd_errno = dd_wvs75v2b_set_up_gpio_dc(driver_data, conf->dc.gpio_chip_path,
-                                        conf->dc.pin_no);
+  dd_errno = dd_gpio_add_pin(conf->rst.gpio_chip_path, conf->rst.pin_no,
+                             &wvs->rst, &wvs->gpio);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_gpio_set_pin_output(wvs->rst, false);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  dd_errno = dd_wvs75v2b_set_up_gpio_rst(driver_data, conf->rst.gpio_chip_path,
-                                         conf->rst.pin_no);
+  dd_errno = dd_gpio_add_pin(conf->bsy.gpio_chip_path, conf->bsy.pin_no,
+                             &wvs->bsy, &wvs->gpio);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_gpio_set_pin_input(wvs->bsy);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  dd_errno = dd_wvs75v2b_set_up_gpio_bsy(driver_data, conf->bsy.gpio_chip_path,
-                                         conf->bsy.pin_no);
+  dd_errno = dd_gpio_add_pin(conf->pwr.gpio_chip_path, conf->pwr.pin_no,
+                             &wvs->pwr, &wvs->gpio);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_gpio_set_pin_output(wvs->pwr, true);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  dd_errno = dd_wvs75v2b_set_up_gpio_pwr(driver_data, conf->pwr.gpio_chip_path,
-                                         conf->pwr.pin_no);
+  dd_errno = dd_wvs75v2b_ops_reset(wvs);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
-  dd_errno = dd_wvs75v2b_set_up_spi_master(driver_data, conf->spi.spidev_path);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_errno = dd_wvs75v2b_ops_reset(driver_data);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
-
-  dd_errno =
-      dd_driver_create(out, x, y, stride, dd_wvs75v2b_remove, dd_wvs75v2b_clear,
-                       dd_wvs75v2b_write, driver_data);
-  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  *out = (struct dd_DisplayDriver){
+      .write = dd_wvs75v2b_write,
+      .clear = dd_wvs75v2b_clear,
+      .destroy = dd_wvs75v2b_remove,
+      .driver_data = wvs,
+      .stride = stride,
+      .x = x,
+      .y = y,
+  };
 
   return 0;
 
 error_dd_cleanup:
-  dd_wvs75v2b_remove(driver_data);
+  dd_wvs75v2b_remove(wvs);
+error_gpio_cleanup:
+  dd_gpio_destroy(&wvs->gpio);
+error_out:
+  dd_free(wvs);
   return dd_errno;
 };
 
@@ -196,146 +201,40 @@ static void dd_wvs75v2b_remove(void *dd) {
   dd_free(driver_data);
 }
 
-static dd_error_t dd_wvs75v2b_set_up_gpio_dc(dd_wvs75v2b_t dd,
-                                             const char *gpio_chip_path,
-                                             int pin_no) {
-  if (!dd || !gpio_chip_path || pin_no < 0) {
-    dd_errno = dd_errnos(EINVAL, "`dd` and `gpio_chip_path` cannot be NULL, "
-                                 "`pin_no` has to be positive");
-    goto error_out;
-  }
-
-  if (dd->dc) {
-    dd_errno = dd_errnos(EINVAL, "Only one dc pin allowed");
-    goto error_out;
-  }
-
-  dd_errno = dd_gpio_add_pin(gpio_chip_path, pin_no, &dd->dc, &dd->gpio);
+static dd_error_t dd_wvs75v2b_send_cmd(struct dd_Wvs75V2b *dd, uint8_t cmd) {
+  dd_errno = dd_gpio_set_pin(dd_Wvs75V2bDc_CMD, dd->dc, &dd->gpio);
   DD_TRY(dd_errno);
 
-  dd_errno = dd_gpio_set_pin_output(dd->dc,
-                                    true // Active-high
-  );
-  DD_TRY_CATCH(dd_errno, error_pin_cleanup);
-
-  return 0;
-
-error_pin_cleanup:
-  dd_gpio_pin_destroy(dd->dc, &dd->gpio);
-error_out:
-  return dd_errno;
-}
-
-static dd_error_t dd_wvs75v2b_set_up_gpio_rst(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no) {
-
-  if (!dd || !gpio_chip_path || pin_no < 0) {
-    dd_errno = dd_errnos(EINVAL, "`dd` and `gpio_chip_path` cannot be NULL, "
-                                 "`pin_no` has to be positive");
-    goto error_out;
-  }
-
-  if (dd->rst) {
-    dd_errno = dd_errnos(EINVAL, "Only one rst pin allowed");
-    goto error_out;
-  }
-
-  dd_errno = dd_gpio_add_pin(gpio_chip_path, pin_no, &dd->rst, &dd->gpio);
+  dd_errno = dd_spi_send_byte(cmd, &dd->spi);
   DD_TRY(dd_errno);
 
-  dd_errno = dd_gpio_set_pin_output(dd->rst,
-                                    false // Active-low
-  );
-  DD_TRY_CATCH(dd_errno, error_pin_cleanup);
-
   return 0;
-
-error_pin_cleanup:
-  dd_gpio_pin_destroy(dd->rst, &dd->gpio);
-error_out:
-  return dd_errno;
-};
-
-static dd_error_t dd_wvs75v2b_set_up_gpio_bsy(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no) {
-  if (!dd || !gpio_chip_path || pin_no < 0) {
-    dd_errno = dd_errnos(EINVAL, "`dd` and `gpio_chip_path` cannot be NULL, "
-                                 "`pin_no` has to be positive");
-    goto error_out;
-  }
-
-  if (dd->bsy) {
-    dd_errno = dd_errnos(EINVAL, "Only one bsy pin allowed");
-    goto error_out;
-  }
-
-  dd_errno = dd_gpio_add_pin(gpio_chip_path, pin_no, &dd->bsy, &dd->gpio);
-  DD_TRY(dd_errno);
-
-  dd_errno = dd_gpio_set_pin_input(dd->bsy);
-  DD_TRY_CATCH(dd_errno, error_pin_cleanup);
-
-  return 0;
-
-error_pin_cleanup:
-  dd_gpio_pin_destroy(dd->bsy, &dd->gpio);
-error_out:
-  return dd_errno;
-};
-
-static dd_error_t dd_wvs75v2b_set_up_gpio_pwr(dd_wvs75v2b_t dd,
-                                              const char *gpio_chip_path,
-                                              int pin_no) {
-
-  if (!dd || !gpio_chip_path || pin_no < 0) {
-    dd_errno = dd_errnos(EINVAL, "`dd` and `gpio_chip_path` cannot be NULL, "
-                                 "`pin_no` has to be positive");
-    goto error_out;
-  }
-
-  if (dd->pwr) {
-    dd_errno = dd_errnos(EINVAL, "Only one pwr pin allowed");
-    goto error_out;
-  }
-
-  dd_errno = dd_gpio_add_pin(gpio_chip_path, pin_no, &dd->pwr, &dd->gpio);
-  DD_TRY(dd_errno);
-
-  dd_errno = dd_gpio_set_pin_output(dd->pwr,
-                                    true // Active-high
-  );
-  DD_TRY_CATCH(dd_errno, error_pin_cleanup);
-
-  return 0;
-
-error_pin_cleanup:
-  dd_gpio_pin_destroy(dd->pwr, &dd->gpio);
 
 error_out:
   return dd_errno;
 }
 
-static dd_error_t dd_wvs75v2b_set_up_spi_master(dd_wvs75v2b_t dd,
-                                                const char *spidev_path) {
-  if (!dd || !spidev_path) {
-    dd_errno = dd_errnos(EINVAL, "`dd` and `spidev_path` cannot be NULL");
-    goto error_out;
-  }
+static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *dd, uint8_t *data,
+                                        uint32_t len) {
+  dd_errno = dd_gpio_set_pin(dd_Wvs75V2bDc_DATA, dd->dc, &dd->gpio);
+  DD_TRY(dd_errno);
 
-  if (dd->spi.path) {
-    dd_errno = dd_errnos(EINVAL, "Only one spi allowed");
-    goto error_out;
-  }
-
-  dd_errno = dd_spi_init(spidev_path, &dd->spi);
+  dd_errno = dd_spi_send_bytes(data, len, &dd->spi);
   DD_TRY(dd_errno);
 
   return 0;
 
 error_out:
   return dd_errno;
+}
+
+static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *display) {
+  /* puts("Busy waiting"); */
+  while (dd_gpio_read_pin(display->bsy, &display->gpio) !=
+         dd_Wvs75V2bBsy_IDLE) {
+    dd_sleep_ms(10);
+  }
+  /* puts("Waiting done"); */
 }
 
 static dd_error_t dd_wvs75v2b_ops_reset(dd_wvs75v2b_t dd) {
@@ -547,36 +446,6 @@ error_out:
   return dd_errno;
 }
 
-static int dd_wvs75v2b_get_bit(int i, unsigned char *buf, uint32_t buf_len) {
-  if (i < 0 || (uint32_t)i >= buf_len * 8)
-    return -1;
-  int byte = i / 8;
-  int bit = 7 - (i % 8);
-  return (buf[byte] >> bit) & 1;
-}
-
-static void dd_wvs75v2b_set_bit(int i, int val, unsigned char *buf,
-                                uint32_t buf_len) {
-  if (i < 0 || (uint32_t)i >= buf_len * 8)
-    return;
-  int byte = i / 8;
-  int bit = 7 - (i % 8);
-  if (val)
-    buf[byte] |= (1u << bit);
-  else
-    buf[byte] &= ~(1u << bit);
-}
-
-static int dd_wvs75v2b_get_pixel(int x, int y, int width, unsigned char *buf,
-                                 uint32_t buf_len) {
-  if (x < 0 || y < 0) {
-    return -1;
-  }
-
-  int bit = width * y + x;
-
-  return dd_wvs75v2b_get_bit(bit, buf, buf_len);
-}
 
 static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
                                          int heigth, unsigned char *buf,
@@ -587,8 +456,8 @@ static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
   unsigned char *dst = dd_malloc(buf_len);
   for (int x = width - 1; x >= 0; --x) {
     for (int y = 0; y < heigth; ++y) {
-      v = dd_wvs75v2b_get_pixel(x, y, width, buf, buf_len);
-      dd_wvs75v2b_set_bit(dst_i++, v, dst, buf_len);
+      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
+      dd_graphic_set_bit(dst_i++, v, dst, buf_len);
     }
   }
 
@@ -640,38 +509,3 @@ out:
   return dd_errno;
 };
 
-static dd_error_t dd_wvs75v2b_send_cmd(struct dd_Wvs75V2b *dd, uint8_t cmd) {
-  dd_errno = dd_gpio_set_pin(dd_Wvs75V2bDc_CMD, dd->dc, &dd->gpio);
-  DD_TRY(dd_errno);
-
-  dd_errno = dd_spi_send_byte(cmd, &dd->spi);
-  DD_TRY(dd_errno);
-
-  return 0;
-
-error_out:
-  return dd_errno;
-}
-
-static dd_error_t dd_wvs75v2b_send_data(struct dd_Wvs75V2b *dd, uint8_t *data,
-                                        uint32_t len) {
-  dd_errno = dd_gpio_set_pin(dd_Wvs75V2bDc_DATA, dd->dc, &dd->gpio);
-  DD_TRY(dd_errno);
-
-  dd_errno = dd_spi_send_bytes(data, len, &dd->spi);
-  DD_TRY(dd_errno);
-
-  return 0;
-
-error_out:
-  return dd_errno;
-}
-
-static void dd_wvs75v2b_wait(struct dd_Wvs75V2b *display) {
-  /* puts("Busy waiting"); */
-  while (dd_gpio_read_pin(display->bsy, &display->gpio) !=
-         dd_Wvs75V2bBsy_IDLE) {
-    dd_sleep_ms(10);
-  }
-  /* puts("Waiting done"); */
-}
