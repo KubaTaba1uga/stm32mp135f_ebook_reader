@@ -16,9 +16,16 @@
 
 typedef struct UiScreen *ui_screen_t;
 
-err_t ui_screen_create(ui_screen_t *, ui_t, void (*destroy)(void *), void *);
-void ui_screen_destroy(ui_screen_t *);
-ui_t ui_screen_get_ui(ui_screen_t);
-void * ui_screen_get_private(ui_screen_t);
+struct UiScreen {
+  void (*destroy)(void *);
+  void *screen_data;
+  ui_t owner;
+};
+
+void ui_screen_destroy(ui_screen_t);
+
+err_t ui_screen_menu_init(ui_screen_t, ui_t, books_list_t, int, int,
+                            void (*)(lv_event_t *), lv_group_t *);
+err_t ui_screen_menu_focus_book(ui_screen_t, int);
 
 #endif // UI_SCREEN_H
