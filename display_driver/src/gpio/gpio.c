@@ -56,7 +56,7 @@ dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
   struct gpiod_line *gline = gpiod_chip_get_line(gchip, pin_no);
   if (!gline) {
     dd_errno = dd_errnof(EINVAL, "Cannot open: %s:%d", chip->path, pin_no);
-    goto error_out;
+    goto error_chip_cleanup;
   }
 
   struct dd_GpioPin *pin = *out = dd_malloc(sizeof(struct dd_GpioPin));
@@ -75,7 +75,10 @@ dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
 
 error_pin_cleanup:
   dd_free(pin);
+error_chip_cleanup:
+  gpiod_chip_close(gchip);
 error_out:
+  dd_list_pop(&gpio->chips, chip, dd_list_eq, dd_gpio_chip_cleanup);
   *out = NULL;
   return dd_errno;
 }

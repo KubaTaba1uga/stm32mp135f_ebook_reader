@@ -522,7 +522,6 @@ def deploy_sdcard(c, dev="sda"):
 @task
 def lint(c):
     patterns = [
-        "src/*.c",        
         "src/**/*.c",
         "src/**/*.h",
         "include/*.h",
@@ -531,10 +530,9 @@ def lint(c):
     _pr_info("Linting...")
 
     for proj in ["display_driver", "ebook_reader"]:
-        os.chdir(proj)
+        patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in patterns:
             _pr_info(f"Linting files matching pattern '{pattern}'")
-
             for path in glob.glob(pattern, recursive=True):
                 if os.path.isfile(path):
                     c.run(f"{C_LINTER} -p build/{proj} {path}")
@@ -546,24 +544,22 @@ def lint(c):
 @task
 def format(c):
     patterns = [
-        "ebook_reader/src/*.c",        
-        "ebook_reader/src/**/*.c",
-        "ebook_reader/src/**/*.h",
-        "display_driver/src/*.c",        
-        "display_driver/src/**/*.c",
-        "display_driver/src/**/*.h",
-        "display_driver/include/*.h",
+        "src/**/*.c",
+        "src/**/*.h",
+        "include/*.h",
     ]
 
     _pr_info("Formating...")
 
-    for pattern in patterns:
-        _pr_info(f"Formating files matching pattern '{pattern}'")
+    for proj in ["display_driver", "ebook_reader"]:
+        patterns = [f"{proj}/{pattern}" for pattern in patterns]
+        for pattern in patterns:
+            _pr_info(f"Formating files matching pattern '{pattern}'")
 
-        for path in glob.glob(pattern, recursive=True):
-            if os.path.isfile(path):
-                c.run(f"{C_FORMATER} -i {path}")
-                _pr_info(f"{path} formated")
+            for path in glob.glob(pattern, recursive=True):
+                if os.path.isfile(path):
+                    c.run(f"{C_FORMATER} -i {path}")
+                    _pr_info(f"{path} formated")
 
     _pr_info("Formating done")
     

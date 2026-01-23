@@ -161,10 +161,12 @@ dd_error_t dd_driver_wvs7in5v2_init(dd_display_driver_t out, void *config) {
 
 error_dd_cleanup:
   dd_driver_wvs75v2_remove(wvs);
+  goto err_out;
 error_gpio_cleanup:
   dd_gpio_destroy(&wvs->gpio);
 error_out:
   dd_free(wvs);
+ err_out:  
   return dd_errno;
 };
 
