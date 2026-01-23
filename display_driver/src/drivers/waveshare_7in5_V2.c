@@ -166,7 +166,7 @@ error_gpio_cleanup:
   dd_gpio_destroy(&wvs->gpio);
 error_out:
   dd_free(wvs);
- err_out:  
+err_out:
   return dd_errno;
 };
 

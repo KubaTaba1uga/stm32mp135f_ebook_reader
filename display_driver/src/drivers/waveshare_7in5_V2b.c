@@ -114,6 +114,7 @@ dd_error_t dd_driver_wvs7in5v2b_init(dd_display_driver_t out, void *config) {
   dd_errno = dd_gpio_add_pin(conf->pwr.gpio_chip_path, conf->pwr.pin_no,
                              &wvs->pwr, &wvs->gpio);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
   dd_errno = dd_gpio_set_pin_output(wvs->pwr, true);
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
@@ -134,14 +135,15 @@ dd_error_t dd_driver_wvs7in5v2b_init(dd_display_driver_t out, void *config) {
 
 error_dd_cleanup:
   dd_wvs75v2b_remove(wvs);
+  goto err_out;
 error_gpio_cleanup:
   dd_gpio_destroy(&wvs->gpio);
 error_out:
   dd_free(wvs);
+err_out:
   return dd_errno;
 };
 
-// Clear screen.
 static dd_error_t dd_wvs75v2b_clear(void *dd, bool white) {
   dd_wvs75v2b_t driver_data = dd;
   dd_wvs75v2b_ops_power_on(driver_data);
@@ -161,7 +163,6 @@ error_out:
   return dd_errno;
 };
 
-// Write buf to screen with full refresh.
 static dd_error_t dd_wvs75v2b_write(void *dd, unsigned char *buf, int buf_len) {
   dd_wvs75v2b_t driver_data = dd;
   dd_wvs75v2b_ops_power_on(driver_data);

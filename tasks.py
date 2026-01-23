@@ -530,8 +530,8 @@ def lint(c):
     _pr_info("Linting...")
 
     for proj in ["display_driver", "ebook_reader"]:
-        patterns = [f"{proj}/{pattern}" for pattern in patterns]
-        for pattern in patterns:
+        proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
+        for pattern in proj_patterns:
             _pr_info(f"Linting files matching pattern '{pattern}'")
             for path in glob.glob(pattern, recursive=True):
                 if os.path.isfile(path):
@@ -552,8 +552,8 @@ def format(c):
     _pr_info("Formating...")
 
     for proj in ["display_driver", "ebook_reader"]:
-        patterns = [f"{proj}/{pattern}" for pattern in patterns]
-        for pattern in patterns:
+        proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
+        for pattern in proj_patterns:
             _pr_info(f"Formating files matching pattern '{pattern}'")
 
             for path in glob.glob(pattern, recursive=True):
