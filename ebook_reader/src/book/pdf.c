@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include "book/book.h"
 #include "book/core.h"
 #include "glib.h"
 #include "utils/err.h"
 #include "utils/graphic.h"
 #include "utils/mem.h"
-#include "utils/log.h"
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
