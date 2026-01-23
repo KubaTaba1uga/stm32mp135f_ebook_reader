@@ -43,7 +43,7 @@ enum AppEventEnum {
    Once menu button is pressed we emmit BTN_MENU.
    */
   AppEventEnum_BTN_MENU,
-  AppEventEnum_BOOK_SELECTED,  
+  AppEventEnum_BOOK_SELECTED,
   /**
    Once any module meet error that cannot be gracefully handled
    so the user can go back to using the device we emmit ERROR_RAISED.
@@ -51,7 +51,7 @@ enum AppEventEnum {
    */
   AppEventEnum_ERROR_RAISED,
   // Add more events here
-  AppEventEnum_MAX,  
+  AppEventEnum_MAX,
 };
 
 enum AppStateEnum {
@@ -65,7 +65,7 @@ enum AppStateEnum {
 
 struct AppCtx {
   ui_t ui;
-  book_api_t book_api;  
+  book_api_t book_api;
 };
 
 struct AppEventData {
@@ -73,16 +73,13 @@ struct AppEventData {
   void *data;
 };
 
-
 /**
   @brief Post event to the app.
   @param app Pointer to initialized instance of app.
   @param event Event to post.
   @param data Generic data in case event needs payload.
  */
-void app_event_post(app_t app, enum AppEventEnum event,
-                         void *data);
-
+void app_event_post(app_t app, enum AppEventEnum event, void *data);
 
 /**
    @brief Dump event to string.

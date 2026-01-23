@@ -97,7 +97,6 @@ err_t app_init(app_t *out) {
   err_o = book_api_init(&app->ctx.book_api);
   ERR_TRY_CATCH(err_o, error_ui_cleanup);
 
-
   int inits_status;
   for (inits_status = AppStateEnum_MENU; inits_status < AppStateEnum_MAX;
        inits_status++) {
@@ -108,7 +107,7 @@ err_t app_init(app_t *out) {
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
 
   return 0;
-  
+
 error_modules_cleanup:
   app_modules_destroy((*out)->modules, inits_status);
   book_api_destroy(&app->ctx.book_api);
@@ -235,7 +234,7 @@ static void app_step(app_t app) {
             app_state_dump(trans.next_state));
 
   assert(trans.next_state != 0); // We should never transition to boot.
-  
+
   if (!trans.action) {
     trans.action = app_module_open;
   }
@@ -254,7 +253,6 @@ out:;
 void app_raise_error(app_t app, err_t error) {
   app_event_post(app, AppEventEnum_ERROR_RAISED, error);
 }
-
 
 void app_panic(app_t app) { ui_panic(app->ctx.ui); }
 

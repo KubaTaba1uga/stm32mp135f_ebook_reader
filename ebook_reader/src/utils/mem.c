@@ -15,4 +15,4 @@ void *mem_malloc(size_t size) {
   return mem;
 }
 
- void mem_free(void *mem) { free(mem); }
+void mem_free(void *mem) { free(mem); }

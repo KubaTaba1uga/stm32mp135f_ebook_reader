@@ -25,9 +25,9 @@ struct Ui {
 static void ui_menu_book_event_cb(lv_event_t *e);
 
 err_t ui_init(ui_t *out,
-                void (*callback)(enum UiInputEventEnum event, void *data,
-                                 void *arg),
-                void *data) {
+              void (*callback)(enum UiInputEventEnum event, void *data,
+                               void *arg),
+              void *data) {
   ui_t ui = *out = mem_malloc(sizeof(struct Ui));
   *ui = (struct Ui){
       .inputh =
@@ -53,7 +53,8 @@ err_t ui_init(ui_t *out,
   unsigned char *img_buf = mem_malloc(48000 + 8);
   const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
   if (ret_code != 48000) {
-    err_o = err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
+    err_o =
+        err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
     goto error_boot_screen_cleanup;
   }
   fclose(boot_screen_fd);
@@ -96,7 +97,7 @@ void ui_destroy(ui_t *out) {
 err_t ui_menu_init(ui_t ui, books_list_t books, int book_i) {
   lv_group_t *group = ui_display_get_input_group(&ui->display);
   err_o = ui_screen_menu_init(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
-                                ui_menu_book_event_cb, group);
+                              ui_menu_book_event_cb, group);
   ERR_TRY(err_o);
 
   return 0;
@@ -107,9 +108,7 @@ error_out:
 
 void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
 
-void ui_panic(ui_t ui) {
-  ui_display_panic(&ui->display);
-};
+void ui_panic(ui_t ui) { ui_display_panic(&ui->display); };
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);
@@ -119,11 +118,10 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   lv_key_t key = lv_event_get_key(e);
 
   log_debug("Ui received key: %d'", key);
-  
+
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
-
 
   if (key == LV_KEY_ENTER) {
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);

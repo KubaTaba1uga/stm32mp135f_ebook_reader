@@ -23,9 +23,10 @@ err_t app_module_reader_init(app_module_t out, app_t app) {
   };
 
   *out = (struct AppModule){
-    .open = app_module_reader_open, .close = app_module_reader_close,
-    .destroy = app_module_reader_destroy,
-    .module_data = reader,
+      .open = app_module_reader_open,
+      .close = app_module_reader_close,
+      .destroy = app_module_reader_destroy,
+      .module_data = reader,
   };
 
   return 0;

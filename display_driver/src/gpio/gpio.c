@@ -24,7 +24,7 @@ void dd_gpio_destroy(struct dd_Gpio *gpio) {
   if (!gpio) {
     return;
   }
-  
+
   dd_list_destroy(&gpio->pins, dd_gpio_pin_cleanup);
   dd_list_destroy(&gpio->chips, dd_gpio_chip_cleanup);
 };
@@ -40,7 +40,7 @@ dd_error_t dd_gpio_add_pin(const char *chip_path, int pin_no,
 
   if (!chip) {
     chip = dd_malloc(sizeof(struct dd_GpioChip));
-    *chip = (struct dd_GpioChip){.path=strdup(chip_path)};
+    *chip = (struct dd_GpioChip){.path = strdup(chip_path)};
     dd_list_append(&gpio->chips, chip);
   }
 
@@ -86,7 +86,7 @@ dd_error_t dd_gpio_set_pin_output(struct dd_GpioPin *pin, bool is_active_high) {
   if (!is_active_high) {
     flags |= GPIOD_LINE_REQUEST_FLAG_ACTIVE_LOW;
   }
-  
+
   int ret =
       gpiod_line_request_output_flags(pin->private, "display_driver", flags, 0);
   if (ret) {
@@ -134,7 +134,7 @@ error_out:
 }
 
 dd_error_t dd_gpio_set_pin(int value, struct dd_GpioPin *pin,
-                           struct dd_Gpio *gpio) {  
+                           struct dd_Gpio *gpio) {
   int ret = gpiod_line_set_value(pin->private, value);
   if (ret < 0) {
     dd_errno = dd_errnof(errno, "Unable to set value for: %c:%d=%d",
@@ -176,7 +176,7 @@ static void dd_gpio_pin_cleanup(void *data) {
 }
 
 void dd_gpio_pin_destroy(struct dd_GpioPin *pin, struct dd_Gpio *gpio) {
-  if (!pin|| !gpio) {
+  if (!pin || !gpio) {
     return;
   }
 

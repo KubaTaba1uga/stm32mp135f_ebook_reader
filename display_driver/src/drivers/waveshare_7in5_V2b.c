@@ -6,9 +6,9 @@
 #include "gpio/gpio.h"
 #include "spi/spi.h"
 #include "utils/err.h"
+#include "utils/graphic.h"
 #include "utils/mem.h"
 #include "utils/time.h"
-#include "utils/graphic.h"
 
 #define DD_WVS75V2B_WIDTH 800
 #define DD_WVS75V2B_HEIGTH 480
@@ -61,7 +61,6 @@ struct dd_Wvs75V2b {
 };
 
 typedef struct dd_Wvs75V2b *dd_wvs75v2b_t;
-
 
 static dd_error_t dd_wvs75v2b_write(void *, unsigned char *, int);
 static dd_error_t dd_wvs75v2b_clear(void *, bool);
@@ -163,8 +162,7 @@ error_out:
 };
 
 // Write buf to screen with full refresh.
-static dd_error_t dd_wvs75v2b_write(void *dd, unsigned char *buf,
-                                    int buf_len) {
+static dd_error_t dd_wvs75v2b_write(void *dd, unsigned char *buf, int buf_len) {
   dd_wvs75v2b_t driver_data = dd;
   dd_wvs75v2b_ops_power_on(driver_data);
   DD_TRY(dd_errno);
@@ -446,7 +444,6 @@ error_out:
   return dd_errno;
 }
 
-
 static unsigned char *dd_wvs75v2b_rotate(dd_wvs75v2b_t dd, int width,
                                          int heigth, unsigned char *buf,
                                          int buf_len) {
@@ -508,4 +505,3 @@ out:
 
   return dd_errno;
 };
-

@@ -146,10 +146,10 @@ dd_error_t dd_driver_wvs7in5v2_init(dd_display_driver_t out, void *config) {
   DD_TRY_CATCH(dd_errno, error_dd_cleanup);
 
   *out = (struct dd_DisplayDriver){
-    .write_fast = dd_driver_wvs75v2_write_fast,
-    .write_part = dd_driver_wvs75v2_write_part,
-    .destroy = dd_driver_wvs75v2_remove,
-    .write = dd_driver_wvs75v2_write,
+      .write_fast = dd_driver_wvs75v2_write_fast,
+      .write_part = dd_driver_wvs75v2_write_part,
+      .destroy = dd_driver_wvs75v2_remove,
+      .write = dd_driver_wvs75v2_write,
       .clear = dd_driver_wvs75v2_clear,
       .driver_data = wvs,
       .stride = stride,

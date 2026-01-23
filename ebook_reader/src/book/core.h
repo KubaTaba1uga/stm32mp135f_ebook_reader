@@ -18,7 +18,7 @@ struct Book {
   enum BookExtensionEnum extension;
   struct ZListNode next;
   const char *file_path;
-  book_api_t owner;  
+  book_api_t owner;
   void *private;
 };
 

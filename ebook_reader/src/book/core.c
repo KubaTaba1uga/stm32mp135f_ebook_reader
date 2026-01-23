@@ -108,7 +108,7 @@ books_list_t book_api_find_books(book_api_t api) {
     snprintf(file_path, bytes, "%s/%s", settings_books_dir, dirent->d_name);
 
     log_debug("Creating book: %s", file_path);
-    
+
     book = mem_malloc(sizeof(struct Book));
 
     *book = (struct Book){
