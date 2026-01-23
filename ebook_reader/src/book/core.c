@@ -25,7 +25,7 @@ struct BooksList {
 static enum BookExtensionEnum book_get_extension(book_api_t api,
                                                  const char *path);
 
-err_t book_api_create(book_api_t *out) {
+err_t book_api_init(book_api_t *out) {
   book_api_t api = *out = mem_malloc(sizeof(struct BookApi));
 
   err_t (*module_creates[BookExtensionEnum_MAX])(book_module_t, book_api_t) = {
