@@ -136,9 +136,7 @@ struct dd_Wvs75V2Config {
   } spi;
 
   bool rotate; // same as in v2b
-  
 };
-
 
 /******************************************************************
  *                     Generic Display Driver
@@ -146,7 +144,7 @@ struct dd_Wvs75V2Config {
  */
 enum dd_DisplayDriverEnum {
   dd_DisplayDriverEnum_Wvs7in5V2b,
-  dd_DisplayDriverEnum_Wvs7in5V2,  
+  dd_DisplayDriverEnum_Wvs7in5V2,
 };
 typedef struct dd_DisplayDriver *dd_display_driver_t;
 
@@ -178,7 +176,7 @@ int dd_display_driver_get_stride(dd_display_driver_t dd);
 dd_error_t dd_display_driver_write_partial(dd_display_driver_t dd,
                                            unsigned char *buf, uint32_t buf_len,
                                            int x1, int x2, int y1, int y2);
-dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd, unsigned char *buf,
-					uint32_t buf_len);
+dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd,
+                                        unsigned char *buf, uint32_t buf_len);
 
 #endif // DISPLAY_DRIVER_H

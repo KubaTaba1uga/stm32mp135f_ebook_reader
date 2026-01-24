@@ -14,10 +14,12 @@ pkg-config = 'PLACEHOLDER/build/buildroot/host/bin/pkg-config'
 [properties]
 sys_root = 'PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot'
 needs_exe_wrapper = true
+c_args   = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
+cpp_args = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
 
 [host_machine]
 system = 'linux'
 kernel = 'linux'
 cpu_family = 'arm'
-cpu = 'armv7hl'
+cpu = 'cortex-a7'
 endian = 'little'

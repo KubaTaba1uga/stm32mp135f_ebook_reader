@@ -100,10 +100,10 @@ static inline void *dd_list_pop(dd_list_t list, void *data,
 
       void *value = node->data;
       dd_free(node);
-      
+
       if (clean) {
         clean(value);
-	return NULL;
+        return NULL;
       }
 
       return value;

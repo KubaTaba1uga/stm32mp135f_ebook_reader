@@ -28,7 +28,8 @@ struct ZListNode {
    @brief Append node to zero list.
    @param head Head of the zero list.
    @param node Node that will be appended.
-   @return On success index of appended node, on error return -1 and set ebk_errno.
+   @return On success index of appended node, on error return -1 and set
+   ebk_errno.
 */
 int zlist_append(zlist_t head, zlist_node_t node);
 

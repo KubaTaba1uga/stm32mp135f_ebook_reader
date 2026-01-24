@@ -23,7 +23,7 @@ err_t app_module_init(app_module_t, app_t, enum AppStateEnum);
 void app_module_open(app_module_t, app_ctx_t, void *);
 void app_module_close(app_module_t);
 void app_module_destroy(app_module_t);
-void app_modules_destroy(app_module_t, int );
+void app_modules_destroy(app_module_t, int);
 
 err_t app_module_menu_init(app_module_t, app_t);
 void app_module_menu_select_book(app_module_t, app_ctx_t, void *);

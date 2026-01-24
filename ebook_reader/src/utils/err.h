@@ -86,11 +86,11 @@ struct err_EFrame {
  * Common error object.
  */
 struct err_Error {
-  enum err_ErrorType type;                         // Error type
-  uint16_t code;                                   // Status code
-  const char *msg;                                 // String msg, can be NULL
+  enum err_ErrorType type;                   // Error type
+  uint16_t code;                             // Status code
+  const char *msg;                           // String msg, can be NULL
   struct err_EFrame eframes[ERR_BTRACE_MAX]; // Backtrace frames
-  size_t eframes_len;                              // Backtrace frames length
+  size_t eframes_len;                        // Backtrace frames length
 
 #ifndef ERR_OPTIMIZE
   char _msg_buf[ERR_FSTR_MAX]; // Internal storage for formatted string
@@ -108,8 +108,8 @@ int err_error_dumps(err_t err, size_t buf_size, char *buf);
  * Create struct err_Error of type err_ErrorType_INT.
  */
 static inline err_t err_error_int(struct err_Error *err, uint16_t code,
-                                        const char *file, const char *func,
-                                        int line) {
+                                  const char *file, const char *func,
+                                  int line) {
   *err = (struct err_Error){
       .type = err_ErrorType_INT,
       .code = code,
@@ -124,8 +124,8 @@ static inline err_t err_error_int(struct err_Error *err, uint16_t code,
  * Create struct err_Error of type err_ErrorType_STR.
  */
 static inline err_t err_error_lstr(struct err_Error *err, uint16_t code,
-                                         const char *file, const char *func,
-                                         int line, const char *msg) {
+                                   const char *file, const char *func, int line,
+                                   const char *msg) {
   *err = (struct err_Error){
       .type = err_ErrorType_STR,
       .code = code,
@@ -142,8 +142,8 @@ static inline err_t err_error_lstr(struct err_Error *err, uint16_t code,
  * Create struct err_Error of type err_ErrorType_FSTR.
  */
 static inline err_t err_error_fstr(struct err_Error *err, uint16_t code,
-                                         const char *file, const char *func,
-                                         int line, const char *fmt, ...) {
+                                   const char *file, const char *func, int line,
+                                   const char *fmt, ...) {
 
   *err = (struct err_Error){
       .type = err_ErrorType_FSTR,
@@ -166,8 +166,7 @@ static inline err_t err_error_fstr(struct err_Error *err, uint16_t code,
 };
 #endif
 
-static inline void err_error_add_frame(err_t err,
-                                       struct err_EFrame *frame) {
+static inline void err_error_add_frame(err_t err, struct err_EFrame *frame) {
   if (err->eframes_len >= ERR_BTRACE_MAX) {
     return;
   }

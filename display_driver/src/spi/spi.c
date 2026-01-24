@@ -10,8 +10,8 @@
 
 #include "spi/spi.h"
 #include "utils/err.h"
-#include "utils/mem.h"
 #include "utils/io.h"
+#include "utils/mem.h"
 
 struct dd_SpiPrivate {
   int fd;
@@ -37,16 +37,16 @@ dd_error_t dd_spi_init(const char *path, struct dd_Spi *spi) {
 
   spi_priv->transfer.bits_per_word = 8;
   int ret = dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_BITS_PER_WORD,
-                  &spi_priv->transfer.bits_per_word);
+                        &spi_priv->transfer.bits_per_word);
   if (ret == -1) {
     dd_errno = dd_errnof(errno, "Cannot set bits per word for %s", path);
     goto error_spi_cleanup;
   }
 
-  spi_priv->transfer.speed_hz = 20000000; // 20MHz  
+  spi_priv->transfer.speed_hz = 20000000; // 20MHz
   /* spi_priv->transfer.speed_hz = 10000000; // 10MHz */
   if (dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_MAX_SPEED_HZ,
-            &spi_priv->transfer.speed_hz) == -1) {
+                  &spi_priv->transfer.speed_hz) == -1) {
     dd_errno = dd_errnof(errno, "Cannot set speed for %s", path);
     goto error_spi_cleanup;
   }
@@ -58,7 +58,8 @@ dd_error_t dd_spi_init(const char *path, struct dd_Spi *spi) {
   }
 
   spi_priv->bit_order = 0; // Set MSB first
-  if (dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_LSB_FIRST, &spi_priv->bit_order) == -1) {
+  if (dd_io_ioctl(spi_priv->fd, SPI_IOC_WR_LSB_FIRST, &spi_priv->bit_order) ==
+      -1) {
     dd_errno = dd_errnof(errno, "Cannot set LSB for %s", path);
     goto error_spi_cleanup;
   }

@@ -14,7 +14,8 @@
 
 #include "settings.h"
 
-#if !defined(EBK_DISPLAY_WVS7IN5V2B) && !defined(EBK_DISPLAY_X11) && !defined(EBK_DISPLAY_WVS7IN5V2)
+#if !defined(EBK_DISPLAY_WVS7IN5V2B) && !defined(EBK_DISPLAY_X11) &&           \
+    !defined(EBK_DISPLAY_WVS7IN5V2)
 #define EBK_DISPLAY_WVS7IN5V2B 1
 #endif
 
@@ -26,13 +27,14 @@
 #define EBK_DISPLAY_BOOT_SCREEN_PATH "data/480x800_img_boot_screen_adjusted"
 #elif EBK_DISPLAY_X11
 #define EBK_DISPLAY_MODEL DisplayModelEnum_X11
-#define EBK_DISPLAY_BOOT_SCREEN_PATH "/home/taba1uga/Github/stm32mp135f_ebook_reader/ebook_reader/data/480x800_img_boot_screen_normal"
+#define EBK_DISPLAY_BOOT_SCREEN_PATH                                           \
+  "/home/taba1uga/Github/stm32mp135f_ebook_reader/ebook_reader/data/"          \
+  "480x800_img_boot_screen_normal"
 #else
 #error "Unsupported display model"
 #endif
 
 const enum DisplayModelEnum settings_display_model = EBK_DISPLAY_MODEL;
-const char *settings_boot_screen_path =
-    EBK_DISPLAY_BOOT_SCREEN_PATH;
+const char *settings_boot_screen_path = EBK_DISPLAY_BOOT_SCREEN_PATH;
 const char *settings_books_dir = "/mnt/sdcard";
 const char *settings_input_path = "/dev/input/event0";

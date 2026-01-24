@@ -38,6 +38,6 @@ err_t ui_menu_init(ui_t ui, books_list_t blist, int book_i);
 /**
    @brief Delete menu screen.
 */
-void  ui_menu_destroy(ui_t ui);
+void ui_menu_destroy(ui_t ui);
 
 #endif // UI_H

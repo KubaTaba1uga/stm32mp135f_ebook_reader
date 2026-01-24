@@ -38,8 +38,9 @@ void ui_wx_menu_destroy(ui_wx_menu_t);
 typedef lv_obj_t *ui_wx_menu_book_t;
 ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                                          const char *book_title,
-                                         bool is_focused, const uint8_t *thumbnail,
-                                         int id, ui_t ui);
+                                         bool is_focused,
+                                         const uint8_t *thumbnail, int id,
+                                         ui_t ui);
 int ui_wx_menu_book_get_id(ui_wx_menu_book_t);
 ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t);
 void ui_wx_menu_book_destroy(ui_wx_menu_book_t);
