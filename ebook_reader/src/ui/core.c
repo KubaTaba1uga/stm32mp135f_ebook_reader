@@ -125,6 +125,7 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     key = LV_KEY_ENTER;
   }
 
+
   if (key == LV_KEY_ENTER) {
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
   }

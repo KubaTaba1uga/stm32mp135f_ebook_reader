@@ -107,7 +107,7 @@ err_t app_init(app_t *out) {
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
 
   return 0;
-
+  
 error_modules_cleanup:
   app_modules_destroy((*out)->modules, inits_status);
   book_api_destroy(&app->ctx.book_api);

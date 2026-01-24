@@ -68,10 +68,25 @@ struct AppCtx {
   book_api_t book_api;
 };
 
+enum AppStateEnum {
+  AppStateEnum_BOOT = 0,
+  AppStateEnum_MENU,
+  AppStateEnum_READER,
+  AppStateEnum_ERROR,
+  // Add more states here
+  AppStateEnum_MAX,
+};
+
+struct AppCtx {
+  ui_t ui;
+  book_api_t book_api;  
+};
+
 struct AppEventData {
   enum AppEventEnum event;
   void *data;
 };
+
 
 /**
   @brief Post event to the app.
