@@ -16,20 +16,19 @@ static void app_module_reader_open(void *, app_ctx_t, void *);
 static void app_module_reader_close(void *);
 static void app_module_reader_destroy(void *);
 
-err_t app_module_reader_create(app_module_t *out, app_t app) {
+err_t app_module_reader_init(app_module_t out, app_t app) {
   app_module_reader_t reader = mem_malloc(sizeof(struct AppReader));
   *reader = (struct AppReader){
       .owner = app,
   };
 
-  err_o = app_module_create(out, app_module_reader_open, app_module_reader_close,
-                           app_module_reader_destroy, reader);
-  ERR_TRY(err_o);
+  *out = (struct AppModule){
+    .open = app_module_reader_open, .close = app_module_reader_close,
+    .destroy = app_module_reader_destroy,
+    .module_data = reader,
+  };
 
   return 0;
-
-error_out:
-  return err_o;
 };
 
 static void app_module_reader_open(void *module, app_ctx_t ctx, void *arg) {}

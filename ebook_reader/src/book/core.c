@@ -25,31 +25,31 @@ struct BooksList {
 static enum BookExtensionEnum book_get_extension(book_api_t api,
                                                  const char *path);
 
-err_t book_api_create(book_api_t *out) {
+err_t book_api_init(book_api_t *out) {
   book_api_t api = *out = mem_malloc(sizeof(struct BookApi));
 
-  err_t (*module_creates[BookExtensionEnum_MAX])(book_module_t, book_api_t) = {
-      [BookExtensionEnum_PDF] = book_module_pdf_create,
+  err_t (*module_inits[BookExtensionEnum_MAX])(book_module_t, book_api_t) = {
+      [BookExtensionEnum_PDF] = book_module_pdf_init,
   };
-  int creates_status;
-  for (creates_status = BookExtensionEnum_PDF;
-       creates_status < BookExtensionEnum_MAX; creates_status++) {
-    if (!module_creates[creates_status]) {
+  int inits_status;
+  for (inits_status = BookExtensionEnum_PDF;
+       inits_status < BookExtensionEnum_MAX; inits_status++) {
+    if (!module_inits[inits_status]) {
       continue;
     }
 
-    err_o = module_creates[creates_status](&api->modules[creates_status], api);
+    err_o = module_inits[inits_status](&api->modules[inits_status], api);
     ERR_TRY(err_o);
   }
 
   return 0;
 
 error_out:
-  for (; creates_status >= BookExtensionEnum_PDF; creates_status--) {
-    if (!api->modules[creates_status].destroy) {
+  for (; inits_status >= BookExtensionEnum_PDF; inits_status--) {
+    if (!api->modules[inits_status].destroy) {
       continue;
     }
-    api->modules[creates_status].destroy(&api->modules[creates_status]);
+    api->modules[inits_status].destroy(&api->modules[inits_status]);
   }
 
   mem_free(*out);
@@ -63,12 +63,12 @@ void book_api_destroy(book_api_t *out) {
   }
 
   book_api_t api = *out;
-  for (int creates_status = BookExtensionEnum_MAX - 1;
-       creates_status >= BookExtensionEnum_PDF; creates_status--) {
-    if (!api->modules[creates_status].destroy) {
+  for (int inits_status = BookExtensionEnum_MAX - 1;
+       inits_status >= BookExtensionEnum_PDF; inits_status--) {
+    if (!api->modules[inits_status].destroy) {
       continue;
     }
-    api->modules[creates_status].destroy(&api->modules[creates_status]);
+    api->modules[inits_status].destroy(&api->modules[inits_status]);
   }
 
   mem_free(*out);
@@ -123,8 +123,8 @@ books_list_t book_api_find_books(book_api_t api) {
       list->current_book = list->books.head;
     }
 
-    if (api->modules[book_ext].book_create) {
-      err_o = api->modules[book_ext].book_create(book);
+    if (api->modules[book_ext].book_init) {
+      err_o = api->modules[book_ext].book_init(book);
       ERR_TRY(err_o);
     }
   }

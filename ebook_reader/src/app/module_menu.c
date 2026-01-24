@@ -21,20 +21,20 @@ static void app_module_menu_open(void *, app_ctx_t, void *);
 static void app_module_menu_close(void *);
 static void app_module_menu_destroy(void *);
 
-err_t app_module_menu_create(app_module_t *out, app_t app) {
+err_t app_module_menu_init(app_module_t out, app_t app) {
   app_module_menu_t menu = mem_malloc(sizeof(struct AppMenu));
   *menu = (struct AppMenu){
       .owner = app,
   };
 
-  err_o = app_module_create(out, app_module_menu_open, app_module_menu_close,
-                            app_module_menu_destroy, menu);
-  ERR_TRY(err_o);
+  *out = (struct AppModule){
+      .open = app_module_menu_open,
+      .close = app_module_menu_close,
+      .destroy = app_module_menu_destroy,
+      .module_data = menu,
+  };
 
   return 0;
-
-error_out:
-  return err_o;
 };
 
 /**
@@ -46,7 +46,7 @@ static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
   assert(ctx->book_api != NULL);
 
   app_module_menu_t menu = module;
-  
+
   menu->blist = book_api_find_books(ctx->book_api);
   menu->current_book_i = 0;
   menu->ui = ctx->ui;
@@ -55,7 +55,7 @@ static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
     ERR_TRY(err_o);
   }
 
-  err_o = ui_menu_create(ctx->ui, menu->blist, menu->current_book_i);
+  err_o = ui_menu_init(ctx->ui, menu->blist, menu->current_book_i);
   ERR_TRY_CATCH(err_o, error_blist_cleanup);
 
   return;
@@ -89,7 +89,6 @@ static void app_module_menu_destroy(void *module) {
    book.
  */
 void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
-  app_module_menu_t menu = app_module_get_module_data(module);
-
+  app_module_menu_t menu = module->module_data;
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
 }

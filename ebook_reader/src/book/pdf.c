@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include "book/book.h"
 #include "book/core.h"
 #include "glib.h"
 #include "utils/err.h"
 #include "utils/graphic.h"
 #include "utils/mem.h"
-#include "utils/log.h"
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
@@ -26,7 +24,7 @@ struct PdfBook {
   char *title;
 };
 
-static err_t book_module_pdf_book_create(book_t);
+static err_t book_module_pdf_book_init(book_t);
 static void book_module_pdf_book_destroy(book_t);
 static const char *book_module_pdf_book_get_title(book_t);
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
@@ -34,10 +32,10 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
-err_t book_module_pdf_create(book_module_t module, book_api_t api) {
+err_t book_module_pdf_init(book_module_t module, book_api_t api) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
   pdf->owner = api;
-  module->book_create = book_module_pdf_book_create;
+  module->book_init = book_module_pdf_book_init;
   module->book_destroy = book_module_pdf_book_destroy;
   module->book_get_title = book_module_pdf_book_get_title;
   module->book_get_thumbnail = book_module_pdf_book_get_thumbnail;
@@ -57,7 +55,7 @@ void book_module_pdf_destroy(book_module_t module) {
   module->private = NULL;
 };
 
-static err_t book_module_pdf_book_create(book_t book) {
+static err_t book_module_pdf_book_init(book_t book) {
   pdf_book_t pdf_book = book->private = mem_malloc(sizeof(struct PdfBook));
   *pdf_book = (struct PdfBook){0};
 

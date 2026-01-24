@@ -21,8 +21,7 @@ int main(void) {
     goto error_out;
   }
 
-  err_o = app_create(&app);
-
+  err_o = app_init(&app);
   ERR_TRY(err_o);
 
   log_info("App is running");
@@ -47,7 +46,6 @@ error_out:
    @todo Fork main to start app, detect exit code of app and do cleanup if it is
          not equal to 0.
 */
-
 static void exit_handler(void) {
   if (app) {
     app_destroy(&app);

@@ -2,10 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "core/lv_group.h"
 #include "ui/display.h"
 #include "ui/screen.h"
-#include "ui/screen_menu.h"
 #include "ui/ui.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
@@ -21,12 +19,12 @@ struct Ui {
   } inputh;
 
   struct UiDisplay display;
-  ui_screen_t screen;
+  struct UiScreen screen;
 };
 
 static void ui_menu_book_event_cb(lv_event_t *e);
 
-err_t ui_create(ui_t *out,
+err_t ui_init(ui_t *out,
                 void (*callback)(enum UiInputEventEnum event, void *data,
                                  void *arg),
                 void *data) {
@@ -95,9 +93,9 @@ void ui_destroy(ui_t *out) {
   *out = NULL;
 };
 
-err_t ui_menu_create(ui_t ui, books_list_t books, int book_i) {
+err_t ui_menu_init(ui_t ui, books_list_t books, int book_i) {
   lv_group_t *group = ui_display_get_input_group(&ui->display);
-  err_o = ui_screen_menu_create(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
+  err_o = ui_screen_menu_init(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
                                 ui_menu_book_event_cb, group);
   ERR_TRY(err_o);
 
@@ -125,6 +123,7 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
+
 
   if (key == LV_KEY_ENTER) {
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);

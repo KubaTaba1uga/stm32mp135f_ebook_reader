@@ -1,7 +1,6 @@
 #ifndef APP_MODULE_H
 #define APP_MODULE_H
 
-
 #include <lvgl.h>
 #include <stdbool.h>
 
@@ -13,16 +12,22 @@
 */
 typedef struct AppModule *app_module_t;
 
-err_t app_module_create(app_module_t *, void (*)(void *, app_ctx_t, void *),
-                       void (*)(void *), void (*)(void *), void *);
+struct AppModule {
+  void (*open)(void *, app_ctx_t, void *);
+  void (*close)(void *);
+  void (*destroy)(void *);
+  void *module_data;
+};
+
+err_t app_module_init(app_module_t, app_t, enum AppStateEnum);
 void app_module_open(app_module_t, app_ctx_t, void *);
 void app_module_close(app_module_t);
-void app_module_destroy(app_module_t *);
+void app_module_destroy(app_module_t);
+void app_modules_destroy(app_module_t, int );
 
-/**
-   @brief We need get module_data so each module can be compatible with fsm
-          transaction.
- */
-void * app_module_get_module_data(app_module_t);
+err_t app_module_menu_init(app_module_t, app_t);
+void app_module_menu_select_book(app_module_t, app_ctx_t, void *);
+err_t app_module_reader_init(app_module_t, app_t);
+err_t app_module_error_init(app_module_t, app_t);
 
 #endif // APP_MODULE_H
