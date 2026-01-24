@@ -22,8 +22,7 @@ struct BooksList {
   book_api_t owner;
 };
 
-static enum BookExtensionEnum book_get_extension(book_api_t api,
-                                                 const char *path);
+static int book_get_extension(book_api_t api, const char *path);
 
 err_t book_api_init(book_api_t *out) {
   book_api_t api = *out = mem_malloc(sizeof(struct BookApi));
@@ -76,9 +75,9 @@ void book_api_destroy(book_api_t *out) {
 };
 
 books_list_t book_api_find_books(book_api_t api) {
-  enum BookExtensionEnum book_ext;
   struct dirent *dirent;
   DIR *books_dir;
+  int book_ext;  
   book_t book;
 
   books_list_t list = mem_malloc(sizeof(struct BooksList));
@@ -125,7 +124,7 @@ books_list_t book_api_find_books(book_api_t api) {
 
     if (api->modules[book_ext].book_init) {
       err_o = api->modules[book_ext].book_init(book);
-      ERR_TRY(err_o);
+      ERR_TRY_CATCH(err_o, error_list_cleanup);
     }
   }
 
@@ -133,9 +132,11 @@ books_list_t book_api_find_books(book_api_t api) {
 
   return list;
 
-error_out:
+error_list_cleanup:
   books_list_destroy(list);
   closedir(books_dir);
+error_out:
+  mem_free(list);
   return NULL;
 };
 
@@ -175,8 +176,7 @@ void books_list_reset(books_list_t list) {
   list->current_book = list->books.head;
 }
 
-static enum BookExtensionEnum book_get_extension(book_api_t api,
-                                                 const char *path) {
+static int book_get_extension(book_api_t api, const char *path) {
 
   for (int i = BookExtensionEnum_PDF; i < BookExtensionEnum_MAX; i++) {
     if (!api->modules[i].is_extension) {

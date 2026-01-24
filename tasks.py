@@ -520,7 +520,7 @@ def deploy_sdcard(c, dev="sda"):
 
 
 @task
-def lint(c):
+def lint(c, project=""):
     patterns = [
         "src/**/*.c",
         "src/**/*.h",
@@ -529,7 +529,11 @@ def lint(c):
 
     _pr_info("Linting...")
 
-    for proj in ["display_driver", "ebook_reader"]:
+    projects = ["display_driver", "ebook_reader"]
+    if project:
+        projects = [project]
+    
+    for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
             _pr_info(f"Linting files matching pattern '{pattern}'")
@@ -542,7 +546,7 @@ def lint(c):
 
 
 @task
-def format(c):
+def format(c, project=""):
     patterns = [
         "src/**/*.c",
         "src/**/*.h",
@@ -551,7 +555,11 @@ def format(c):
 
     _pr_info("Formating...")
 
-    for proj in ["display_driver", "ebook_reader"]:
+    projects = ["display_driver", "ebook_reader"]
+    if project:
+        projects = [project]
+    
+    for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
             _pr_info(f"Formating files matching pattern '{pattern}'")
