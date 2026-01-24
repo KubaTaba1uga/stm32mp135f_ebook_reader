@@ -66,9 +66,9 @@ err_t ui_init(ui_t *out,
   return 0;
 
 error_boot_screen_fd_cleanup:
-  fclose(boot_screen_fd);  
- error_boot_screen_cleanup:
-  mem_free(img_buf);  
+  fclose(boot_screen_fd);
+error_boot_screen_cleanup:
+  mem_free(img_buf);
 error_display_cleanup:
   ui_display_destroy(&ui->display);
 error_out:

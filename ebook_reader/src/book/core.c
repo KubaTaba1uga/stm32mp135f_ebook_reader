@@ -77,7 +77,7 @@ void book_api_destroy(book_api_t *out) {
 books_list_t book_api_find_books(book_api_t api) {
   struct dirent *dirent;
   DIR *books_dir;
-  int book_ext;  
+  int book_ext;
   book_t book;
 
   books_list_t list = mem_malloc(sizeof(struct BooksList));
