@@ -1,4 +1,3 @@
-#include "display/lv_display.h"
 #if !EBK_DISPLAY_WVS7IN5V2 && !EBK_DISPLAY_WVS7IN5V2B
 #include <assert.h>
 #include <display_driver.h>
@@ -146,7 +145,7 @@ static void ui_display_dd_flush_callback(lv_display_t *display,
 
   dd_error_t dd_err = ui_dd->write(ui_dd->dd, px_map + 8,
                                    dd_display_driver_get_x(ui_dd->dd) *
-                                       dd_display_driver_get_y(ui_dd->dd) / 8);
+                                   dd_display_driver_get_y(ui_dd->dd) / 8);
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);
     goto error_out;

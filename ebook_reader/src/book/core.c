@@ -1,4 +1,3 @@
-#include <cassert>
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
@@ -208,4 +207,12 @@ book_t books_list_pop(books_list_t list, int idx) {
   book_t book = CAST_BOOK_PRIV(book_node);
   assert(book != NULL);
   return book;
+}
+
+const unsigned char *book_get_page(book_t book, int x, int y, int page_no) {
+  assert(book != NULL);
+  assert(book->owner != NULL);
+  
+  return book->owner->modules[book->extension].book_get_page(book, x, y,
+                                                             page_no);
 }

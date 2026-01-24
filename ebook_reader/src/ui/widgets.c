@@ -183,3 +183,24 @@ ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t book) {
   struct UiMenuBookWidget *book_data = lv_obj_get_user_data(book);
   return book_data->gui;
 };
+
+ui_wx_reader_t ui_wx_reader_create(int page_len,
+                                   const unsigned char *page_buf) {
+  /* lv_obj_t *page_wx = ui_wx_obj_create(NULL); */
+
+  lv_obj_t *page_wx = lv_image_create(NULL);
+  lv_obj_set_size(page_wx, lv_display_get_horizontal_resolution(NULL),
+                  lv_display_get_vertical_resolution(NULL));
+
+  static lv_img_dsc_t dsc = {0};
+  dsc.header.cf = LV_COLOR_FORMAT_I1;
+  dsc.header.w = lv_display_get_horizontal_resolution(NULL);
+  dsc.header.h = lv_display_get_vertical_resolution(NULL);
+  dsc.data_size = page_len;
+  dsc.data = page_buf;
+  lv_image_set_src(page_wx, &dsc);
+  /* lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT); */
+  /* lv_obj_clear_flag(book_img, LV_OBJ_FLAG_CLICK_FOCUSABLE); */
+
+  return 0;
+}

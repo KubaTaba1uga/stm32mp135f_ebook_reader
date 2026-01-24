@@ -46,7 +46,7 @@ ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t);
 void ui_wx_menu_book_destroy(ui_wx_menu_book_t);
 
 typedef lv_obj_t *ui_wx_reader_t;
-ui_wx_reader_t ui_wx_reader_create(int page_len, unsigned char *page_buf);
+ui_wx_reader_t ui_wx_reader_create(int page_len, const unsigned char *page_buf);
 
 
 #endif // UI_WIDGETS_H

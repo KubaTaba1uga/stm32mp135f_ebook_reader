@@ -1,6 +1,3 @@
-#include "core/lv_group.h"
-#include "display/lv_display_private.h"
-#include "indev/lv_indev.h"
 #if !EBK_DISPLAY_X11
 #include "ui/display.h"
 #include "ui/ui.h"

@@ -1,5 +1,7 @@
+#include "book/book.h"
+#include "display/lv_display.h"
 #include "ui/screen.h"
-/* #include "ui/widgets.h" */
+#include "ui/widgets.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
@@ -16,11 +18,24 @@ static void ui_screen_reader_destroy(void *);
 err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
                             void (*event_cb)(lv_event_t *e),
                             lv_group_t *group) {
-  /* ui_wx_reader_t reader = ui_wx_reader_create(); */
-  /* if (!reader) { */
-  /*   err_o = err_errnos(EINVAL, "Cannot create reader widget"); */
-  /*   goto error_out; */
-  /* } */
+  assert(event_cb != NULL);
+  assert(group != NULL);
+  assert(book != NULL);
+  assert(out != NULL);
+  assert(ui != NULL);
+
+  const unsigned char *page_data =
+      book_get_page(book, lv_display_get_horizontal_resolution(NULL),
+                    lv_display_get_vertical_resolution(NULL), 0);
+  int page_size = lv_display_get_horizontal_resolution(NULL) *
+                      lv_display_get_vertical_resolution(NULL) / 8 +
+                  8;
+  
+  ui_wx_reader_t reader = ui_wx_reader_create(page_size, page_data);
+  if (!reader) {
+    err_o = err_errnos(EINVAL, "Cannot create reader widget");
+    goto error_out;
+  }
 
   ui_screen_reader_t screen = mem_malloc(sizeof(struct UiScreenReader));
   *screen = (struct UiScreenReader){
@@ -37,8 +52,8 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
 
   /* error_bar_cleanup: */
   /*   ui_wx_bar_destroy(bar); */
-  /* error_out: */
-  /*   return err_o; */
+  error_out:
+    return err_o;
 };
 
 static void ui_screen_reader_destroy(void *screen) { mem_free(screen); }

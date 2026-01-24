@@ -1,4 +1,3 @@
-#include <cassert>
 #include <libgen.h>
 #include <lvgl.h>
 #include <poppler.h>
@@ -22,6 +21,7 @@ struct Pdf {
 struct PdfBook {
   PopplerDocument *document;
   unsigned char *thumbnail;
+  unsigned char *page;
   char *title;
 };
 
@@ -30,10 +30,10 @@ static void book_module_pdf_book_destroy(book_t);
 static const char *book_module_pdf_book_get_title(book_t);
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
                                                                int);
+static const unsigned char *book_module_pdf_book_get_page(book_t, int, int,
+                                                          int);
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
-static const unsigned char *book_modulepdf_book_get_page(book_t, int x, int y,
-                                                         int page_no);
 
 err_t book_module_pdf_init(book_module_t module, book_api_t api) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
@@ -42,6 +42,7 @@ err_t book_module_pdf_init(book_module_t module, book_api_t api) {
   module->book_destroy = book_module_pdf_book_destroy;
   module->book_get_title = book_module_pdf_book_get_title;
   module->book_get_thumbnail = book_module_pdf_book_get_thumbnail;
+  module->book_get_page = book_module_pdf_book_get_page;
   module->is_extension = book_module_pdf_is_extension;
   module->destroy = book_module_pdf_destroy;
   module->private = pdf;
@@ -135,7 +136,7 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   int sh = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
 
-  pdf_book->thumbnail = mem_malloc(x * y + 8);
+  pdf_book->thumbnail = mem_malloc(x * y / 8 + 8);
   lv_color32_t *pal = (lv_color32_t *)pdf_book->thumbnail;
   pal[0] = (lv_color32_t){
       .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 = white
@@ -164,25 +165,44 @@ static void book_module_pdf_book_destroy(book_t book) {
   g_object_unref(pdf_book->document);
   mem_free(pdf_book->thumbnail);
   mem_free(pdf_book->title);
+  mem_free(pdf_book->page);
   mem_free(pdf_book);
 
   book->private = NULL;
 };
 
-
-static const unsigned char *book_modulepdf_book_get_page(book_t book, int x, int y,
-                                                         int page_no) {
+static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
+                                                          int y, int page_no) {
   pdf_book_t pdf_book = book->private;
+  assert(pdf_book != NULL);
+
+  if (pdf_book->page) {
+    mem_free(pdf_book->page);
+  }
+
   PopplerDocument *doc = pdf_book->document;
-  PopplerPage *page = poppler_document_get_page(doc, page_no); 
-  cairo_surface_t *surface;
-  cairo_t *cr; 
+  assert(doc != NULL);
+  PopplerPage *page = poppler_document_get_page(doc, page_no);
   assert(page != NULL);
+  cairo_surface_t *surface;
+  cairo_t *cr;
 
   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
   cr = cairo_create(surface);
+  poppler_page_render(page, cr);
+  cairo_surface_flush(surface);
 
-  
+  unsigned char *sdata = cairo_image_surface_get_data(surface);
+  int sw = cairo_image_surface_get_width(surface);
+  int sh = cairo_image_surface_get_height(surface);
+  int stride = cairo_image_surface_get_stride(surface);
 
-  return NULL;
+  pdf_book->page = mem_malloc(x * y /8 + 8);
+  graphic_argb32_to_i1(pdf_book->page, sw, sh, sdata, stride);
+
+  cairo_destroy(cr);
+  cairo_surface_destroy(surface);
+  g_object_unref(page);
+
+  return pdf_book->page;
 }

@@ -126,7 +126,23 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   }
 
 
+
+  // Id cannot be on stack, we need to use id from wx or malloc.
   if (key == LV_KEY_ENTER) {
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
   }
 }
+
+err_t ui_reader_init(ui_t ui, book_t book) {
+  lv_group_t *group = ui_display_get_input_group(&ui->display);
+  err_o = ui_screen_reader_init(&ui->screen, ui, book, LV_EVENT_KEY,
+                              ui_menu_book_event_cb, group);
+  ERR_TRY(err_o);
+
+  return 0;
+
+error_out:
+  return err_o;
+};
+
+void ui_reader_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
