@@ -1,3 +1,4 @@
+#include <cassert>
 #include <libgen.h>
 #include <lvgl.h>
 #include <poppler.h>
@@ -31,6 +32,8 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
                                                                int);
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
+static const unsigned char *book_modulepdf_book_get_page(book_t, int x, int y,
+                                                         int page_no);
 
 err_t book_module_pdf_init(book_module_t module, book_api_t api) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
@@ -165,3 +168,21 @@ static void book_module_pdf_book_destroy(book_t book) {
 
   book->private = NULL;
 };
+
+
+static const unsigned char *book_modulepdf_book_get_page(book_t book, int x, int y,
+                                                         int page_no) {
+  pdf_book_t pdf_book = book->private;
+  PopplerDocument *doc = pdf_book->document;
+  PopplerPage *page = poppler_document_get_page(doc, page_no); 
+  cairo_surface_t *surface;
+  cairo_t *cr; 
+  assert(page != NULL);
+
+  surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
+  cr = cairo_create(surface);
+
+  
+
+  return NULL;
+}

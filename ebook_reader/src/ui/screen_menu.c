@@ -1,10 +1,9 @@
-#include "core/lv_group.h"
+#include <stdio.h>
+
 #include "ui/screen.h"
 #include "ui/widgets.h"
 #include "utils/err.h"
-#include "utils/log.h"
 #include "utils/mem.h"
-#include <stdio.h>
 
 typedef struct UiScreenMenu *ui_screen_menu_t;
 

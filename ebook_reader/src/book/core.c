@@ -1,3 +1,4 @@
+#include <cassert>
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
@@ -200,3 +201,11 @@ const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
 }
 
 int books_list_len(books_list_t list) { return list->books.len; }
+
+book_t books_list_pop(books_list_t list, int idx) {
+  zlist_node_t book_node = zlist_pop(&list->books, idx);
+  assert(book_node != NULL);
+  book_t book = CAST_BOOK_PRIV(book_node);
+  assert(book != NULL);
+  return book;
+}

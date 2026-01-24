@@ -7,6 +7,7 @@
 #include "ui/ui.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include "utils/zlist.h"
 
 typedef struct AppMenu *app_module_menu_t;
 
@@ -88,7 +89,10 @@ static void app_module_menu_destroy(void *module) {
    @todo Instead of NULL add book. Propably need sth like list_pop to receive
    book.
  */
-void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
+void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *arg) {
   app_module_menu_t menu = module->module_data;
-  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
+  int *idx = arg;
+
+  book_t book = books_list_pop(menu->blist, *idx);
+  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, book);
 }

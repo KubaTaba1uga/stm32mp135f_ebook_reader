@@ -1,8 +1,8 @@
-#include <stdio.h>
-
 #include "app/core.h"
 #include "app/module.h"
-#include "utils/log.h"
+#include "book/book.h"
+#include "ui/ui.h"
+#include "utils/err.h"
 #include "utils/mem.h"
 
 typedef struct AppReader *app_module_reader_t;
@@ -32,10 +32,22 @@ err_t app_module_reader_init(app_module_t out, app_t app) {
   return 0;
 };
 
-static void app_module_reader_open(void *module, app_ctx_t ctx, void *arg) {}
+static void app_module_reader_open(void *module, app_ctx_t ctx, void *arg) {
+  app_module_reader_t reader = module;
+  book_t book = arg;
+
+  err_o = ui_reader_init(ctx->ui, book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
 
 static void app_module_reader_close(void *module) {
-
+  app_module_reader_t reader = module;
+  ui_reader_destroy(reader->ui);
 };
 
 static void app_module_reader_destroy(void *module) { mem_free(module); };
