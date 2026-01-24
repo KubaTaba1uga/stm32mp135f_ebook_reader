@@ -27,7 +27,6 @@
    SOFTWARE.
  */
 
-
 #ifdef __STDC_NO_THREADS__
 #error "Threads extension is required to compile this library"
 #endif
@@ -119,11 +118,11 @@ struct dd_EFrame {
  * Common error object.
  */
 struct dd_Error {
-  enum dd_ErrorType type;                         // Error type
-  uint16_t code;                                   // Status code
-  const char *msg;                                 // String msg, can be NULL
+  enum dd_ErrorType type;                        // Error type
+  uint16_t code;                                 // Status code
+  const char *msg;                               // String msg, can be NULL
   struct dd_EFrame eframes[DD_ERROR_BTRACE_MAX]; // Backtrace frames
-  size_t eframes_len;                              // Backtrace frames length
+  size_t eframes_len;                            // Backtrace frames length
 
 #ifndef DD_ERROR_OPTIMIZE
   char _msg_buf[DD_ERROR_FSTR_MAX]; // Internal storage for formatted string
@@ -139,8 +138,8 @@ typedef struct dd_Error *dd_error_t;
  * Create struct dd_Error of type dd_ErrorType_INT.
  */
 static inline dd_error_t dd_error_int(struct dd_Error *err, uint16_t code,
-                                        const char *file, const char *func,
-                                        int line) {
+                                      const char *file, const char *func,
+                                      int line) {
   *err = (struct dd_Error){
       .type = dd_ErrorType_INT,
       .code = code,
@@ -155,8 +154,8 @@ static inline dd_error_t dd_error_int(struct dd_Error *err, uint16_t code,
  * Create struct dd_Error of type dd_ErrorType_STR.
  */
 static inline dd_error_t dd_error_lstr(struct dd_Error *err, uint16_t code,
-                                         const char *file, const char *func,
-                                         int line, const char *msg) {
+                                       const char *file, const char *func,
+                                       int line, const char *msg) {
   *err = (struct dd_Error){
       .type = dd_ErrorType_STR,
       .code = code,
@@ -173,8 +172,8 @@ static inline dd_error_t dd_error_lstr(struct dd_Error *err, uint16_t code,
  * Create struct dd_Error of type dd_ErrorType_FSTR.
  */
 static inline dd_error_t dd_error_fstr(struct dd_Error *err, uint16_t code,
-                                         const char *file, const char *func,
-                                         int line, const char *fmt, ...) {
+                                       const char *file, const char *func,
+                                       int line, const char *fmt, ...) {
 
   *err = (struct dd_Error){
       .type = dd_ErrorType_FSTR,
@@ -201,8 +200,7 @@ static inline dd_error_t dd_error_fstr(struct dd_Error *err, uint16_t code,
  * Dump all struct dd_XError to string.
  */
 int dd_error_dumps(dd_error_t err, size_t buf_size, char *buf);
-static inline void dd_error_add_frame(dd_error_t err,
-                                       struct dd_EFrame *frame) {
+static inline void dd_error_add_frame(dd_error_t err, struct dd_EFrame *frame) {
   if (err->eframes_len >= DD_ERROR_BTRACE_MAX) {
     return;
   }
@@ -210,32 +208,32 @@ static inline void dd_error_add_frame(dd_error_t err,
 }
 
 #ifndef DD_ERROR_OPTIMIZE
-#define dd_error_wrap(err)                                                    \
+#define dd_error_wrap(err)                                                     \
   ({                                                                           \
-    dd_error_add_frame(err, &(struct dd_EFrame){.file = __FILE_NAME__,       \
-                                                  .func = __func__,            \
-                                                  .line = __LINE__});          \
+    dd_error_add_frame(err, &(struct dd_EFrame){.file = __FILE_NAME__,         \
+                                                .func = __func__,              \
+                                                .line = __LINE__});            \
     err;                                                                       \
   })
 #else
 #define dd_error_wrap(err)
 #endif
 
-#define dd_error_return(ret, err)                                             \
+#define dd_error_return(ret, err)                                              \
   ({                                                                           \
-    dd_error_wrap(err);                                                       \
+    dd_error_wrap(err);                                                        \
     ret;                                                                       \
   })
 
-#define dd_errori(err, code)                                                  \
+#define dd_errori(err, code)                                                   \
   dd_error_int((err), (code), __FILE_NAME__, __func__, __LINE__);
 
-#define dd_errors(err, code, msg)                                             \
+#define dd_errors(err, code, msg)                                              \
   dd_error_lstr((err), (code), __FILE_NAME__, __func__, __LINE__, (msg))
 
-#define dd_errorf(err, code, fmt, ...)                                        \
-  dd_error_fstr((err), (code), __FILE_NAME__, __func__, __LINE__, (fmt),      \
-                 ##__VA_ARGS__)
+#define dd_errorf(err, code, fmt, ...)                                         \
+  dd_error_fstr((err), (code), __FILE_NAME__, __func__, __LINE__, (fmt),       \
+                ##__VA_ARGS__)
 
 /******************************************************************************
  *                                Errno API                                   *
@@ -248,7 +246,7 @@ _Thread_local extern struct dd_Error dd_hidden_errno;
 #define dd_errnos(code, msg) dd_errors(&dd_hidden_errno, code, msg)
 
 #ifndef DD_ERROR_OPTIMIZE
-#define dd_errnof(code, fmt, ...)                                             \
+#define dd_errnof(code, fmt, ...)                                              \
   dd_errorf(&dd_hidden_errno, code, fmt, ##__VA_ARGS__)
 #endif
 
@@ -256,15 +254,14 @@ _Thread_local extern struct dd_Error dd_hidden_errno;
 
 #define dd_ereturn(ret) dd_error_return((ret), &dd_hidden_errno)
 
-#define dd_edumps(buf_size, buf)                                              \
-  dd_error_dumps(&dd_hidden_errno, buf_size, buf)
+#define dd_edumps(buf_size, buf) dd_error_dumps(&dd_hidden_errno, buf_size, buf)
 
-#define DD_TRY_CATCH(err, golabel)    \
-  do {                        \
-    if ((err)) {       \
-      dd_ewrap();             \
-      goto golabel;             \
-    }                         \
+#define DD_TRY_CATCH(err, golabel)                                             \
+  do {                                                                         \
+    if ((err)) {                                                               \
+      dd_ewrap();                                                              \
+      goto golabel;                                                            \
+    }                                                                          \
   } while (0)
 
 #define DD_TRY(err) DD_TRY_CATCH(err, error_out)

@@ -12,4 +12,3 @@ void ui_screen_destroy(ui_screen_t out) {
 
   memset(out, 0, sizeof(struct UiScreen));
 };
-

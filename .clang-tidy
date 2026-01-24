@@ -1,0 +1,2 @@
+Checks: 'llvm-*,clang-analyzer-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-llvm-header-guard'
+WarningsAsErrors: '*'

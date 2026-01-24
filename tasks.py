@@ -1,10 +1,13 @@
 import os
+import glob
 
 from invoke import task
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
+C_FORMATER = "clang-format-19"
+C_LINTER = "clang-tidy-19"
 
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
@@ -40,6 +43,7 @@ def install(c):
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk curl \
               git libncurses5-dev python3 libpoppler-glib-dev"
+              f" {C_FORMATER} {C_LINTER} "
         )
 
         c.run("virtualenv .venv")
@@ -513,6 +517,60 @@ def deploy_sdcard(c, dev="sda"):
     _pr_info(f"Deploy to sdcard completed")
 
 
+
+
+@task
+def lint(c, project=""):
+    patterns = [
+        "src/**/*.c",
+        "src/**/*.h",
+        "include/*.h",
+    ]
+
+    _pr_info("Linting...")
+
+    projects = ["display_driver", "ebook_reader"]
+    if project:
+        projects = [project]
+    
+    for proj in projects:
+        proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
+        for pattern in proj_patterns:
+            _pr_info(f"Linting files matching pattern '{pattern}'")
+            for path in glob.glob(pattern, recursive=True):
+                if os.path.isfile(path):
+                    c.run(f"{C_LINTER} -p build/{proj} {path}")
+                    _pr_info(f"{path} linted")
+
+    _pr_info("Linting done")
+
+
+@task
+def format(c, project=""):
+    patterns = [
+        "src/**/*.c",
+        "src/**/*.h",
+        "include/*.h",
+    ]
+
+    _pr_info("Formating...")
+
+    projects = ["display_driver", "ebook_reader"]
+    if project:
+        projects = [project]
+    
+    for proj in projects:
+        proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
+        for pattern in proj_patterns:
+            _pr_info(f"Formating files matching pattern '{pattern}'")
+
+            for path in glob.glob(pattern, recursive=True):
+                if os.path.isfile(path):
+                    c.run(f"{C_FORMATER} -i {path}")
+                    _pr_info(f"{path} formated")
+
+    _pr_info("Formating done")
+    
 ###############################################
 #                Private API                  #
 ###############################################

@@ -1,5 +1,5 @@
-#include <lvgl.h>
 #include <libgen.h>
+#include <lvgl.h>
 #include <poppler.h>
 #include <stdio.h>
 #include <string.h>
@@ -118,7 +118,7 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   cairo_set_source_rgb(cr, 1, 1, 1);
   cairo_paint(cr);
 
-  /* scale page -> output */
+  /* scale page */
   double sx = (double)x / pw;
   double sy = (double)y / ph;
   cairo_scale(cr, sx, sy);
@@ -127,23 +127,24 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   poppler_page_render(page, cr);
   cairo_surface_flush(surface);
 
-  /* now surface contains the first page image */
   unsigned char *sdata = cairo_image_surface_get_data(surface);
   int sw = cairo_image_surface_get_width(surface);
   int sh = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
- /* palette: 2 x lv_color32_t (ARGB8888) */
+
   pdf_book->thumbnail = mem_malloc(x * y + 8);
-  lv_color32_t *pal = (lv_color32_t *)  pdf_book->thumbnail;
-  pal[0] = (lv_color32_t){ .red=255, .green=255, .blue=255, .alpha=255 }; // index 0 = white
-  pal[1] = (lv_color32_t){ .red=0,   .green=0,   .blue=0,   .alpha=255 }; // index 1 = black
-  
+  lv_color32_t *pal = (lv_color32_t *)pdf_book->thumbnail;
+  pal[0] = (lv_color32_t){
+      .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 = white
+  pal[1] = (lv_color32_t){
+      .red = 0, .green = 0, .blue = 0, .alpha = 255}; // index 1 = black
+
   graphic_argb32_to_i1(pdf_book->thumbnail, sw, sh, sdata, stride);
 
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
   g_object_unref(page);
-  
+
   return pdf_book->thumbnail;
 };
 

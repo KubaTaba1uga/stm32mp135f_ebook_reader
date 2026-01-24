@@ -1,6 +1,6 @@
 #include "app/module.h"
-#include "utils/err.h"
 #include "app/core.h"
+#include "utils/err.h"
 
 err_t app_module_init(app_module_t module, app_t app, enum AppStateEnum state) {
   err_t (*inits[])(app_module_t, app_t) = {

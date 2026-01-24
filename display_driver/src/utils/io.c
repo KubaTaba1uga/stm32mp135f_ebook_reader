@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
-#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 int dd_io_open(const char *pathname, int flags) {
