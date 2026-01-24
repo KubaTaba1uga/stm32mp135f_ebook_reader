@@ -4,8 +4,8 @@
 enum DisplayModelEnum {
   DisplayModelEnum_X11 = 0,
   DisplayModelEnum_WVS7IN5V2B,
-  DisplayModelEnum_WVS7IN5V2,  
-  DisplayModelEnum_MAX,  
+  DisplayModelEnum_WVS7IN5V2,
+  DisplayModelEnum_MAX,
 };
 
 extern const enum DisplayModelEnum settings_display_model;

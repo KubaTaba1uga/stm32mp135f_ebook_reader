@@ -19,7 +19,7 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
       bool black = lum > 130;
 
       int byte_i = y * dst_stride + (x >> 3);
-      
+
       int bit = 7 - (x & 7); // MSB first
       if (black) {
         dst[byte_i] |= (1u << bit);
@@ -27,4 +27,3 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
     }
   }
 }
-

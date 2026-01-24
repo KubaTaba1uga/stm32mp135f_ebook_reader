@@ -12,7 +12,7 @@ dd_error_t dd_display_driver_init(dd_display_driver_t *out,
   }
 
   *out = dd_malloc(sizeof(struct dd_DisplayDriver));
-  
+
   switch (model) {
   case dd_DisplayDriverEnum_Wvs7in5V2:
     dd_errno = dd_driver_wvs7in5v2_init(*out, config);
@@ -133,8 +133,8 @@ error_out:
   return dd_errno;
 }
 
-dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd, unsigned char *buf,
-                                   uint32_t buf_len) {
+dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd,
+                                        unsigned char *buf, uint32_t buf_len) {
   if (!dd || !buf) {
     dd_errno = dd_errnos(EINVAL, "`dd` and `buf` cannot be NULL");
     goto error_out;

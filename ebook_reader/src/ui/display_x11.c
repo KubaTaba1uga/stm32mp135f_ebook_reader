@@ -47,7 +47,6 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
     goto error_out;
   }
   lv_x11_inputs_create(lv_display, NULL);
-  
 
   *display = (struct UiDisplay){
       .lv_ingroup = lv_group_get_default(),

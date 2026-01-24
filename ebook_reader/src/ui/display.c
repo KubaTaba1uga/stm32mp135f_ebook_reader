@@ -33,7 +33,7 @@ err_t ui_display_render(ui_display_t display, unsigned char *buf,
   err_o = display->render(display->owner, buf, buf_len);
   ERR_TRY(err_o);
 
- out:  
+out:
   return 0;
 
 error_out:
@@ -46,7 +46,7 @@ void ui_display_destroy(ui_display_t display) {
   }
   if (display->lv_ingroup) {
     lv_group_delete(display->lv_ingroup);
-  }  
+  }
 }
 
 void ui_display_panic(ui_display_t display) {

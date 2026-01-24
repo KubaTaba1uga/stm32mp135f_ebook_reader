@@ -21,9 +21,10 @@ err_t app_module_error_init(app_module_t out, app_t app) {
   };
 
   *out = (struct AppModule){
-    .open = app_module_error_open, .close = app_module_error_close,
-    .destroy = app_module_error_destroy,
-    .module_data = error,
+      .open = app_module_error_open,
+      .close = app_module_error_close,
+      .destroy = app_module_error_destroy,
+      .module_data = error,
   };
 
   return 0;
