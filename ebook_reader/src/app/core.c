@@ -1,8 +1,5 @@
 #include "app/core.h"
 #include "app/module.h"
-#include "app/module_error.h"
-#include "app/module_menu.h"
-#include "app/module_reader.h"
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
@@ -10,18 +7,8 @@
 #include "utils/mem.h"
 #include "utils/time.h"
 
-enum AppStateEnum {
-  AppStateEnum_NONE = 0,
-  AppStateEnum_BOOT,
-  AppStateEnum_MENU,
-  AppStateEnum_READER,
-  AppStateEnum_ERROR,
-  // Add more states here
-  AppStateEnum_MAX,
-};
-
 struct App {
-  app_module_t modules[AppStateEnum_MAX];
+  struct AppModule modules[AppStateEnum_MAX];
   enum AppStateEnum current_state;
   struct AppEventData ev_data;
   struct AppCtx ctx;
@@ -96,40 +83,34 @@ static const struct AppFsmTransition
 static void app_input_callback(enum UiInputEventEnum event, void *data,
                                void *arg);
 static const char *app_state_dump(enum AppStateEnum);
-static void app_modules_destroy(app_module_t *, int);
 static void app_step(app_t);
 
-err_t app_create(app_t *out) {
+err_t app_init(app_t *out) {
   app_t app = *out = mem_malloc(sizeof(struct App));
   *app = (struct App){
       .current_state = AppStateEnum_BOOT,
   };
 
-  err_o = ui_create(&app->ctx.ui, app_input_callback, app);
+  err_o = ui_init(&app->ctx.ui, app_input_callback, app);
   ERR_TRY(err_o);
 
-  err_o = book_api_create(&app->ctx.book_api);
+  err_o = book_api_init(&app->ctx.book_api);
   ERR_TRY_CATCH(err_o, error_ui_cleanup);
 
-  static err_t (*modules_creates[AppStateEnum_MAX])(app_module_t *, app_t) = {
-      [AppStateEnum_MENU] = app_module_menu_create,
-      [AppStateEnum_ERROR] = app_module_error_create,
-      [AppStateEnum_READER] = app_module_reader_create,
-  };
 
-  int creates_status;
-  for (creates_status = AppStateEnum_MENU; creates_status < AppStateEnum_MAX;
-       creates_status++) {
-    err_o = modules_creates[creates_status](&app->modules[creates_status], app);
+  int inits_status;
+  for (inits_status = AppStateEnum_MENU; inits_status < AppStateEnum_MAX;
+       inits_status++) {
+    err_o = app_module_init(&app->modules[inits_status], app, inits_status);
     ERR_TRY_CATCH(err_o, error_modules_cleanup);
   }
 
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
 
   return 0;
-
+  
 error_modules_cleanup:
-  app_modules_destroy((*out)->modules, creates_status);
+  app_modules_destroy((*out)->modules, inits_status);
   book_api_destroy(&app->ctx.book_api);
 error_ui_cleanup:
   ui_destroy(&app->ctx.ui);
@@ -219,14 +200,13 @@ out:;
 
 static const char *app_state_dump(enum AppStateEnum state) {
   static char *dumps[] = {
-      [AppStateEnum_NONE] = "state_none",
       [AppStateEnum_MENU] = "state_menu",
       [AppStateEnum_BOOT] = "state_boot",
       [AppStateEnum_READER] = "state_book_reader",
       [AppStateEnum_ERROR] = "state_error",
   };
 
-  if (state < AppStateEnum_NONE || state > AppStateEnum_ERROR ||
+  if (state < AppStateEnum_MENU || state > AppStateEnum_ERROR ||
       !dumps[state]) {
     return "Unknown";
   }
@@ -248,20 +228,21 @@ static void app_step(app_t app) {
   memset(&app->ev_data, 0, sizeof(struct AppEventData));
 
   struct AppFsmTransition trans = fsm_table[app->current_state][ev_data.event];
-  app_module_t next_module = app->modules[trans.next_state];
-  app_module_t current_module = app->modules[app->current_state];
+  app_module_t next_module = &app->modules[trans.next_state];
+  app_module_t current_module = &app->modules[app->current_state];
 
   log_debug("%s -> %s", app_state_dump(app->current_state),
             app_state_dump(trans.next_state));
 
-  if (!trans.action && app->modules[trans.next_state]) {
+  assert(trans.next_state != 0); // We should never transition to boot.
+  
+  if (!trans.action) {
     trans.action = app_module_open;
   }
 
   trans.action(next_module, &app->ctx, ev_data.data);
 
-  if (app->current_state != trans.next_state &&
-      app->modules[app->current_state]) {
+  if (app->current_state != trans.next_state) {
     app_module_close(current_module);
   }
 
@@ -274,11 +255,6 @@ void app_raise_error(app_t app, err_t error) {
   app_event_post(app, AppEventEnum_ERROR_RAISED, error);
 }
 
-static void app_modules_destroy(app_module_t *modules, int modules_len) {
-  while (modules_len--) {
-    app_module_destroy(&modules[modules_len]);
-  }
-}
 
 void app_panic(app_t app) { ui_panic(app->ctx.ui); }
 

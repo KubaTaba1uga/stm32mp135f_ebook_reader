@@ -21,10 +21,9 @@ struct UiScreenMenu {
 
 static void ui_screen_menu_destroy(void *);
 
-err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
-                            int book_i, int event,
-                            void (*event_cb)(lv_event_t *e),
-                            lv_group_t *group) {
+err_t ui_screen_menu_init(ui_screen_t out, ui_t ui, books_list_t books,
+                          int book_i, int event,
+                          void (*event_cb)(lv_event_t *e), lv_group_t *group) {
   ui_wx_bar_t bar = ui_wx_bar_create();
   if (!bar) {
     err_o = err_errnos(EINVAL, "Cannot create bar widget");
@@ -67,13 +66,13 @@ err_t ui_screen_menu_create(ui_screen_t *out, ui_t ui, books_list_t books,
       .owner = ui,
   };
 
-  err_o = ui_screen_create(out, ui, ui_screen_menu_destroy, screen);
-  ERR_TRY_CATCH(err_o, error_screen_cleanup);
+  *out = (struct UiScreen){
+      .destroy = ui_screen_menu_destroy,
+      .screen_data = screen,
+  };
 
   return 0;
 
-error_screen_cleanup:
-  ui_screen_menu_destroy(screen);
 error_bar_cleanup:
   ui_wx_bar_destroy(bar);
 error_out:

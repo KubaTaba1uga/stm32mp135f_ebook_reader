@@ -23,7 +23,7 @@ struct Book {
 };
 
 struct BookModule {
-err_t (*book_create)(book_t);
+  err_t (*book_init)(book_t);
   void (*book_destroy)(book_t);
   const char *(*book_get_title)(book_t);
   const unsigned char *(*book_get_thumbnail)(book_t, int x, int y);
@@ -32,8 +32,6 @@ err_t (*book_create)(book_t);
   void *private;
 };
 
-err_t book_module_pdf_create(book_module_t, book_api_t);
-
-/* err_t book_create(); */
+err_t book_module_pdf_init(book_module_t, book_api_t);
 
 #endif // EBOOK_READER_BOOK_CORE_H

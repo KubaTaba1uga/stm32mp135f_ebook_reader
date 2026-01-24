@@ -15,7 +15,7 @@ enum UiInputEventEnum {
   UiInputEventEnum_MENU,
 };
 
-err_t ui_create(ui_t *out,
+err_t ui_init(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
                                void *arg),
               void *data);
@@ -33,7 +33,7 @@ void ui_panic(ui_t ui);
 /**
    @brief Create menu screen.
 */
-err_t ui_menu_create(ui_t ui, books_list_t blist, int book_i);
+err_t ui_menu_init(ui_t ui, books_list_t blist, int book_i);
 
 /**
    @brief Delete menu screen.
