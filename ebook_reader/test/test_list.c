@@ -156,3 +156,137 @@ void test_zlist_get_negative_index_returns_null(void) {
 
   TEST_ASSERT_NULL(zlist_get(list, -1));
 }
+
+void _test_zlist_pop_empty_returns_null_and_len_unchanged(void) {
+  TEST_ASSERT_NULL(list->head);
+  TEST_ASSERT_EQUAL(0, list->len);
+
+  zlist_node_t out = zlist_pop(list, 0);
+  TEST_ASSERT_NULL(out);
+  TEST_ASSERT_EQUAL(0, list->len);
+  TEST_ASSERT_NULL(list->head);
+}
+
+void _test_zlist_pop_out_of_range_returns_null_and_list_unchanged(void) {
+  zlist_node_t a = mk_node();
+  zlist_node_t b = mk_node();
+
+  zlist_append(list, a);
+  zlist_append(list, b);
+
+  TEST_ASSERT_EQUAL(2, list->len);
+
+  zlist_node_t out = zlist_pop(list, 2);
+  TEST_ASSERT_NULL(out);
+
+  TEST_ASSERT_EQUAL(2, list->len);
+  TEST_ASSERT_EQUAL_PTR(a, list->head);
+  TEST_ASSERT_EQUAL_PTR(b, list->head->next);
+  TEST_ASSERT_NULL(b->next);
+  TEST_ASSERT_EQUAL(2, count_nodes(list));
+}
+
+void _test_zlist_pop_negative_index_returns_null_and_list_unchanged(void) {
+  zlist_node_t a = mk_node();
+  zlist_append(list, a);
+
+  zlist_node_t out = zlist_pop(list, -1);
+  TEST_ASSERT_NULL(out);
+
+  TEST_ASSERT_EQUAL(1, list->len);
+  TEST_ASSERT_EQUAL_PTR(a, list->head);
+  TEST_ASSERT_NULL(a->next);
+}
+
+void test_zlist_pop_index0_removes_head_and_returns_node(void) {
+  zlist_node_t a = mk_node();
+  zlist_node_t b = mk_node();
+  zlist_node_t c = mk_node();
+
+  zlist_append(list, a);
+  zlist_append(list, b);
+  zlist_append(list, c);
+
+  TEST_ASSERT_EQUAL(3, list->len);
+
+  zlist_node_t out = zlist_pop(list, 0);
+  TEST_ASSERT_EQUAL_PTR(a, out);
+
+  /* popped node should be detached */
+  TEST_ASSERT_NULL(out->next);
+
+  /* list should now start at b */
+  TEST_ASSERT_EQUAL_PTR(b, list->head);
+  TEST_ASSERT_EQUAL_PTR(c, list->head->next);
+  TEST_ASSERT_NULL(c->next);
+
+  TEST_ASSERT_EQUAL(2, list->len);
+  TEST_ASSERT_EQUAL(2, count_nodes(list));
+
+  mem_free(out);
+}
+
+void test_zlist_pop_middle_removes_node_and_returns_it(void) {
+  zlist_node_t a = mk_node();
+  zlist_node_t b = mk_node();
+  zlist_node_t c = mk_node();
+
+  zlist_append(list, a);
+  zlist_append(list, b);
+  zlist_append(list, c);
+
+  zlist_node_t out = zlist_pop(list, 1);
+  TEST_ASSERT_EQUAL_PTR(b, out);
+
+  /* list should be a -> c */
+  TEST_ASSERT_EQUAL_PTR(a, list->head);
+  TEST_ASSERT_EQUAL_PTR(c, list->head->next);
+  TEST_ASSERT_NULL(c->next);
+
+  TEST_ASSERT_NULL(out->next);
+  TEST_ASSERT_EQUAL(2, list->len);
+  TEST_ASSERT_EQUAL(2, count_nodes(list));
+
+  mem_free(out);
+}
+
+void test_zlist_pop_last_removes_tail_and_returns_it(void) {
+  zlist_node_t a = mk_node();
+  zlist_node_t b = mk_node();
+  zlist_node_t c = mk_node();
+
+  zlist_append(list, a);
+  zlist_append(list, b);
+  zlist_append(list, c);
+
+  zlist_node_t out = zlist_pop(list, 2);
+  TEST_ASSERT_EQUAL_PTR(c, out);
+
+  /* list should be a -> b */
+  TEST_ASSERT_EQUAL_PTR(a, list->head);
+  TEST_ASSERT_EQUAL_PTR(b, list->head->next);
+  TEST_ASSERT_NULL(b->next);
+
+  TEST_ASSERT_NULL(out->next);
+  TEST_ASSERT_EQUAL(2, list->len);
+  TEST_ASSERT_EQUAL(2, count_nodes(list));
+
+  mem_free(out);
+}
+
+void test_zlist_pop_singleton_index0_results_in_empty_list(void) {
+  zlist_node_t a = mk_node();
+  zlist_append(list, a);
+
+  TEST_ASSERT_EQUAL(1, list->len);
+  TEST_ASSERT_EQUAL_PTR(a, list->head);
+
+  zlist_node_t out = zlist_pop(list, 0);
+  TEST_ASSERT_EQUAL_PTR(a, out);
+
+  TEST_ASSERT_NULL(out->next);
+  TEST_ASSERT_NULL(list->head);
+  TEST_ASSERT_EQUAL(0, list->len);
+
+  mem_free(out);
+}

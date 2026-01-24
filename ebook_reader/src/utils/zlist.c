@@ -1,5 +1,6 @@
 #include "zlist.h"
 #include "err.h"
+#include <stdio.h>
 
 int zlist_append(zlist_t head, zlist_node_t node) {
   if (!head || !node) {
@@ -28,3 +29,28 @@ zlist_node_t zlist_get(zlist_t list, int idx) {
 
   return NULL;
 };
+
+zlist_node_t zlist_pop(zlist_t list, int idx) {
+  if (idx == 0) {
+    zlist_node_t node = list->head;
+    list->head = node->next;
+    node->next = NULL;
+    list->len--;
+    return node;
+  }
+
+  int i = 0;
+  for (zlist_node_t node = list->head, prev_node = list->head; node != NULL;
+       node = node->next) {
+    if (idx == i++) {
+      prev_node->next = node->next;
+      node->next = NULL;
+      list->len--;
+      return node;
+    }
+
+    prev_node = node;
+  }
+
+  return NULL;
+}

@@ -41,4 +41,12 @@ int zlist_append(zlist_t head, zlist_node_t node);
 */
 zlist_node_t zlist_get(zlist_t head, int idx);
 
+/**
+   @brief Remove node from zero list.
+   @param head Head of the zero list.
+   @param idx Index of node to remove.
+   @return On success pointer to node, on error NULL.
+*/
+zlist_node_t zlist_pop(zlist_t head, int idx);
+
 #endif // ZLIST_H
