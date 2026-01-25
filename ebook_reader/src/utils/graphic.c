@@ -1,13 +1,19 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
                           int stride) {
+  
   int dst_stride = (w + 7) / 8;
   memset(dst, 0x00, dst_stride * h); // 0 = white
 
   for (int y = 0; y < h; y++) {
+    /* printf("Row=%d\n", y); */
+    if (y == 2049) {
+      break;
+    }
     const uint32_t *row = (const uint32_t *)(src + y * stride);
     for (int x = 0; x < w; x++) {
       uint32_t p = row[x]; // 0xAARRGGBB on little-endian

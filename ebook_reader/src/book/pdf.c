@@ -6,6 +6,7 @@
 
 #include "book/book.h"
 #include "book/core.h"
+#include "cairo.h"
 #include "glib.h"
 #include "utils/err.h"
 #include "utils/graphic.h"
@@ -30,8 +31,8 @@ static void book_module_pdf_book_destroy(book_t);
 static const char *book_module_pdf_book_get_title(book_t);
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
                                                                int);
-static const unsigned char *book_module_pdf_book_get_page(book_t, int, int,
-                                                          int);
+static const unsigned char *book_module_pdf_book_get_page(book_t, int, int, int,
+                                                          int *);
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
@@ -172,7 +173,8 @@ static void book_module_pdf_book_destroy(book_t book) {
 };
 
 static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
-                                                          int y, int page_no) {
+                                                          int y, int page_no,
+                                                          int *buf_len) {
   pdf_book_t pdf_book = book->private;
   assert(pdf_book != NULL);
 
@@ -196,8 +198,15 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   int sw = cairo_image_surface_get_width(surface);
   int sh = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
+  *buf_len = ((sw + 7) / 8 ) * sh;  
+  printf("sw=%d, sh=%d, stride=%d, buf_len=%d\n", sw, sh, stride, *buf_len);
+  
 
-  pdf_book->page = mem_malloc(x * y /8 + 8);
+  /* memset(dst, 0x00, dst_stride * sh); // 0 = white */
+  
+  /* *buf_len = sw * sh / 8 + 8; */
+  pdf_book->page = mem_malloc(*buf_len);
+  
   graphic_argb32_to_i1(pdf_book->page, sw, sh, sdata, stride);
 
   cairo_destroy(cr);

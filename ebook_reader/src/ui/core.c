@@ -119,17 +119,17 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
 
   lv_key_t key = lv_event_get_key(e);
 
-  log_debug("Ui received key: %d'", key);
+  log_debug("Ui received key: %d", key);
 
   if (key == '\r' || key == '\n') {
     key = LV_KEY_ENTER;
   }
 
-
-
   // Id cannot be on stack, we need to use id from wx or malloc.
   if (key == LV_KEY_ENTER) {
-    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
+    int *tmp_id = mem_malloc(sizeof(int));
+    *tmp_id = id;
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, tmp_id);
   }
 }
 

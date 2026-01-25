@@ -22,6 +22,6 @@ int books_list_len(books_list_t);
 void books_list_reset(books_list_t);
 void books_list_destroy(books_list_t);
 book_t books_list_pop(books_list_t, int);
-const unsigned char *book_get_page(book_t, int, int, int);
+const unsigned char *book_get_page(book_t, int, int, int, int*);
 
 #endif // EBOOK_READER_BOOK_H

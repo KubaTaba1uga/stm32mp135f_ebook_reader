@@ -95,4 +95,5 @@ void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *arg) {
 
   book_t book = books_list_pop(menu->blist, *idx);
   app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, book);
+  mem_free(idx);
 }

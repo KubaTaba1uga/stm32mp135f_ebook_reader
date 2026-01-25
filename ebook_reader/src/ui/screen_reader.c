@@ -24,12 +24,12 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   assert(out != NULL);
   assert(ui != NULL);
 
+  int page_size = 0;
   const unsigned char *page_data =
-      book_get_page(book, lv_display_get_horizontal_resolution(NULL),
-                    lv_display_get_vertical_resolution(NULL), 0);
-  int page_size = lv_display_get_horizontal_resolution(NULL) *
-                      lv_display_get_vertical_resolution(NULL) / 8 +
-                  8;
+      book_get_page(book, 480,
+                    800, 0, &page_size);
+      /* book_get_page(book, lv_display_get_horizontal_resolution(NULL), */
+      /*               lv_display_get_vertical_resolution(NULL), 0, &page_size); */
   
   ui_wx_reader_t reader = ui_wx_reader_create(page_size, page_data);
   if (!reader) {
