@@ -4,6 +4,7 @@
 #include "ui/widgets.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct UiScreenReader *ui_screen_reader_t;
 
@@ -18,6 +19,7 @@ static void ui_screen_reader_destroy(void *);
 err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
                             void (*event_cb)(lv_event_t *e),
                             lv_group_t *group) {
+  puts(__func__)  ;
   assert(event_cb != NULL);
   assert(group != NULL);
   assert(book != NULL);
@@ -25,11 +27,9 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   assert(ui != NULL);
 
   int page_size = 0;
-  const unsigned char *page_data =
-      book_get_page(book, 480,
-                    800, 0, &page_size);
-      /* book_get_page(book, lv_display_get_horizontal_resolution(NULL), */
-      /*               lv_display_get_vertical_resolution(NULL), 0, &page_size); */
+  const unsigned char *page_data = book_get_page(book, 480, 800, 0, &page_size);
+      book_get_page(book, lv_display_get_horizontal_resolution(NULL),
+                    lv_display_get_vertical_resolution(NULL), 0, &page_size);
   
   ui_wx_reader_t reader = ui_wx_reader_create(page_size, page_data);
   if (!reader) {
@@ -48,6 +48,15 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
       .screen_data = screen,
   };
 
+  /* lv_obj_t *page_wx = lv_obj_create(lv_screen_active()); */
+
+  /* lv_obj_t *page_wx = lv_image_create(NULL); */
+  /* lv_obj_set_size(page_wx, 480, */
+  /*                 800); */
+  /* lv_obj_set_style_bg_color(page_wx, lv_color_black(), 0); */
+  
+  /* ui_wx_bar_create(); */
+
   return 0;
 
   /* error_bar_cleanup: */
@@ -56,4 +65,5 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
     return err_o;
 };
 
-static void ui_screen_reader_destroy(void *screen) { mem_free(screen); }
+static void ui_screen_reader_destroy(void *screen) {
+  mem_free(screen); }

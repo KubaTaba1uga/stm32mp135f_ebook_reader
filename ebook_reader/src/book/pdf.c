@@ -178,9 +178,9 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   pdf_book_t pdf_book = book->private;
   assert(pdf_book != NULL);
 
-  if (pdf_book->page) {
-    mem_free(pdf_book->page);
-  }
+  /* if (pdf_book->page) { */
+  /*   mem_free(pdf_book->page); */
+  /* } */
 
   PopplerDocument *doc = pdf_book->document;
   assert(doc != NULL);
@@ -191,6 +191,17 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
 
   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
   cr = cairo_create(surface);
+  cairo_set_source_rgb(cr, 1, 1, 1);
+  cairo_paint(cr);
+
+  double pw, ph; // page size in points
+  poppler_page_get_size(page, &pw, &ph);
+  
+  double sx = (double)x / pw;
+  double sy = (double)y / ph;
+  cairo_scale(cr, sx, sy);
+  cairo_save(cr);
+  
   poppler_page_render(page, cr);
   cairo_surface_flush(surface);
 
@@ -198,17 +209,21 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   int sw = cairo_image_surface_get_width(surface);
   int sh = cairo_image_surface_get_height(surface);
   int stride = cairo_image_surface_get_stride(surface);
-  *buf_len = ((sw + 7) / 8 ) * sh;  
+  *buf_len = ((sw + 7) / 8 ) * sh;
+/* *  buf_len = sw * sh / 8 + 8; */
   printf("sw=%d, sh=%d, stride=%d, buf_len=%d\n", sw, sh, stride, *buf_len);
   
-
-  /* memset(dst, 0x00, dst_stride * sh); // 0 = white */
-  
-  /* *buf_len = sw * sh / 8 + 8; */
   pdf_book->page = mem_malloc(*buf_len);
   
   graphic_argb32_to_i1(pdf_book->page, sw, sh, sdata, stride);
 
+  lv_color32_t *pal = (lv_color32_t *)pdf_book->page;
+  pal[0] = (lv_color32_t){
+      .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 = white
+  pal[1] = (lv_color32_t){
+      .red = 0, .green = 0, .blue = 0, .alpha = 255}; // index 1 = black
+
+  
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
   g_object_unref(page);

@@ -68,9 +68,12 @@ error_out:
 }
 
 static void app_module_menu_close(void *module) {
+  puts(__func__);
   app_module_menu_t menu = module;
 
+
   if (menu->ui) {
+    puts("HIT");
     ui_menu_destroy(menu->ui);
     menu->ui = NULL;
   }

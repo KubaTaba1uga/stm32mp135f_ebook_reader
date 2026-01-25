@@ -227,8 +227,8 @@ static void app_step(app_t app) {
   memset(&app->ev_data, 0, sizeof(struct AppEventData));
 
   struct AppFsmTransition trans = fsm_table[app->current_state][ev_data.event];
-  app_module_t next_module = &app->modules[trans.next_state];
   app_module_t current_module = &app->modules[app->current_state];
+  app_module_t next_module = &app->modules[trans.next_state];
 
   log_debug("%s -> %s", app_state_dump(app->current_state),
             app_state_dump(trans.next_state));
@@ -239,11 +239,13 @@ static void app_step(app_t app) {
     trans.action = app_module_open;
   }
 
-  trans.action(next_module, &app->ctx, ev_data.data);
-
   if (app->current_state != trans.next_state) {
     app_module_close(current_module);
   }
+  
+  trans.action(next_module, &app->ctx, ev_data.data);
+
+
 
   app->current_state = trans.next_state;
 

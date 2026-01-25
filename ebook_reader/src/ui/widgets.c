@@ -2,6 +2,9 @@
 #include <stdio.h>
 
 #include "ui/widgets.h"
+#include "core/lv_obj.h"
+#include "core/lv_obj_style_gen.h"
+#include "misc/lv_color.h"
 #include "utils/mem.h"
 #include "utils/time.h"
 
@@ -186,21 +189,20 @@ ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t book) {
 
 ui_wx_reader_t ui_wx_reader_create(int page_len,
                                    const unsigned char *page_buf) {
-  /* lv_obj_t *page_wx = ui_wx_obj_create(NULL); */
+  puts(__func__);
+  /* lv_obj_t *page_wx = lv_obj_create(lv_screen_active()); */
 
-  lv_obj_t *page_wx = lv_image_create(NULL);
-  lv_obj_set_size(page_wx, lv_display_get_horizontal_resolution(NULL),
-                  lv_display_get_vertical_resolution(NULL));
-
+  lv_obj_t *page_wx = lv_image_create(lv_screen_active());
+  
   static lv_img_dsc_t dsc = {0};
-  dsc.header.cf = LV_COLOR_FORMAT_I1;
-  dsc.header.w = lv_display_get_horizontal_resolution(NULL);
-  dsc.header.h = lv_display_get_vertical_resolution(NULL);
+  dsc.header.cf = LV_COLOR_FORMAT_A1;
+  dsc.header.w = 480;
+  dsc.header.h = 800;
   dsc.data_size = page_len;
   dsc.data = page_buf;
   lv_image_set_src(page_wx, &dsc);
   /* lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT); */
   /* lv_obj_clear_flag(book_img, LV_OBJ_FLAG_CLICK_FOCUSABLE); */
 
-  return 0;
+  return page_wx;
 }

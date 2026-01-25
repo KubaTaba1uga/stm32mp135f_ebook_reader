@@ -108,7 +108,9 @@ error_out:
   return err_o;
 };
 
-void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
+void ui_menu_destroy(ui_t ui) {
+  puts(__func__);
+  ui_screen_destroy(&ui->screen); };
 
 void ui_panic(ui_t ui) { ui_display_panic(&ui->display); };
 
