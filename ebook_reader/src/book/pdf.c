@@ -182,6 +182,8 @@ static void book_module_pdf_book_destroy(book_t book) {
    @note working magick cmd: magick ~/Pictures/me.jpg -dither FloydSteinberg
    -colorspace gray   -colors 2  -normalize  480x800_pdf_mono.png
 
+   Dithering mess up text, so it propably won't be usefull for us.
+
 */
 static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
                                                           int y, int page_no,
@@ -205,38 +207,46 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   cairo_t *cr;
 
   double page_x, page_y;
-    double scale_x, scale_y;  
-    double scale = 1.35;
-    poppler_page_get_size(page, &page_x, &page_y);
+  double scale_x, scale_y;
+  double scale = 1.3;
+  poppler_page_get_size(page, &page_x, &page_y);
+
+  scale_x = (double)page_x * scale;
+  scale_y = (double)page_y * scale;
+
+  hi_res_surface =
+      cairo_image_surface_create(CAIRO_FORMAT_ARGB32, scale_x, scale_y);
+
+  hi_res_cr = cairo_create(hi_res_surface);
+  cairo_scale(hi_res_cr, scale, scale);
+  cairo_set_source_rgb(hi_res_cr, 1, 1, 1);
+  /* cairo_set_antialias(hi_res_cr, CAIRO_ANTIALIAS_NONE); */
+
+  cairo_paint(hi_res_cr);
+  poppler_page_render(page, hi_res_cr);
+  cairo_surface_flush(hi_res_surface);
+
+  unsigned char *sdata = cairo_image_surface_get_data(hi_res_surface);
+  int sw = cairo_image_surface_get_width(hi_res_surface);
+  int sh = cairo_image_surface_get_height(hi_res_surface);
+  int stride = cairo_image_surface_get_stride(hi_res_surface);
+  int sdata_len = sw * sh * 4;
+  unsigned char *new_sdata = mem_malloc(sdata_len);
+  graphic_argb32_to_monochrome(new_sdata, sw, sh, sdata, stride);
+  memcpy(sdata, new_sdata, sdata_len);
     
-    scale_x = (double)page_x * scale;
-    scale_y = (double)page_y * scale;
+  surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960);
+  cr = cairo_create(surface);
 
-    /* scale_x = (double)hi_res_x / page_x; */
-    /* scale_y = (double)hi_res_y / page_y; */
+  cairo_set_source_surface(cr, hi_res_surface, -60, -150);
+  cairo_paint(cr);
 
-    hi_res_surface =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, scale_x, scale_y);
-
-    hi_res_cr = cairo_create(hi_res_surface);
-    cairo_scale(hi_res_cr, scale, scale);
-    cairo_set_source_rgb(hi_res_cr, 1, 1, 1);
-    cairo_paint(hi_res_cr);
-    poppler_page_render(page, hi_res_cr);
-    cairo_surface_flush(hi_res_surface);
-
-    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960);
-    cr = cairo_create(surface);
-    /* cairo_pattern_set_filter(surface, CAIRO_FILTER_BEST);     */
-    cairo_set_source_surface(cr, hi_res_surface, -60, -150);
-    cairo_paint(cr);
-    cairo_surface_write_to_png(surface, "out.png");
-
-
-  unsigned char *sdata = cairo_image_surface_get_data(surface);
-  int sw = cairo_image_surface_get_width(surface);
-  int sh = cairo_image_surface_get_height(surface);
-  int stride = cairo_image_surface_get_stride(surface);
+  cairo_surface_write_to_png(hi_res_surface, "out.png");
+  
+  sdata = cairo_image_surface_get_data(surface);
+  sw = cairo_image_surface_get_width(surface);
+  sh = cairo_image_surface_get_height(surface);
+  stride = cairo_image_surface_get_stride(surface);
   *buf_len = ((sw + 7) / 8) * sh;
   /* *  buf_len = sw * sh / 8 + 8; */
   printf("s=%f, sw=%d, sh=%d, stride=%d, buf_len=%d\n", scale, sw, sh, stride,
