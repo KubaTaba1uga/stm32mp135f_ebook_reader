@@ -208,7 +208,7 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
 
   double page_x, page_y;
   double scale_x, scale_y;
-  double scale = 1.3;
+  double scale = 4;
   poppler_page_get_size(page, &page_x, &page_y);
 
   scale_x = (double)page_x * scale;
@@ -236,10 +236,18 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   memcpy(sdata, new_sdata, sdata_len);
     
   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960);
-  cr = cairo_create(surface);
+ cr = cairo_create(surface);
 
-  cairo_set_source_surface(cr, hi_res_surface, -60, -150);
-  cairo_paint(cr);
+ cairo_scale(cr, 0.35, 0.35);  // scale user space
+
+// offsets are now scaled too, so divide them by 0.2
+ cairo_set_source_surface(cr, hi_res_surface, -240, -500);
+ cairo_paint(cr);
+/* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960); */
+/*   cr = cairo_create(surface); */
+/*   cairo_set_source_surface(cr, hi_res_surface, -60, -150); */
+/*   cairo_scale(cr, 0.2, 0.2);   */
+/*   cairo_paint(cr); */
 
   cairo_surface_write_to_png(hi_res_surface, "out.png");
   

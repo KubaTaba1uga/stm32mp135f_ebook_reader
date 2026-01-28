@@ -19,7 +19,7 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
 
       /* uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100; */
 
-      const int threshold = 170;
+      const int threshold = 200;
       bool black = r < threshold || g < threshold || b < threshold;
 
       int byte_i = y * dst_stride + (x >> 3);
