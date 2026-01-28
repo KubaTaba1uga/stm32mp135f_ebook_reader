@@ -173,6 +173,16 @@ static void book_module_pdf_book_destroy(book_t book) {
   book->private = NULL;
 };
 
+/**
+   Poppler PDF page uses grayscale to render fonts properly, converting
+   greyscale using simple RGB threshold proved to look extremly ugly, so
+   there is idea to use dithering to convert RGB into 1 pixel black/white
+   bitmap. Dithering allows us to simulate shadows properly.
+
+   @note working magick cmd: magick ~/Pictures/me.jpg -dither FloydSteinberg
+   -colorspace gray   -colors 2  -normalize  480x800_pdf_mono.png
+
+*/
 static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
                                                           int y, int page_no,
                                                           int *buf_len) {
@@ -194,34 +204,22 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   cairo_t *hi_res_cr;
   cairo_t *cr;
 
-  /* const int hi_res_x = 720; */
-  /* const int hi_res_y = 1200; */
-
-  /* hi_res_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, hi_res_x,
-   * hi_res_y); */
-  /* hi_res_cr = cairo_create(hi_res_surface); */
-  /* cairo_set_source_rgb(hi_res_cr, 1, 1, 1); */
-  /* cairo_paint(hi_res_cr); */
-
-  /* { // Solution 1: quite bad, doesnt solve problem at all  */
-  /*   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y); */
-  /* cairo_surface_set_device_scale(surface, 1.3, 1.3); */
-  /* cairo_surface_set_device_offset (surface, -50, -50); */
-  /* } */
-  { // Solution 2: render hi resolution then create a view
-    const int hi_res_x = 960;
-    const int hi_res_y = 1600;
-    double page_x, page_y;
-    double scale_x, scale_y;
+  double page_x, page_y;
+    double scale_x, scale_y;  
+    double scale = 1.35;
     poppler_page_get_size(page, &page_x, &page_y);
-    scale_x = (double)hi_res_x / page_x;
-    scale_y = (double)hi_res_y / page_y;
+    
+    scale_x = (double)page_x * scale;
+    scale_y = (double)page_y * scale;
+
+    /* scale_x = (double)hi_res_x / page_x; */
+    /* scale_y = (double)hi_res_y / page_y; */
 
     hi_res_surface =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, hi_res_x, hi_res_y);
+        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, scale_x, scale_y);
 
     hi_res_cr = cairo_create(hi_res_surface);
-    cairo_scale(hi_res_cr, scale_x,scale_y);    
+    cairo_scale(hi_res_cr, scale, scale);
     cairo_set_source_rgb(hi_res_cr, 1, 1, 1);
     cairo_paint(hi_res_cr);
     poppler_page_render(page, hi_res_cr);
@@ -229,9 +227,11 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
 
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960);
     cr = cairo_create(surface);
-    cairo_set_source_surface(cr, hi_res_surface, 0, 0);
+    /* cairo_pattern_set_filter(surface, CAIRO_FILTER_BEST);     */
+    cairo_set_source_surface(cr, hi_res_surface, -60, -150);
     cairo_paint(cr);
-  }
+    cairo_surface_write_to_png(surface, "out.png");
+
 
   unsigned char *sdata = cairo_image_surface_get_data(surface);
   int sw = cairo_image_surface_get_width(surface);
@@ -239,7 +239,8 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   int stride = cairo_image_surface_get_stride(surface);
   *buf_len = ((sw + 7) / 8) * sh;
   /* *  buf_len = sw * sh / 8 + 8; */
-  printf("sw=%d, sh=%d, stride=%d, buf_len=%d\n", sw, sh, stride, *buf_len);
+  printf("s=%f, sw=%d, sh=%d, stride=%d, buf_len=%d\n", scale, sw, sh, stride,
+         *buf_len);
 
   pdf_book->page = mem_malloc(*buf_len);
 
