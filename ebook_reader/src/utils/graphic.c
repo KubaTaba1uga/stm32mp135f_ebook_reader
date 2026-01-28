@@ -17,10 +17,11 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
       uint8_t g = (p >> 8) & 0xFF;
       uint8_t b = (p >> 0) & 0xFF;
 
-      /* uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100; */
+      uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100;
 
-      const int threshold = 200;
-      bool black = r < threshold || g < threshold || b < threshold;
+      const int threshold = 175;
+      bool black       = lum < threshold;
+      /* bool black = r < threshold || g < threshold || b < threshold; */
 
       int byte_i = y * dst_stride + (x >> 3);
 
@@ -47,7 +48,7 @@ void graphic_argb32_to_monochrome(uint8_t *dst, int w, int h,
     struct PixelARGB *dst_row = (struct PixelARGB *)(dst + y * src_stride);
 
     for (int x = 0; x < w; x++) {
-      const int threshold = 230;
+      const int threshold = 245;
       bool black =
           (src_row[x].r < threshold) || (src_row[x].g < threshold) || (src_row[x].b < threshold);
 
