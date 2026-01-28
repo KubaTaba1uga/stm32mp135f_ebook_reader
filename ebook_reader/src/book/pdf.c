@@ -194,8 +194,8 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   cairo_t *hi_res_cr;
   cairo_t *cr;
 
-  const int hi_res_x = 720;
-  const int hi_res_y = 1200;
+  /* const int hi_res_x = 720; */
+  /* const int hi_res_y = 1200; */
 
   /* hi_res_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, hi_res_x,
    * hi_res_y); */
@@ -208,28 +208,30 @@ static const unsigned char *book_module_pdf_book_get_page(book_t book, int x,
   /* cairo_surface_set_device_scale(surface, 1.3, 1.3); */
   /* cairo_surface_set_device_offset (surface, -50, -50); */
   /* } */
-  { // Solution 2: render hi resolution then create a view 
+  { // Solution 2: render hi resolution then create a view
+    const int hi_res_x = 960;
+    const int hi_res_y = 1600;
+    double page_x, page_y;
+    double scale_x, scale_y;
+    poppler_page_get_size(page, &page_x, &page_y);
+    scale_x = (double)hi_res_x / page_x;
+    scale_y = (double)hi_res_y / page_y;
+
     hi_res_surface =
         cairo_image_surface_create(CAIRO_FORMAT_ARGB32, hi_res_x, hi_res_y);
-    cairo_surface_set_device_scale(hi_res_surface, 1.3, 1.3);
-    /* cairo_surface_set_device_offset(hi_res_surface, -50, -50); */
+
     hi_res_cr = cairo_create(hi_res_surface);
+    cairo_scale(hi_res_cr, scale_x,scale_y);    
     cairo_set_source_rgb(hi_res_cr, 1, 1, 1);
     cairo_paint(hi_res_cr);
     poppler_page_render(page, hi_res_cr);
     cairo_surface_flush(hi_res_surface);
 
-    surface = cairo_surface_create_similar_image(hi_res_surface,
-                                                 CAIRO_FORMAT_ARGB32, x, y);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 480, 960);
     cr = cairo_create(surface);
-    cairo_set_source_surface (cr, hi_res_surface, 0, 0);
-    cairo_rectangle (cr, 0, 0, x, y);
-    cairo_fill (cr);
-
-    /* cairo_paint(cr);     */
+    cairo_set_source_surface(cr, hi_res_surface, 0, 0);
+    cairo_paint(cr);
   }
-
-
 
   unsigned char *sdata = cairo_image_surface_get_data(surface);
   int sw = cairo_image_surface_get_width(surface);
