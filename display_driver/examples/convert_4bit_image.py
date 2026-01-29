@@ -53,9 +53,9 @@ def main():
                 colour = 0b00
 
             elif any(val > 200 for val in v[0:3]):
-                colour = 0b10
-            elif any(val > 140 for val in v[0:3]):
                 colour = 0b01
+            elif any(val > 140 for val in v[0:3]):
+                colour = 0b10
             else:
                 colour = 0b11
 
