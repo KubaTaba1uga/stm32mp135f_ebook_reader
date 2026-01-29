@@ -1,24 +1,25 @@
 #define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "board.h"
 #include "display_driver.h"
 #include "tutrle_gray4.h"
+#include "cat_gray4.h"
 
-/* static void usage(const char *prog) { */
-/*   fprintf(stderr, */
-/*           "Usage: %s [--wvs | --turtle | --cat_sm] [--help]\n" */
-/*           "\n" */
-/*           "Display a built-in image on the 7.5\" V2 e-paper panel (480x800).\n" */
-/*           "\n" */
-/*           "Options:\n" */
-/*           "  --wvs       Show image_7in5_v2\n" */
-/*           "  --turtle    Show turtle_7in5_v2\n" */
-/*           "  --cat_sm    Show cat_sm_7in5_v2\n" */
-/*           "  -h, --help  Show this help and exit\n", */
-/*           prog); */
-/* } */
+static void usage(const char *prog) {
+  fprintf(stderr,
+          "Usage: %s [--wvs | --turtle | --cat_sm] [--help]\n"
+          "\n"
+          "Display an image on the 7.5\" V2 e-paper panel (480x800) in 4 level grayscale.\n"
+          "\n"
+          "Options:\n"
+          "  --turtle    Show turtle\n"
+          "  --cat    Show cat\n"
+          "  -h, --help  Show this help and exit\n",
+          prog);
+}
 
 int main(int argc, char *argv[]) {
   unsigned char *buf = (unsigned char *)turtle;
@@ -26,6 +27,23 @@ int main(int argc, char *argv[]) {
   bool is_rotated = false;
   dd_error_t err;
 
+
+  /* classic argv parsing */
+  for (int i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "--cat") == 0) {
+      buf = (unsigned char *)cat;
+      buf_len = sizeof(cat);
+      is_rotated = true;
+    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      usage(argv[0]);
+      return EXIT_SUCCESS;
+    } else {
+      fprintf(stderr, "Unknown option: %s\n", argv[i]);
+      usage(argv[0]);
+      return EXIT_FAILURE;
+    }
+  }
+  
   puts("Starting driver");
   err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2, is_rotated);
   if (err) {
@@ -37,7 +55,6 @@ int main(int argc, char *argv[]) {
   if (err) {
     goto error_dd_cleanup;
   }
-
   
   puts("Working");
   err = dd_display_driver_write_gray(dd,buf, buf_len);
