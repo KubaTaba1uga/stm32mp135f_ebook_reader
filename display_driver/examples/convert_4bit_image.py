@@ -87,8 +87,8 @@ def convert_pixels(pixels):
         byte = 0
 
         for i, pixel in enumerate(pixels_byte):
-            byte |= pixel.colour << (i * 2)
-            # byte |= pixel.colour << (3 - i) * 2
+            # byte |= pixel.colour << (i * 2)
+            byte |= pixel.colour << (3 - i) * 2
 
         dd_bytes.append(byte ^ 0xFF)
 
