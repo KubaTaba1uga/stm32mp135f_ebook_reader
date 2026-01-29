@@ -178,5 +178,8 @@ dd_error_t dd_display_driver_write_partial(dd_display_driver_t dd,
                                            int x1, int x2, int y1, int y2);
 dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd,
                                         unsigned char *buf, uint32_t buf_len);
+dd_error_t dd_display_driver_write_gray(dd_display_driver_t dd,
+                                        unsigned char *buf, uint32_t buf_len);
+
 
 #endif // DISPLAY_DRIVER_H

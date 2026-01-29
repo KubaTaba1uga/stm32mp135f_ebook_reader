@@ -94,3 +94,21 @@ dd_error_t dd_driver_write_fast(dd_display_driver_t driver, unsigned char *buf,
 error_out:
   return dd_errno;
 }
+
+dd_error_t dd_driver_write_gray(dd_display_driver_t driver, unsigned char *buf,
+                                int buf_len) {
+
+  if (!driver->write_gray) {
+    dd_errno = dd_errnos(
+        EINVAL, "Gray write operation is not supported on this display");
+    goto error_out;
+  }
+
+  dd_errno = driver->write_gray(driver->driver_data, buf, buf_len);
+  DD_TRY(dd_errno);
+
+  return 0;
+
+error_out:
+  return dd_errno;
+}

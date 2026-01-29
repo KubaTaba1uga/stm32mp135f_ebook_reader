@@ -8,7 +8,7 @@ Install dependency:
     pip install pillow==12.0.0
 
 Usage:
-    python3 convert_image.py INPUT.png OUTPUT.c --bit-order MSB
+    python3 convert_1bit_image.py INPUT.png OUTPUT.c --bit-order MSB
 """
 from PIL import Image
 import argparse
