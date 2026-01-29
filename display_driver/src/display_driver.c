@@ -148,3 +148,20 @@ dd_error_t dd_display_driver_write_fast(dd_display_driver_t dd,
 error_out:
   return dd_errno;
 }
+
+dd_error_t dd_display_driver_write_gray(dd_display_driver_t dd,
+                                        unsigned char *buf, uint32_t buf_len) {
+  if (!dd || !buf) {
+    dd_errno = dd_errnos(EINVAL, "`dd` and `buf` cannot be NULL");
+    goto error_out;
+  }
+
+  dd_errno = dd_driver_write_gray(dd, buf, buf_len);
+  DD_TRY(dd_errno);
+
+  return 0;
+
+error_out:
+  return dd_errno;
+  
+}

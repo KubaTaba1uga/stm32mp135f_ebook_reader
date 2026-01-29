@@ -106,6 +106,13 @@ if get_option('examples') == 'stm'
      include_directories: display_driver_inc,
      dependencies: display_driver_dep,
    )
+
+   stm_gray_example = executable('stm_display_gray_example',
+     sources: display_driver_src + [files('examples/stm32mp135f/stm_display_gray_example.c')],
+     include_directories: display_driver_inc,
+     dependencies: display_driver_dep,
+   )
+
 endif
 
 # ******************************************************************************

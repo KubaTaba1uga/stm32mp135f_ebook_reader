@@ -86,6 +86,7 @@ struct dd_Wvs75v2 {
 static dd_error_t dd_driver_wvs75v2_write_part(void *, unsigned char *, int,
                                                int, int, int, int);
 static dd_error_t dd_driver_wvs75v2_write_fast(void *, unsigned char *, int);
+static dd_error_t dd_driver_wvs75v2_write_gray(void *, unsigned char *, int);
 static dd_error_t dd_driver_wvs75v2_write(void *, unsigned char *, int);
 static dd_error_t dd_driver_wvs75v2_clear(void *, bool);
 static void dd_driver_wvs75v2_remove(void *);
@@ -148,6 +149,7 @@ dd_error_t dd_driver_wvs7in5v2_init(dd_display_driver_t out, void *config) {
   *out = (struct dd_DisplayDriver){
       .write_fast = dd_driver_wvs75v2_write_fast,
       .write_part = dd_driver_wvs75v2_write_part,
+      .write_gray = dd_driver_wvs75v2_write_gray,
       .destroy = dd_driver_wvs75v2_remove,
       .write = dd_driver_wvs75v2_write,
       .clear = dd_driver_wvs75v2_clear,
@@ -765,6 +767,85 @@ error_out:
   return dd_errno;
 }
 
+static dd_error_t dd_driver_wvs75v2_ops_power_on_gray(dd_wvs75v2_t dd) {
+  if (dd_gpio_read_pin(dd->pwr, &dd->gpio) != 1) {
+    dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
+    DD_TRY(dd_errno);
+    dd_sleep_ms(200);
+  }
+
+  dd_errno = dd_gpio_set_pin(1, dd->pwr, &dd->gpio);
+  DD_TRY(dd_errno);
+  dd_sleep_ms(200);
+
+  dd_errno = dd_driver_wvs75v2_ops_reset(dd);
+  DD_TRY(dd_errno);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_PANEL_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x1F,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno =
+      dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_VCOM_AND_DATA_INTERVAL_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x10,
+                                      0x07,
+                                  },
+                                  2);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_POWER_ON);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_sleep_ms(100);
+  dd_wvs75v2_wait(dd);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_BOOSTER_SOFT_START);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  // I'm not sure what this part does but it is in mainline driver
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x27,
+                                      0x27,
+                                      0x18,
+                                      0x17,
+                                  },
+                                  4);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_CASCADE_SETTING);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x02,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_FLASH_MODE);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+  dd_errno = dd_wvs75v2_send_data(dd,
+                                  (uint8_t[]){
+                                      0x5F,
+                                  },
+                                  1);
+  DD_TRY_CATCH(dd_errno, error_dd_cleanup);
+
+  dd_wvs75v2_wait(dd);
+
+  return 0;
+
+error_dd_cleanup:
+  dd_driver_wvs75v2_ops_reset(dd);
+error_out:
+  return dd_errno;
+}
+
 static dd_error_t dd_driver_wvs75v2_write_fast(void *dd, unsigned char *buf,
                                                int buf_len) {
   dd_wvs75v2_t wvs = dd;
@@ -777,6 +858,140 @@ static dd_error_t dd_driver_wvs75v2_write_fast(void *dd, unsigned char *buf,
   dd_driver_wvs75v2_ops_power_off(wvs);
   DD_TRY(dd_errno);
 
+  return 0;
+
+error_wvs75v2_cleanup:
+  dd_driver_wvs75v2_ops_power_off(wvs);
+error_out:
+  return dd_errno;
+}
+
+static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
+                                                     unsigned char *buf,
+                                                     int buf_len) {
+
+  double i, j, k;
+  uint8_t temp1, temp2, temp3;
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
+  DD_TRY_CATCH(dd_errno, out);
+
+  for (i = 0; i < 48000; i++) { // for every byte in image
+    temp3 = 0;
+    for (j = 0; j < 2; j++) {
+      temp1 = buf[(int)(i * 2 + j)]; // byte
+      for (k = 0; k < 2; k++) {
+        temp2 = temp1 & 0xC0;   // first pixel in byte
+        if (temp2 == 0xC0) {
+          temp3 |= 0x00;
+        } else if (temp2 == 0x00) {
+          temp3 |= 0x01;
+        } else if (temp2 == 0x80) {
+          temp3 |= 0x01;
+        } else { // 0x40
+          temp3 |= 0x00;
+        }
+        temp3 <<= 1;
+
+        temp1 <<= 2;
+        temp2 = temp1 & 0xC0;    // second pixel in byte
+        if (temp2 == 0xC0) {
+          temp3 |= 0x00;
+        } else if (temp2 == 0x00) {
+          temp3 |= 0x01;
+        } else if (temp2 == 0x80) {
+          temp3 |= 0x01;
+        } else { // 0x40
+          temp3 |= 0x00;
+        }
+        if (j != 1 || k != 1) {
+          temp3 <<= 1;
+        }
+
+        temp1 <<= 2;
+      }
+    }
+    dd_errno = dd_wvs75v2_send_data(dd, &temp3, 1);
+    DD_TRY_CATCH(dd_errno, out);
+
+    printf("%x", temp3);
+  }
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
+  DD_TRY_CATCH(dd_errno, out);
+
+  for (i = 0; i < 48000; i++) { // 5808*4  46464
+    temp3 = 0;
+    for (j = 0; j < 2; j++) {
+      temp1 = buf[(int)(i * 2 + j)];
+      for (k = 0; k < 2; k++) {
+        temp2 = temp1 & 0xC0;
+        if (temp2 == 0xC0) {
+          temp3 |= 0x00; // white
+        } else if (temp2 == 0x00) {
+          temp3 |= 0x01; // black
+        } else if (temp2 == 0x80) {
+          temp3 |= 0x00; // gray1
+        } else {         // 0x40
+          temp3 |= 0x01; // gray2
+        }
+        temp3 <<= 1;
+
+        temp1 <<= 2;
+        temp2 = temp1 & 0xC0;
+        if (temp2 == 0xC0) { // white
+          temp3 |= 0x00;
+        } else if (temp2 == 0x00) { // black
+          temp3 |= 0x01;
+        } else if (temp2 == 0x80) {
+          temp3 |= 0x00; // gray1
+        } else {         // 0x40
+          temp3 |= 0x01; // gray2
+        }
+        if (j != 1 || k != 1) {
+          temp3 <<= 1;
+        }
+
+        temp1 <<= 2;
+      }
+    }
+
+    dd_errno = dd_wvs75v2_send_data(dd, &temp3, 1);
+    DD_TRY_CATCH(dd_errno, out);
+
+    printf("%x", temp3);
+  }
+
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
+  DD_TRY_CATCH(dd_errno, out);
+  dd_sleep_ms(100);
+  dd_wvs75v2_wait(dd);
+
+  
+out:
+  if (dd->is_rotated) {
+    dd_free(buf);
+  }
+  if (dd_errno) {
+    dd_driver_wvs75v2_ops_reset(dd);
+  }
+
+  return dd_errno;
+};
+
+static dd_error_t dd_driver_wvs75v2_write_gray(void *dd, unsigned char *buf,
+                                               int buf_len) {
+  dd_wvs75v2_t wvs = dd;
+
+  dd_driver_wvs75v2_ops_power_on_gray(wvs);
+  DD_TRY(dd_errno);
+  dd_errno = dd_driver_wvs75v2_ops_display_gray(wvs, buf, buf_len);
+  DD_TRY_CATCH(dd_errno, error_wvs75v2_cleanup);
+
+  dd_driver_wvs75v2_ops_power_off(wvs);
+  DD_TRY(dd_errno);
+
+  
   return 0;
 
 error_wvs75v2_cleanup:
