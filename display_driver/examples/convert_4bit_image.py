@@ -42,22 +42,30 @@ def main():
     pix = img.load()
 
     pixels = []
+    colours = set()
     for y in range(height):
         for x in range(width):
             v = pix[x, y]  # 0=black .. 255=white
 
             # map so 0b00=white ... 0b11=black
-            if any(val > 192 for val in v[0:3]):
+            if any(val > 230 for val in v[0:3]):
+
                 colour = 0b00
-            elif any(val > 128 for val in v[0:3]):
+
+            elif any(val > 200 for val in v[0:3]):
                 colour = 0b01
-            elif any(val > 64 for val in v[0:3]):
+            elif any(val > 140 for val in v[0:3]):
                 colour = 0b10
             else:
                 colour = 0b11
 
+            colours.add(colour)
+            # colours.add(v)
+                # print(f"{v=}:{colour=}")            
             pixels.append(Pixel(x, y, colour))
 
+
+    print(colours)
     with open(args.output, "w") as fp:
         fp.write(f"unsigned char {args.name}[] = {{")
         fp.write(" ".join("0x%.2X," % byte for byte in convert_pixels(pixels)))
@@ -80,8 +88,9 @@ def convert_pixels(pixels):
 
         for i, pixel in enumerate(pixels_byte):
             byte |= pixel.colour << (i * 2)
+            # byte |= pixel.colour << (3 - i) * 2
 
-        dd_bytes.append(byte)
+        dd_bytes.append(byte ^ 0xFF)
 
     return dd_bytes
 
