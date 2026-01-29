@@ -866,6 +866,28 @@ error_out:
   return dd_errno;
 }
 
+
+
+static unsigned char *dd_wvs75v2_gray_rotate(dd_wvs75v2_t dd, int width, int heigth,
+                                        unsigned char *buf, uint32_t buf_len) {
+  int dst_i = 0;
+  int v;
+  width *= 2; // We use 2 bits per pixel
+  
+  unsigned char *dst = dd_malloc(buf_len);
+  for (int x = width - 1; x >= 0; x-=2) {
+    for (int y = 0; y < heigth; y++) {
+      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
+      dd_graphic_set_bit(dst_i++, v, dst, buf_len);      
+      v = dd_graphic_get_pixel(x-1, y, width, buf, buf_len);
+      dd_graphic_set_bit(dst_i++, v, dst, buf_len);
+    }
+  }
+
+  return dst;
+}
+
+
 static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
                                                      unsigned char *buf,
                                                      int buf_len) {
@@ -873,6 +895,12 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
   double i, j, k;
   uint8_t temp1, temp2, temp3;
 
+  if (dd->is_rotated) {
+    buf = dd_wvs75v2_gray_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH, buf,
+                            buf_len);
+  }
+
+  
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, out);
 
