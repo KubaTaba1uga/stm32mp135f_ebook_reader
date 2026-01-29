@@ -914,12 +914,16 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
     dd_errno = dd_wvs75v2_send_data(dd, &temp3, 1);
     DD_TRY_CATCH(dd_errno, out);
 
-    printf("%x", temp3);
+    /* printf("%x", temp3); */
   }
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, out);
 
+  bool is_white = false;
+  bool is_black = false;
+  bool is_gray1 = false;
+  bool is_gray2 = false;      
   for (i = 0; i < 48000; i++) { // 5808*4  46464
     temp3 = 0;
     for (j = 0; j < 2; j++) {
@@ -927,12 +931,16 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
       for (k = 0; k < 2; k++) {
         temp2 = temp1 & 0xC0;
         if (temp2 == 0xC0) {
+	  is_white = true;
           temp3 |= 0x00; // white
         } else if (temp2 == 0x00) {
+	  is_black = true;          
           temp3 |= 0x01; // black
         } else if (temp2 == 0x80) {
+	  is_gray1 = true;                    
           temp3 |= 0x00; // gray1
         } else {         // 0x40
+	  is_gray2 = true;                                             // 
           temp3 |= 0x01; // gray2
         }
         temp3 <<= 1;
@@ -959,8 +967,9 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
     dd_errno = dd_wvs75v2_send_data(dd, &temp3, 1);
     DD_TRY_CATCH(dd_errno, out);
 
-    printf("%x", temp3);
+    /* printf("%x", temp3); */
   }
+  printf("is_white=%d; is_black=%d; is_gray1=%d; is_gray2=%d;", is_white, is_black, is_gray1, is_gray2);  
 
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, out);
