@@ -4,7 +4,6 @@
 
 #include "board.h"
 #include "display_driver.h"
-#include "cats_gray4.h"
 #include "tutrle_gray4.h"
 
 /* static void usage(const char *prog) { */
@@ -33,6 +32,13 @@ int main(int argc, char *argv[]) {
     goto error;
   }
 
+  puts("Working");
+  err = dd_display_driver_clear(dd, true);
+  if (err) {
+    goto error_dd_cleanup;
+  }
+
+  
   puts("Working");
   err = dd_display_driver_write_gray(dd,buf, buf_len);
   if (err) {

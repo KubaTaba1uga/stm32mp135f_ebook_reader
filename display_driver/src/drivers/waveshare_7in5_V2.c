@@ -917,7 +917,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
     /* printf("%x", temp3); */
   }
 
-  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
+  dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, out);
 
   bool is_white = false;
