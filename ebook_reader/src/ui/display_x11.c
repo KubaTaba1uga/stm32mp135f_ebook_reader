@@ -47,6 +47,7 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
     err_o = err_errnos(errno, "Cannot initialize X11 display");
     goto error_out;
   }
+
   lv_x11_inputs_create(lv_display, NULL);
   lv_display_set_color_format(lv_display, LV_COLOR_FORMAT_RGB888);
   *display = (struct UiDisplay){

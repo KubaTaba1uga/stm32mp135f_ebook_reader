@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
@@ -16,13 +17,66 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
       uint8_t b = (p >> 0) & 0xFF;
 
       uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100;
-      bool black = lum > 130;
+      bool black = lum > 164;
 
       int byte_i = y * dst_stride + (x >> 3);
 
       int bit = 7 - (x & 7); // MSB first
       if (black) {
         dst[byte_i] |= (1u << bit);
+      }
+    }
+  }
+}
+
+struct PixelRGB {
+  uint8_t b, g, r;
+};
+
+void graphic_rgb32_to_i1(uint8_t *dst, int w, int h,
+                                  const uint8_t *src, int src_stride) {
+  int dst_stride = (w + 7) / 8;
+  memset(dst, 0x00, dst_stride * h); // 0 = white
+
+  for (int y = 0; y < h; y++) {
+    const struct PixelRGB *src_row =
+        (const struct PixelRGB *)(src + y * src_stride);
+    for (int x = 0; x < w; x++) {
+
+      const int threshold = 164;
+      bool black =
+          (src_row[x].r > threshold) || (src_row[x].g > threshold) || (src_row[x].b > threshold);
+
+      int byte_i = y * dst_stride + (x >> 3);
+
+      int bit = 7 - (x & 7); // MSB first
+      if (black) {
+        dst[byte_i] |= (1u << bit);
+      }
+    }
+  }
+}
+
+
+void graphic_rgb32_to_i2(uint8_t *dst, int w, int h,
+                                  const uint8_t *src, int src_stride) {
+  int dst_stride = (w + 7) / 4;
+  memset(dst, 0x00, dst_stride * h); // 0 = white
+
+  for (int y = 0; y < h; y++) {
+    const struct PixelRGB *src_row =
+        (const struct PixelRGB *)(src + y * src_stride);
+    for (int x = 0; x < w; x++) {
+
+      const int threshold = 164;
+      bool black =
+          (src_row[x].r > threshold) || (src_row[x].g > threshold) || (src_row[x].b > threshold);
+
+      int byte_i = y * dst_stride + (x >> 3);
+
+      int bit = 7 - (x & 7); // MSB first
+      if (black) {
+        dst[byte_i] |= (0b11 << bit);
       }
     }
   }

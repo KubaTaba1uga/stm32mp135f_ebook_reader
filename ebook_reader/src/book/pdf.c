@@ -6,6 +6,7 @@
 
 #include "book/book.h"
 #include "book/core.h"
+#include "cairo.h"
 #include "glib.h"
 #include "utils/err.h"
 #include "utils/graphic.h"
