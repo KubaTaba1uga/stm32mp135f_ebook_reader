@@ -64,7 +64,6 @@ def main():
     wages = list(random.sample(sorted(wages), 3))
     print(wages)
 
-    wages = [154, 99, 98]
     pixels = []
     colours = set()
 
