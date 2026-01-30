@@ -128,18 +128,9 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
   cairo_surface_flush(surface);
 
   unsigned char *sdata = cairo_image_surface_get_data(surface);
-  int sw = cairo_image_surface_get_width(surface);
-  int sh = cairo_image_surface_get_height(surface);
-  int stride = cairo_image_surface_get_stride(surface);
 
-  pdf_book->thumbnail = mem_malloc(x * y + 8);
-  lv_color32_t *pal = (lv_color32_t *)pdf_book->thumbnail;
-  pal[0] = (lv_color32_t){
-      .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 = white
-  pal[1] = (lv_color32_t){
-      .red = 0, .green = 0, .blue = 0, .alpha = 255}; // index 1 = black
-
-  graphic_argb32_to_i1(pdf_book->thumbnail, sw, sh, sdata, stride);
+  pdf_book->thumbnail = mem_malloc(x * y * 4); // We use ARGB32
+  memcpy(pdf_book->thumbnail, sdata, x * y * 4);
 
   cairo_destroy(cr);
   cairo_surface_destroy(surface);

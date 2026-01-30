@@ -1,6 +1,7 @@
 #include "core/lv_group.h"
 #include "display/lv_display_private.h"
 #include "indev/lv_indev.h"
+#include "misc/lv_color.h"
 #if !EBK_DISPLAY_X11
 #include "ui/display.h"
 #include "ui/ui.h"
@@ -47,7 +48,7 @@ err_t ui_display_x11_init(ui_display_t display, ui_t ui) {
     goto error_out;
   }
   lv_x11_inputs_create(lv_display, NULL);
-
+  lv_display_set_color_format(lv_display, LV_COLOR_FORMAT_RGB888);
   *display = (struct UiDisplay){
       .lv_ingroup = lv_group_get_default(),
       .destroy = ui_display_x11_destroy,
