@@ -866,23 +866,25 @@ error_out:
   return dd_errno;
 }
 
-
+/**
+   @note This function is partially copied from wvs mainline driver.
+*/
 static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
                                                      unsigned char *buf,
                                                      int buf_len) {
   unsigned char new_buf_1[48000];
   unsigned char new_buf_2[48000];
   uint8_t temp1, temp2, temp3;
-  unsigned char *new_buf1, *new_buf2;  
+  unsigned char *new_buf1, *new_buf2;
   double i, j, k;
   int idx = 0;
-  
+
   for (i = 0; i < 48000; i++) { // for every byte in image
     temp3 = 0;
     for (j = 0; j < 2; j++) {
       temp1 = buf[(int)(i * 2 + j)]; // byte
       for (k = 0; k < 2; k++) {
-        temp2 = temp1 & 0xC0;   // first pixel in byte
+        temp2 = temp1 & 0xC0; // first pixel in byte
         if (temp2 == 0xC0) {
           temp3 |= 0x00;
         } else if (temp2 == 0x00) {
@@ -895,7 +897,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
         temp3 <<= 1;
 
         temp1 <<= 2;
-        temp2 = temp1 & 0xC0;    // second pixel in byte
+        temp2 = temp1 & 0xC0; // second pixel in byte
         if (temp2 == 0xC0) {
           temp3 |= 0x00;
         } else if (temp2 == 0x00) {
@@ -912,13 +914,9 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
         temp1 <<= 2;
       }
     }
-    new_buf_1[idx++]    = temp3;
+    new_buf_1[idx++] = temp3;
   }
 
-  bool is_white = false;
-  bool is_black = false;
-  bool is_gray1 = false;
-  bool is_gray2 = false;
   idx = 0;
   for (i = 0; i < 48000; i++) { // 5808*4  46464
     temp3 = 0;
@@ -927,17 +925,13 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
       for (k = 0; k < 2; k++) {
         temp2 = temp1 & 0xC0;
         if (temp2 == 0xC0) {
-	  is_white = true;
           temp3 |= 0x00; // white
         } else if (temp2 == 0x00) {
-	  is_black = true;          
           temp3 |= 0x01; // black
         } else if (temp2 == 0x80) {
-	  is_gray1 = true;                    
-          temp3 |= 0x00; // gray1
-        } else {         // 0x40
-	  is_gray2 = true;                                             // 
-          temp3 |= 0x01; // gray2
+          temp3 |= 0x00;   // gray1
+        } else {           // 0x40
+          temp3 |= 0x01;   // gray2
         }
         temp3 <<= 1;
 
@@ -961,9 +955,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
     }
     new_buf_2[idx++] = temp3;
   }
-  printf("is_white=%d; is_black=%d; is_gray1=%d; is_gray2=%d;", is_white, is_black, is_gray1, is_gray2);
 
-  
   if (dd->is_rotated) {
     new_buf1 = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH,
                                  new_buf_1, 48000);
@@ -973,45 +965,47 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
 
   } else {
     new_buf1 = new_buf_1;
-    new_buf2 = new_buf_2;    
+    new_buf2 = new_buf_2;
   }
 
-  
-  
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION1);
   DD_TRY_CATCH(dd_errno, out);
-  
-  for (int i = 0; i < 48000; i++) {
-    dd_errno = dd_wvs75v2_send_data(dd,
-                                    (uint8_t[]){
-				      new_buf1[i],
-                                    },
-                                    1);
-    DD_TRY_CATCH(dd_errno, out);
+
+  uint8_t chunk[1024] = {0};
+  for (int i = 0; i < 48000; i += sizeof(chunk)) {
+    int chunk_size = sizeof(chunk);
+    if (i + chunk_size > 48000) {
+      chunk_size = 48000 - i;
+    }
+    memcpy(chunk, new_buf1 + i, chunk_size);
+
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
+    DD_TRY_CATCH(dd_errno, out);        
   }
-  dd_wvs75v2_wait(dd);
 
-
-  
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_START_TRANSMISSION2);
   DD_TRY_CATCH(dd_errno, out);
-  
-  for (int i = 0; i < 48000; i++) {
-    dd_errno = dd_wvs75v2_send_data(dd,
-                                    (uint8_t[]){
-				      new_buf2[i],
-                                    },
-                                    1);
-    DD_TRY_CATCH(dd_errno, out);
-  }
-  dd_wvs75v2_wait(dd);
-  
+
+  for (int i = 0; i < 48000; i += sizeof(chunk)) {
+    int chunk_size = sizeof(chunk);
+    if (i + chunk_size > 48000) {
+      chunk_size = 48000 - i;
+    }
+    memcpy(chunk, new_buf2 + i, chunk_size);
+    dd_errno = dd_wvs75v2_send_data(dd, chunk, chunk_size);
+    DD_TRY_CATCH(dd_errno, out);    
+  }    
+
   dd_errno = dd_wvs75v2_send_cmd(dd, dd_Wvs75v2Cmd_DISPLAY_REFRESH);
   DD_TRY_CATCH(dd_errno, out);
   dd_sleep_ms(100);
   dd_wvs75v2_wait(dd);
-  
+
 out:
+  if (dd->is_rotated) {
+    dd_free(new_buf1);
+    dd_free(new_buf2);    
+  }  
   if (dd_errno) {
     dd_driver_wvs75v2_ops_reset(dd);
   }
@@ -1031,7 +1025,6 @@ static dd_error_t dd_driver_wvs75v2_write_gray(void *dd, unsigned char *buf,
   dd_driver_wvs75v2_ops_power_off(wvs);
   DD_TRY(dd_errno);
 
-  
   return 0;
 
 error_wvs75v2_cleanup:
