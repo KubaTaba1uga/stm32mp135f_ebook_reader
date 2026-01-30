@@ -58,12 +58,13 @@ def main():
         for x in range(width):
             v = pix[x, y]
             
-            wages.add(max(v[0:2]))
+            wages.add(max(v[0:3]))
 
             
     wages = list(random.sample(sorted(wages), 3))
     print(wages)
-    
+
+    wages = [154, 99, 98]
     pixels = []
     colours = set()
 
@@ -84,7 +85,7 @@ def main():
 
     print(colours)
     with open(args.output, "w") as fp:
-        fp.write(f"unsigned char {args.name}[] = {{")
+        fp.write(f"unsigned char {args.name}[480*800/4] = {{")
         fp.write(" ".join("0x%.2X," % byte for byte in convert_pixels(pixels)))
         fp.write("};")
 
