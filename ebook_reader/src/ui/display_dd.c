@@ -8,6 +8,7 @@
 
 #include "ui/display.h"
 
+
 err_t ui_display_dd_init(ui_display_t __, ui_t ___) {
   return err_errnos(EINVAL, "Generic display driver is not supported!");
 };
@@ -22,6 +23,7 @@ err_t ui_display_dd_init(ui_display_t __, ui_t ___) {
 #include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
+#include "utils/graphic.h"
 
 #define ERR_FROM_DD(err)                                                       \
   err_errnos(dd_error_get_code(err), dd_error_get_msg(err))
@@ -38,7 +40,7 @@ struct UiDisplayDD {
   } render;
 };
 
-static int ui_dd_color_format = LV_COLOR_FORMAT_I2;
+static int ui_dd_color_format = LV_COLOR_FORMAT_ARGB8888;
 
 static void ui_display_dd_flush_callback(lv_display_t *, const lv_area_t *,
                                          uint8_t *);
@@ -60,7 +62,7 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
 
   switch (settings_display_model) {
   case DisplayModelEnum_WVS7IN5V2:
-    ui_dd->write = dd_display_driver_write_gray;
+    ui_dd->write = dd_display_driver_write_fast;
     dd_err = dd_display_driver_init(
         &ui_dd->dd, dd_DisplayDriverEnum_Wvs7in5V2,
         &(struct dd_Wvs75V2Config){
@@ -111,9 +113,7 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
   lv_group = lv_group_create();
   lv_indev_set_group(lv_indev, lv_group);
 
-  ui_dd->render.len =
-      (dd_display_driver_get_x(ui_dd->dd) * dd_display_driver_get_y(ui_dd->dd) /
-       (8 / lv_color_format_get_bpp(ui_dd_color_format))) + 16;
+  ui_dd->render.len = dd_display_driver_get_x(ui_dd->dd) * dd_display_driver_get_y(ui_dd->dd) * 4;
   ui_dd->render.buf = mem_malloc(ui_dd->render.len);
 
   lv_display_set_color_format(lv_disp, ui_dd_color_format);
@@ -144,29 +144,12 @@ error_out:
 static void ui_display_dd_flush_callback(lv_display_t *display,
                                          const lv_area_t *area,
                                          uint8_t *px_map) {
+  puts(__func__);
   ui_display_dd_t ui_dd = lv_display_get_driver_data(display);
-  int buf_len = dd_display_driver_get_x(ui_dd->dd) * dd_display_driver_get_y(ui_dd->dd) /
-		 (8 / lv_color_format_get_bpp(ui_dd_color_format));
-  int colours[32] = {0};
-  int idxc = 0;
-  for (int j = 0; j < buf_len-16; j++){
-    if (px_map[j + 16] != 0 ){
+  void *mem =  mem_malloc(48000);
+  graphic_argb32_to_i1(mem, 480, 800, px_map, 1920);
 
-	printf("temp1=%d\n", px_map[j + 16]);
-
-
-      colours[idxc++] = px_map[j + 16];
-    }
-  }
-printf("Colours=[");
-for (int i = 0; i < 32; i++) {
-    printf("%d%s", colours[i], (i == 31) ? "" : ",");
-}
-printf("]\n");
-  
-
-  dd_error_t dd_err = ui_dd->write(ui_dd->dd, px_map + 16, buf_len
-      );
+  dd_error_t dd_err = ui_dd->write(ui_dd->dd, mem, 48000);
   if (dd_err) {
     err_o = ERR_FROM_DD(dd_err);
     goto error_out;
