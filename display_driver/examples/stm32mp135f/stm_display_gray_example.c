@@ -8,6 +8,7 @@
 #include "tutrle_gray4.h"
 #include "cat_gray4.h"
 #include "cat_gray4_roatated.h"
+#include "turtle2_gray4.h"
 
 static void usage(const char *prog) {
   fprintf(stderr,
@@ -31,7 +32,10 @@ int main(int argc, char *argv[]) {
 
   /* classic argv parsing */
   for (int i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "--cat_rotated") == 0) {
+    if (strcmp(argv[i], "--turtle") == 0) {
+      buf = (unsigned char *)turtle2;
+      buf_len = sizeof(turtle2);
+    }else     if (strcmp(argv[i], "--cat_rotated") == 0) {
       buf = (unsigned char *)cat_rotated;
       buf_len = sizeof(cat_rotated);
     }else    if (strcmp(argv[i], "--cat") == 0) {
@@ -52,12 +56,6 @@ int main(int argc, char *argv[]) {
   err = init_stm32mp135f(dd_DisplayDriverEnum_Wvs7in5V2, is_rotated);
   if (err) {
     goto error;
-  }
-
-  puts("Working");
-  err = dd_display_driver_clear(dd, true);
-  if (err) {
-    goto error_dd_cleanup;
   }
   
   puts("Working");
