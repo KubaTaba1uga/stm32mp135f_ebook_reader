@@ -78,6 +78,7 @@ error_out:
 }
 
 int ui_tick(ui_t ui) {
+  /* puts(__func__); */
   int time = lv_timer_handler();
   return time;
   /* (void)  time; */

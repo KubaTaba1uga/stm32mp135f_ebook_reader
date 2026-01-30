@@ -40,7 +40,7 @@ struct UiDisplayDD {
   } render;
 };
 
-static int ui_dd_color_format = LV_COLOR_FORMAT_ARGB8888;
+static int ui_dd_color_format = LV_COLOR_FORMAT_RGB888;
 
 static void ui_display_dd_flush_callback(lv_display_t *, const lv_area_t *,
                                          uint8_t *);
@@ -62,7 +62,7 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
 
   switch (settings_display_model) {
   case DisplayModelEnum_WVS7IN5V2:
-    ui_dd->write = dd_display_driver_write_fast;
+    ui_dd->write = dd_display_driver_write_gray;
     dd_err = dd_display_driver_init(
         &ui_dd->dd, dd_DisplayDriverEnum_Wvs7in5V2,
         &(struct dd_Wvs75V2Config){
@@ -113,7 +113,7 @@ err_t ui_display_dd_init(ui_display_t ui_display, ui_t ui) {
   lv_group = lv_group_create();
   lv_indev_set_group(lv_indev, lv_group);
 
-  ui_dd->render.len = dd_display_driver_get_x(ui_dd->dd) * dd_display_driver_get_y(ui_dd->dd) * 4;
+  ui_dd->render.len = dd_display_driver_get_x(ui_dd->dd) * dd_display_driver_get_y(ui_dd->dd) * 3;
   ui_dd->render.buf = mem_malloc(ui_dd->render.len);
 
   lv_display_set_color_format(lv_disp, ui_dd_color_format);
@@ -141,13 +141,22 @@ error_out:
   return err_o;
 }
 
+static inline uint64_t now_ns(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+  return (uint64_t)ts.tv_sec * 1000000000ull + (uint64_t)ts.tv_nsec;
+}
+
 static void ui_display_dd_flush_callback(lv_display_t *display,
                                          const lv_area_t *area,
                                          uint8_t *px_map) {
   puts(__func__);
   ui_display_dd_t ui_dd = lv_display_get_driver_data(display);
-  void *mem =  mem_malloc(48000);
-  graphic_argb32_to_i1(mem, 480, 800, px_map, 1920);
+  void *mem =  mem_malloc(48000 * 2);
+  graphic_rgb32_to_i2(mem, 480, 800, px_map, 1440);
+
+  log_info("Sending data to display...");
+  uint64_t t0 = now_ns();
 
   dd_error_t dd_err = ui_dd->write(ui_dd->dd, mem, 48000);
   if (dd_err) {
@@ -156,6 +165,11 @@ static void ui_display_dd_flush_callback(lv_display_t *display,
   }
 
   lv_display_flush_ready(display);
+  uint64_t t1 = now_ns();
+  log_info("Data processed by display (write+flush_ready took %llu us)",
+         (unsigned long long)((t1 - t0) / 1000ull));
+
+  /* log_info("Data processed by display"); */
   return;
 
 error_out:

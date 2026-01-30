@@ -156,7 +156,7 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
   // Configure focused border
   lv_obj_set_style_outline_width(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_pad(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
-  lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
+  lv_obj_set_style_outline_color(book_card, lv_color_black(),
                                  LV_PART_MAIN | LV_STATE_FOCUSED);
 
   // Disable scrolling inside a card
