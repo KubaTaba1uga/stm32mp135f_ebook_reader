@@ -7,6 +7,7 @@
 #include "display_driver.h"
 #include "tutrle_gray4.h"
 #include "cat_gray4.h"
+#include "cat_gray4_roatated.h"
 
 static void usage(const char *prog) {
   fprintf(stderr,
@@ -30,7 +31,10 @@ int main(int argc, char *argv[]) {
 
   /* classic argv parsing */
   for (int i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "--cat") == 0) {
+    if (strcmp(argv[i], "--cat_rotated") == 0) {
+      buf = (unsigned char *)cat_rotated;
+      buf_len = sizeof(cat_rotated);
+    }else    if (strcmp(argv[i], "--cat") == 0) {
       buf = (unsigned char *)cat;
       buf_len = sizeof(cat);
       is_rotated = true;
