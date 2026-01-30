@@ -50,25 +50,25 @@ err_t ui_init(ui_t *out,
     goto error_display_cleanup;
   }
 
-  unsigned char *img_buf = mem_malloc(48000 + 8);
-  const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd);
-  if (ret_code != 48000) {
-    err_o =
-        err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path);
-    goto error_boot_screen_fd_cleanup;
-  }
-  fclose(boot_screen_fd);
+  /* unsigned char *img_buf = mem_malloc(48000 + 8); */
+  /* const size_t ret_code = fread(img_buf, 1, 48000, boot_screen_fd); */
+  /* if (ret_code != 48000) { */
+  /*   err_o = */
+  /*       err_errnof(ENOENT, "Cannot read file %s", settings_boot_screen_path); */
+  /*   goto error_boot_screen_fd_cleanup; */
+  /* } */
+  /* fclose(boot_screen_fd); */
 
-  err_o = ui_display_render(&ui->display, img_buf, 48000);
-  ERR_TRY_CATCH(err_o, error_boot_screen_cleanup);
-  mem_free(img_buf);
+  /* err_o = ui_display_render(&ui->display, img_buf, 48000); */
+  /* ERR_TRY_CATCH(err_o, error_boot_screen_cleanup); */
+  /* mem_free(img_buf); */
 
   return 0;
 
-error_boot_screen_fd_cleanup:
-  fclose(boot_screen_fd);
-error_boot_screen_cleanup:
-  mem_free(img_buf);
+/* error_boot_screen_fd_cleanup: */
+  /* fclose(boot_screen_fd); */
+/* error_boot_screen_cleanup: */
+  /* mem_free(img_buf); */
 error_display_cleanup:
   ui_display_destroy(&ui->display);
 error_out:

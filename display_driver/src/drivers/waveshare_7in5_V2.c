@@ -879,6 +879,7 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
   double i, j, k;
   int idx = 0;
 
+  bool is_white = false, is_black= false, is_grey1= false, is_gray2= false;
   for (i = 0; i < 48000; i++) { // for every byte in image
     temp3 = 0;
     for (j = 0; j < 2; j++) {
@@ -921,17 +922,22 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
   for (i = 0; i < 48000; i++) { // 5808*4  46464
     temp3 = 0;
     for (j = 0; j < 2; j++) {
-      temp1 = buf[(int)(i * 2 + j)];
+      temp1 = buf[(int)(i * 2 + j)];      
       for (k = 0; k < 2; k++) {
-        temp2 = temp1 & 0xC0;
+        temp2 = temp1 & 0b11;        
+        /* temp2 = temp1 & 0xC0; */
         if (temp2 == 0xC0) {
           temp3 |= 0x00; // white
+	  is_white = true;
         } else if (temp2 == 0x00) {
           temp3 |= 0x01; // black
+	  is_black = true;          
         } else if (temp2 == 0x80) {
-          temp3 |= 0x00;   // gray1
+          temp3 |= 0x00; // gray1
+	  is_grey1 = true;                         // 
         } else {           // 0x40
           temp3 |= 0x01;   // gray2
+	  is_gray2 = true;          
         }
         temp3 <<= 1;
 
@@ -955,7 +961,8 @@ static dd_error_t dd_driver_wvs75v2_ops_display_gray(dd_wvs75v2_t dd,
     }
     new_buf_2[idx++] = temp3;
   }
-
+printf("is_white=%d is_black=%d is_grey1=%d is_gray2=%d\n",
+       is_white, is_black, is_grey1, is_gray2);
   if (dd->is_rotated) {
     new_buf1 = dd_wvs75v2_rotate(dd, DD_WVS75V2_HEIGTH, DD_WVS75V2_WIDTH,
                                  new_buf_1, 48000);
