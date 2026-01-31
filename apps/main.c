@@ -7,9 +7,16 @@
 #include <stdlib.h>
 
 /*
+  pdfToPpm is a clear winner here.
+
   This is quite good quality:
-  pdftoppm -f 7 -l 7 /mnt/sdcard/Operating_Systems_From_0_to_1.pdf -png -mono >
-page480x800.png
+  pdftoppm -f 51 -l 51 /mnt/sdcard/Operating_Systems_From_0_to_1.pdf -png -mono > page480x800.png
+
+  pdftoppm -f 51 -l 51 -scale-to-x 1404 -scale-to-y 1872 -png -mono /mnt/sdcard/Operating_Systems_From_0_to_1.pdf > page480x800.png
+
+  This is another good quality:
+  gs -dFirstPage=51 -dLastPage=51  -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngmono -g1404x1872 -dFIXEDMEDIA -dPDFFitPage  -sOutputFile=figure.png /mnt/sdcard/Operating_Systems_From_0_to_1.pdf
+
 
 Display has res: 1872×1404
 

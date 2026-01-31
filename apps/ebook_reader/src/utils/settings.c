@@ -1,3 +1,4 @@
+
 /**
   Settings are specified at compilation time. Each setting has corresponding
   definition, if definition is not set default value is used.
@@ -28,7 +29,7 @@
 #elif EBK_DISPLAY_X11
 #define EBK_DISPLAY_MODEL DisplayModelEnum_X11
 #define EBK_DISPLAY_BOOT_SCREEN_PATH                                           \
-  "/home/taba1uga/Github/stm32mp135f_ebook_reader/ebook_reader/data/"          \
+  "/home/taba1uga/Github/stm32mp135f_ebook_reader/apps/ebook_reader/data/"          \
   "480x800_img_boot_screen_normal"
 #else
 #error "Unsupported display model"

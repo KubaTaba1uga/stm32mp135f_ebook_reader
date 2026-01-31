@@ -13,13 +13,13 @@ struct UiMenuBookWidget {
   int id;
 };
 
-const int bar_y = 30;
-const int menu_x_off = 10;
-const int menu_y_off = 20;
-const int menu_book_x = 120;
-const int menu_book_text_y = 50;
-const int menu_book_y = 170 + menu_book_text_y;
-const int bar_clock_x = 160;
+const int bar_y = 64;
+const int menu_x_off = 48;
+const int menu_y_off = 64;
+const int menu_book_x = 296;
+const int menu_book_text_y = 80;
+const int menu_book_y = 392 + menu_book_text_y;
+const int bar_clock_x = 320;
 
 lv_obj_t *ui_wx_obj_create(void *parent) {
 
@@ -102,8 +102,8 @@ ui_wx_menu_t ui_wx_menu_create(void) {
   lv_style_set_flex_flow(&style, LV_FLEX_FLOW_ROW_WRAP);
   lv_style_set_flex_main_place(&style, LV_FLEX_ALIGN_SPACE_EVENLY);
   lv_style_set_layout(&style, LV_LAYOUT_FLEX);
-  lv_style_set_pad_column(&style, 40);
-  lv_style_set_pad_row(&style, 20);
+  lv_style_set_pad_column(&style, 96);
+  lv_style_set_pad_row(&style, 48);
   lv_style_set_bg_color(&style, lv_color_white());
   lv_obj_add_style(menu_container, &style, LV_PART_MAIN | LV_STATE_DEFAULT);
 

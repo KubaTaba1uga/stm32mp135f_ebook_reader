@@ -29,8 +29,8 @@ struct UiDisplayX11 {
   ui_display_t display;
 };
 
-static const int ui_display_x11_heigth = 800;
-static const int ui_display_x11_width = 480;
+static const int ui_display_x11_heigth = 1872;
+static const int ui_display_x11_width = 1404;
 
 static void ui_display_x11_destroy(void *);
 
