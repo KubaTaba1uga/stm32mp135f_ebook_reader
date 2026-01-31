@@ -67,6 +67,7 @@ error_out:
 }
 
 static void app_module_menu_close(void *module) {
+  puts(__func__)  ;
   app_module_menu_t menu = module;
 
   if (menu->ui) {
@@ -88,7 +89,10 @@ static void app_module_menu_destroy(void *module) {
    @todo Instead of NULL add book. Propably need sth like list_pop to receive
    book.
  */
-void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
+void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *data) {
   app_module_menu_t menu = module->module_data;
-  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
+  int *current_book_i = data;
+  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED,
+                 books_list_pop(menu->blist, *current_book_i));
+  mem_free(current_book_i);
 }

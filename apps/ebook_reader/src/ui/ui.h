@@ -30,14 +30,10 @@ void ui_destroy(ui_t *out);
 */
 void ui_panic(ui_t ui);
 
-/**
-   @brief Create menu screen.
-*/
 err_t ui_menu_init(ui_t ui, books_list_t blist, int book_i);
-
-/**
-   @brief Delete menu screen.
-*/
 void ui_menu_destroy(ui_t ui);
+
+err_t ui_reader_init(ui_t ui, book_t book);
+void ui_reader_destroy(ui_t ui);
 
 #endif // UI_H

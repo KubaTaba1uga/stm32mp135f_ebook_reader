@@ -20,6 +20,10 @@ struct Book {
   const char *file_path;
   book_api_t owner;
   void *private;
+  double scale;
+  int x_off;
+  int y_off;
+
 };
 
 struct BookModule {
@@ -27,6 +31,8 @@ struct BookModule {
   void (*book_destroy)(book_t);
   const char *(*book_get_title)(book_t);
   const unsigned char *(*book_get_thumbnail)(book_t, int x, int y);
+  const unsigned char *(*book_get_page)(book_t book, int x, int y, int page_no,
+                                        int *buf_len);
   bool (*is_extension)(const char *);
   void (*destroy)(book_module_t);
   void *private;

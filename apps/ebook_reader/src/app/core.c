@@ -235,16 +235,18 @@ static void app_step(app_t app) {
 
   assert(trans.next_state != 0); // We should never transition to boot.
 
+
+  if (app->current_state != trans.next_state) {
+    app_module_close(current_module);
+  }
+
   if (!trans.action) {
     trans.action = app_module_open;
   }
 
   trans.action(next_module, &app->ctx, ev_data.data);
 
-  if (app->current_state != trans.next_state) {
-    app_module_close(current_module);
-  }
-
+  
   app->current_state = trans.next_state;
 
 out:;

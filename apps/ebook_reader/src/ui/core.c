@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "book/book.h"
 #include "ui/display.h"
 #include "ui/screen.h"
 #include "ui/ui.h"
@@ -95,8 +96,9 @@ void ui_destroy(ui_t *out) {
   mem_free(*out);
   *out = NULL;
 };
-
+ui_t gui;
 err_t ui_menu_init(ui_t ui, books_list_t books, int book_i) {
+  puts(__func__);
   lv_group_t *group = ui_display_get_input_group(&ui->display);
   err_o = ui_screen_menu_init(&ui->screen, ui, books, book_i, LV_EVENT_KEY,
                               ui_menu_book_event_cb, group);
@@ -108,15 +110,16 @@ error_out:
   return err_o;
 };
 
-void ui_menu_destroy(ui_t ui) { ui_screen_destroy(&ui->screen); };
+void ui_menu_destroy(ui_t ui) {
+  puts(__func__);
+  ui_screen_destroy(&ui->screen);
+};
 
 void ui_panic(ui_t ui) { ui_display_panic(&ui->display); };
 
 static void ui_menu_book_event_cb(lv_event_t *e) {
   ui_wx_menu_book_t book = lv_event_get_user_data(e);
   ui_t ui = ui_wx_menu_book_get_ui(book);
-  int id = ui_wx_menu_book_get_id(book);
-
   lv_key_t key = lv_event_get_key(e);
 
   log_debug("Ui received key: %d'", key);
@@ -125,8 +128,95 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     key = LV_KEY_ENTER;
   }
 
-
   if (key == LV_KEY_ENTER) {
-    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, &id);
+    int *id = mem_malloc(sizeof(int));
+    *id = ui_wx_menu_book_get_id(book);
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, id);
   }
+}
+
+lv_group_t *group;
+static void ui_reader_book_event_cb(lv_event_t *e);
+err_t ui_reader_init(ui_t ui, book_t book) {
+  group = ui_display_get_input_group(&ui->display);
+  err_o = ui_screen_reader_init(&ui->screen, ui, book, LV_EVENT_ALL,
+                                ui_reader_book_event_cb, group);
+  ERR_TRY(err_o);
+
+  gui = ui;
+
+  return 0;
+
+error_out:
+  return err_o;
+};
+
+void ui_reader_destroy(ui_t ui) {
+  puts(__func__);
+  ui_screen_destroy(&ui->screen);
+};
+
+static void ui_reader_book_event_cb(lv_event_t *e) {
+  book_t book = lv_event_get_user_data(e);
+  lv_key_t key = lv_event_get_key(e);
+
+  log_debug("Ui received key: %d'", key);
+
+  if (key == '\r' || key == '\n') {
+    key = LV_KEY_ENTER;
+  }
+
+  static int x_offset = 0;
+  static int y_offset = 0;
+  static double scale = 1;
+  
+  if (key == 17) {
+    y_offset -= 25;
+    book_set_y_offset(book, y_offset);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+  }
+  
+  if (key == 18) {
+    y_offset += 25;
+    book_set_y_offset(book, y_offset);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+  }
+
+  if (key == 19) {
+    x_offset += 25;
+    book_set_x_offset(book, x_offset);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+  }
+
+  if (key == 20) {
+    x_offset -= 25;
+    book_set_x_offset(book, x_offset);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+  }
+
+  if (key == 43) {
+    scale += 0.1;
+    book_set_scale(book, scale);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+
+  }
+  if (key == 45) {
+    scale -= 0.1;
+    book_set_scale(book, scale);
+    ui_screen_destroy(&gui->screen);
+    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
+                          ui_reader_book_event_cb, group);
+
+  }
+  
 }

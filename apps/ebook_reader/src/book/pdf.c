@@ -21,6 +21,7 @@ struct Pdf {
 
 struct PdfBook {
   cairo_surface_t *thumbnail;
+  cairo_surface_t *page;
   char *title;
 };
 
@@ -29,6 +30,8 @@ static void book_module_pdf_book_destroy(book_t);
 static const char *book_module_pdf_book_get_title(book_t);
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t, int,
                                                                int);
+static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
+                                                     int page_no, int *buf_len);
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
@@ -39,6 +42,7 @@ err_t book_module_pdf_init(book_module_t module, book_api_t api) {
   module->book_destroy = book_module_pdf_book_destroy;
   module->book_get_title = book_module_pdf_book_get_title;
   module->book_get_thumbnail = book_module_pdf_book_get_thumbnail;
+  module->book_get_page = book_module_pdf_get_page;
   module->is_extension = book_module_pdf_is_extension;
   module->destroy = book_module_pdf_destroy;
   module->private = pdf;
@@ -160,8 +164,53 @@ static void book_module_pdf_book_destroy(book_t book) {
   if (pdf_book->thumbnail) {
     cairo_surface_destroy(pdf_book->thumbnail);
   }
+  if (pdf_book->page) {
+    cairo_surface_destroy(pdf_book->page);
+  }
+
   mem_free(pdf_book->title);
   mem_free(pdf_book);
 
   book->private = NULL;
 };
+
+static const unsigned char *
+book_module_pdf_get_page(book_t book, int x, int y, int page_no, int *buf_len) {
+  puts(__func__);
+  pdf_book_t pdf_book = book->private;
+  if (pdf_book->page) {
+    cairo_surface_destroy(pdf_book->page);
+  }
+
+  printf("Start buf_len=%d\n", *buf_len);
+  char cmd_buf[4096] = {0};
+  snprintf(cmd_buf, sizeof(cmd_buf),
+           "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d -aa "
+           "yes -aaVector yes -png -mono %s",
+           page_no, page_no, (int)(x * book->scale), (int)(y * book->scale),
+           book->file_path);
+  FILE *pdfinfo = popen(cmd_buf, "r");
+  if (!pdfinfo) {
+    goto error_out;
+  }
+
+  cairo_surface_t *surface =
+      cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
+
+  pdf_book->page = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
+  cairo_t *cr = cairo_create(pdf_book->page);
+  cairo_set_source_surface(cr, surface, book->x_off * book->scale,
+                           book->y_off * book->scale);
+  cairo_paint(cr);
+
+  unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
+
+  pclose(pdfinfo);
+
+  *buf_len = x * y * 4;
+
+  return page;
+
+error_out:
+  return NULL;
+}
