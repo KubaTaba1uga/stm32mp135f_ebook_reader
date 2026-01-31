@@ -1,0 +1,8 @@
+[
+  {
+    "directory": "/home/taba1uga/Github/stm32mp135f_ebook_reader/apps/",
+    "command": "/usr/bin/gcc main.c -I/usr/include/poppler -lpoppler -I/usr/include/poppler/glib -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/sysprof-6 -pthread -I/usr/include/cairo -I/usr/include/libpng16 -I/usr/include/freetype2 -I/usr/include/pixman-1 -I/usr/include/poppler -lpoppler-glib -lgobject-2.0 -lglib-2.0 -lcairo -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/sysprof-6 -pthread -lglib-2.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/sysprof-6 -I/usr/include/libmount -I/usr/include/blkid -pthread -lgio-2.0 -lgobject-2.0 -lglib-2.0 -I/usr/include/cairo -I/usr/include/libpng16 -I/usr/include/freetype2 -I/usr/include/pixman-1 -lcairo",
+    "file": "main.c",
+    "output": "a.out"
+  }
+]
