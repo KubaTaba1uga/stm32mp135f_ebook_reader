@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "ui/widgets.h"
+#include "misc/lv_color.h"
 #include "utils/mem.h"
 #include "utils/time.h"
 
@@ -132,10 +133,10 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
     lv_obj_t *book_img = lv_image_create(book_card);
     lv_img_dsc_t *dsc = &book_data->img;
     *dsc = (lv_img_dsc_t){0};
-    dsc->header.cf = LV_COLOR_FORMAT_A1;
+    dsc->header.cf = LV_COLOR_FORMAT_ARGB8888_PREMULTIPLIED;
     dsc->header.w = menu_book_x;
     dsc->header.h = (menu_book_y - menu_book_text_y);
-    dsc->data_size = ((dsc->header.w + 7) / 8) * dsc->header.h;
+    dsc->data_size = dsc->header.w * dsc->header.h * 4;
     dsc->data = thumbnail;
     lv_image_set_src(book_img, dsc);
     lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
