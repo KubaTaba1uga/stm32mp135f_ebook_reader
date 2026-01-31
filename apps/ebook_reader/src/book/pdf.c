@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <ctype.h>
 #include <libgen.h>
 #include <lvgl.h>
 #include <poppler.h>
@@ -19,7 +21,7 @@ struct Pdf {
 };
 
 struct PdfBook {
-  PopplerDocument *document;
+  /* PopplerDocument *document; */
   unsigned char *thumbnail;
   char *title;
 };
@@ -56,25 +58,11 @@ void book_module_pdf_destroy(book_module_t module) {
 };
 
 static err_t book_module_pdf_book_init(book_t book) {
+
   pdf_book_t pdf_book = book->private = mem_malloc(sizeof(struct PdfBook));
   *pdf_book = (struct PdfBook){0};
 
-  int bytes = strlen(book->file_path) + strlen("file:///") + 1;
-  char *uri = mem_malloc(bytes);
-  snprintf(uri, bytes, "file:///%s", book->file_path);
-
-  pdf_book->document = poppler_document_new_from_file(uri, NULL, NULL);
-  if (!pdf_book->document) {
-    err_o = err_errnof(ENODATA, "Cannot open pdf: %s", uri);
-    goto error_out;
-  }
-
-  mem_free(uri);
-
   return 0;
-
-error_out:
-  return err_o;
 };
 
 static const char *book_module_pdf_book_get_title(book_t book) {
@@ -83,17 +71,36 @@ static const char *book_module_pdf_book_get_title(book_t book) {
     return pdf_book->title;
   }
 
-  char *title = poppler_document_get_title(pdf_book->document);
-  if (!title) {
-    pdf_book->title = strdup(book->file_path);
-    title = basename(pdf_book->title);
-  } else {
-    pdf_book->title = strdup(title);
-    g_free(title);
-    title = pdf_book->title;
+  char cmd_buf[4096] = {0};
+  snprintf(cmd_buf, sizeof(cmd_buf), "/usr/bin/pdfinfo %s", book->file_path);
+  FILE *pdfinfo = popen(cmd_buf, "r");
+  if (!pdfinfo) {
+    goto error_out;
   }
 
-  return title;
+  fread(cmd_buf, 1, sizeof(cmd_buf), pdfinfo);
+
+  const char *title_start = strstr(cmd_buf, "Title:");
+  assert(title_start != NULL);
+  const char *title_end = strstr(title_start, "\n");
+  assert(title_end != NULL);
+
+  pclose(pdfinfo);
+
+  title_start += strlen("Title:");
+  while (isspace(*title_start) && title_start < title_end) {
+    title_start++;
+  }
+
+  pdf_book->title = mem_malloc(title_end - title_start + 1);
+  memset(pdf_book->title, 0, title_end - title_start + 1);
+  memcpy(pdf_book->title, title_start, title_end - title_start);
+
+  return pdf_book->title;
+
+error_out:
+  puts("ERROR");
+  return NULL;
 }
 
 static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
@@ -103,49 +110,63 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
     return pdf_book->thumbnail;
   }
 
-  PopplerDocument *doc = pdf_book->document;
-  PopplerPage *page = poppler_document_get_page(doc, 0);
-  cairo_surface_t *surface;
-  cairo_t *cr;
+  char cmd_buf[4096] = {0};
+  snprintf(
+      cmd_buf, sizeof(cmd_buf),
+      "/usr/bin/pdftoppm -f 0 -l 0 -scale-to-x %d -scale-to-y %d -png -mono %s",
+      x, y, book->file_path);
+  FILE *pdfinfo = popen(cmd_buf, "r");
+  if (!pdfinfo) {
+    goto error_out;
+  }
 
-  double pw, ph; // page size in points
-  poppler_page_get_size(page, &pw, &ph);
+  /* PopplerDocument *doc = pdf_book->document; */
+  /* PopplerPage *page = poppler_document_get_page(doc, 0); */
+  /* cairo_surface_t *surface; */
+  /* cairo_t *cr; */
 
-  surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
-  cr = cairo_create(surface);
+  /* double pw, ph; // page size in points */
+  /* poppler_page_get_size(page, &pw, &ph); */
 
-  /* white background */
-  cairo_set_source_rgb(cr, 1, 1, 1);
-  cairo_paint(cr);
+  /* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y); */
+  /* cr = cairo_create(surface); */
 
-  /* scale page */
-  double sx = (double)x / pw;
-  double sy = (double)y / ph;
-  cairo_scale(cr, sx, sy);
+  /* /\* white background *\/ */
+  /* cairo_set_source_rgb(cr, 1, 1, 1); */
+  /* cairo_paint(cr); */
 
-  /* render at scaled size */
-  poppler_page_render(page, cr);
-  cairo_surface_flush(surface);
+  /* /\* scale page *\/ */
+  /* double sx = (double)x / pw; */
+  /* double sy = (double)y / ph; */
+  /* cairo_scale(cr, sx, sy); */
 
-  unsigned char *sdata = cairo_image_surface_get_data(surface);
-  int sw = cairo_image_surface_get_width(surface);
-  int sh = cairo_image_surface_get_height(surface);
-  int stride = cairo_image_surface_get_stride(surface);
+  /* /\* render at scaled size *\/ */
+  /* poppler_page_render(page, cr); */
+  /* cairo_surface_flush(surface); */
 
-  pdf_book->thumbnail = mem_malloc(x * y + 8);
-  lv_color32_t *pal = (lv_color32_t *)pdf_book->thumbnail;
-  pal[0] = (lv_color32_t){
-      .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 = white
-  pal[1] = (lv_color32_t){
-      .red = 0, .green = 0, .blue = 0, .alpha = 255}; // index 1 = black
+  /* unsigned char *sdata = cairo_image_surface_get_data(surface); */
+  /* int sw = cairo_image_surface_get_width(surface); */
+  /* int sh = cairo_image_surface_get_height(surface); */
+  /* int stride = cairo_image_surface_get_stride(surface); */
 
-  graphic_argb32_to_i1(pdf_book->thumbnail, sw, sh, sdata, stride);
+  /* pdf_book->thumbnail = mem_malloc(x * y + 8); */
+  /* lv_color32_t *pal = (lv_color32_t *)pdf_book->thumbnail; */
+  /* pal[0] = (lv_color32_t){ */
+  /*     .red = 255, .green = 255, .blue = 255, .alpha = 255}; // index 0 =
+   * white */
+  /* pal[1] = (lv_color32_t){ */
+  /*     .red = 0, .green = 0, .blue = 0, .alpha = 255}; // index 1 = black */
 
-  cairo_destroy(cr);
-  cairo_surface_destroy(surface);
-  g_object_unref(page);
+  /* graphic_argb32_to_i1(pdf_book->thumbnail, sw, sh, sdata, stride); */
+
+  /* cairo_destroy(cr); */
+  /* cairo_surface_destroy(surface); */
+  /* g_object_unref(page); */
 
   return pdf_book->thumbnail;
+
+error_out:
+  return NULL;
 };
 
 static bool book_module_pdf_is_extension(const char *file_path) {
@@ -158,7 +179,7 @@ static void book_module_pdf_book_destroy(book_t book) {
   }
 
   pdf_book_t pdf_book = book->private;
-  g_object_unref(pdf_book->document);
+  /* g_object_unref(pdf_book->document); */
   mem_free(pdf_book->thumbnail);
   mem_free(pdf_book->title);
   mem_free(pdf_book);
