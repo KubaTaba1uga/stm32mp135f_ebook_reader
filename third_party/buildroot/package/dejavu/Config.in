@@ -6,7 +6,7 @@ config BR2_PACKAGE_DEJAVU
 	  maintaining the original look and feel through the process
 	  of collaborative development, under a Free license.
 
-	  https://dejavu-fonts.github.io/
+	  http://dejavu-fonts.org
 
 if BR2_PACKAGE_DEJAVU
 

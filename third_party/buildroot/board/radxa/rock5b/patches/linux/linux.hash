@@ -1,2 +1,2 @@
-# From https://www.kernel.org/pub/linux/kernel/v6.x/sha256sums.asc
-sha256  6f35f821433d8421be7167990747c7c4a0c451958fb96883446301af13d71152  linux-6.12.4.tar.xz
+# Locally calculated
+sha256  a5eca7b8f929a1918125e2e4fbd7ab4ea5b3910b5ae4547e81c794b47373ffb5  linux-52f51a2b5ba178f331af62260d2da86d7472c14b-br1.tar.gz

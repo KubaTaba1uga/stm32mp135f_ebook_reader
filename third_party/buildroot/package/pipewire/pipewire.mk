@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PIPEWIRE_VERSION = 1.2.7
+PIPEWIRE_VERSION = 0.3.81
 PIPEWIRE_SOURCE = pipewire-$(PIPEWIRE_VERSION).tar.bz2
 PIPEWIRE_SITE = https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/$(PIPEWIRE_VERSION)
 PIPEWIRE_LICENSE = MIT, LGPL-2.1+ (libspa-alsa), GPL-2.0 (libjackserver)
@@ -34,12 +34,10 @@ PIPEWIRE_CONF_OPTS += \
 	-Dsession-managers=[] \
 	-Dlegacy-rtkit=false \
 	-Davb=disabled \
-	-Droc=disabled \
 	-Dlibcanberra=disabled \
 	-Dlibmysofa=disabled \
 	-Dlibffado=disabled \
-	-Dflatpak=disabled \
-	-Dsnap=disabled
+	-Dflatpak=disabled
 
 ifeq ($(BR2_PACKAGE_DBUS),y)
 PIPEWIRE_CONF_OPTS += -Ddbus=enabled
@@ -107,9 +105,9 @@ else
 PIPEWIRE_CONF_OPTS += -Dpipewire-jack=disabled -Djack=disabled
 endif
 
-ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS)$(BR2_PACKAGE_SBC)$(BR2_PACKAGE_LIBGLIB2),yyy)
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS)$(BR2_PACKAGE_SBC),yy)
 PIPEWIRE_CONF_OPTS += -Dbluez5=enabled
-PIPEWIRE_DEPENDENCIES += bluez5_utils sbc libglib2
+PIPEWIRE_DEPENDENCIES += bluez5_utils sbc
 ifeq ($(BR2_PACKAGE_MODEM_MANAGER),y)
 PIPEWIRE_CONF_OPTS += -Dbluez5-backend-native-mm=enabled
 PIPEWIRE_DEPENDENCIES += modem-manager
@@ -122,14 +120,8 @@ PIPEWIRE_DEPENDENCIES += opus
 else
 PIPEWIRE_CONF_OPTS += -Dbluez5-codec-opus=disabled
 endif
-ifeq ($(BR2_PACKAGE_FDK_AAC),y)
-PIPEWIRE_CONF_OPTS += -Dbluez5-codec-aac=enabled
-PIPEWIRE_DEPENDENCIES += fdk-aac
 else
-PIPEWIRE_CONF_OPTS += -Dbluez5-codec-aac=disabled
-endif
-else
-PIPEWIRE_CONF_OPTS += -Dbluez5=disabled
+PIPEWIRE_CONF_OPTS += -Dbluez5=disabled -Dbluez5-codec-opus=disabled
 endif
 
 ifeq ($(BR2_PACKAGE_FFMPEG),y)
@@ -245,13 +237,6 @@ PIPEWIRE_CONF_OPTS += -Draop=enabled
 PIPEWIRE_DEPENDENCIES += openssl
 else
 PIPEWIRE_CONF_OPTS += -Draop=disabled
-endif
-
-ifeq ($(BR2_PACKAGE_LIBSELINUX),y)
-PIPEWIRE_CONF_OPTS += -Dselinux=enabled
-PIPEWIRE_DEPENDENCIES += libselinux
-else
-PIPEWIRE_CONF_OPTS += -Dselinux=disabled
 endif
 
 define PIPEWIRE_USERS

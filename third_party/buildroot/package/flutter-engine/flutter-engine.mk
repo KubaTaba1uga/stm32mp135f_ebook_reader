@@ -19,10 +19,9 @@
 #  - Create a source tarball.
 #  - Copy the source tarball to the $(FLUTTER_ENGINE_DL_DIR) directory.
 #
-# There is no hash provided for the source tarball, as the gn binary
-# (used for configuration) relies on the .git directories. As such, a
-# reproducible tarball is not possible.
-FLUTTER_ENGINE_VERSION = 3.27.1
+# There is no hash provided, as the gn binary (used for configuration) relies
+# on the .git directories. As such, a reproducible tarball is not possible.
+FLUTTER_ENGINE_VERSION = 3.16.8
 
 # There is nothing for Buildroot to download. This is handled by gclient.
 FLUTTER_ENGINE_SITE =
@@ -68,7 +67,7 @@ FLUTTER_ENGINE_INSTALL_FILES = libflutter_engine.so
 
 # Flutter engine includes a bundled patched clang that must be used for
 # compiling or else there are linking errors.
-FLUTTER_ENGINE_CLANG_PATH = $(@D)/flutter/buildtools/linux-x64/clang
+FLUTTER_ENGINE_CLANG_PATH = $(@D)/buildtools/linux-x64/clang
 
 FLUTTER_ENGINE_CONF_OPTS = \
 	--clang \
@@ -127,7 +126,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_HAS_LIBGLES),y)
 FLUTTER_ENGINE_DEPENDENCIES += libgles
-FLUTTER_ENGINE_CONF_OPTS += --enable-impeller-3d
+FLUTTER_ENGINE_CONF_OPTS += --enable-impeller-opengles
 endif
 
 ifeq ($(BR2_PACKAGE_LIBGLFW),y)
@@ -146,7 +145,7 @@ endif
 
 # There is no --disable-vulkan option
 ifeq ($(BR2_PACKAGE_MESA3D_VULKAN_DRIVER),y)
-FLUTTER_ENGINE_CONF_OPTS += --enable-vulkan
+FLUTTER_ENGINE_CONF_OPTS += --enable-vulkan --enable-impeller-vulkan
 endif
 
 ifeq ($(BR2_PACKAGE_XORG7)$(BR2_PACKAGE_LIBXCB),yy)
@@ -154,10 +153,7 @@ FLUTTER_ENGINE_DEPENDENCIES += libxcb
 else
 define FLUTTER_ENGINE_VULKAN_X11_SUPPORT_FIXUP
 	$(SED) "s%vulkan_use_x11.*%vulkan_use_x11 = false%g" -i \
-		$(@D)/flutter/build_overrides/vulkan_headers.gni
-
-	$(SED) "s%ozone_platform_x11.*%ozone_platform_x11 = false%g" \
-		$(@D)/build/config/BUILDCONFIG.gn
+		$(@D)/build_overrides/vulkan_headers.gni
 endef
 FLUTTER_ENGINE_PRE_CONFIGURE_HOOKS += FLUTTER_ENGINE_VULKAN_X11_SUPPORT_FIXUP
 endif
@@ -167,10 +163,7 @@ FLUTTER_ENGINE_DEPENDENCIES += wayland
 else
 define FLUTTER_ENGINE_VULKAN_WAYLAND_SUPPORT_FIXUP
 	$(SED) "s%vulkan_use_wayland.*%vulkan_use_wayland = false%g" \
-		$(@D)/flutter/build_overrides/vulkan_headers.gni
-
-	$(SED) "s%ozone_platform_wayland.*%ozone_platform_wayland = false%g" \
-		$(@D)/build/config/BUILDCONFIG.gn
+		$(@D)/build_overrides/vulkan_headers.gni
 endef
 FLUTTER_ENGINE_PRE_CONFIGURE_HOOKS += FLUTTER_ENGINE_VULKAN_WAYLAND_SUPPORT_FIXUP
 endif

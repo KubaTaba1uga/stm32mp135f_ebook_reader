@@ -18,7 +18,6 @@ class TestPythonPahoMQTT(TestPythonPackageBase):
         self.check_sample_scripts_exist()
 
         cmd = "%s %s" % (self.interpreter, os.path.basename(self.sample_scripts[0]))
-        # Increase timeout to let the crng init complete
-        output, exit_code = self.emulator.run(cmd, timeout=15)
+        output, exit_code = self.emulator.run(cmd)
         self.assertEqual(exit_code, 0)
         self.assertEqual(output[0], "Hello, World!")

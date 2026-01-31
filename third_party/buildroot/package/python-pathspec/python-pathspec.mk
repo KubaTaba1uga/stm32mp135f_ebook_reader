@@ -11,5 +11,4 @@ PYTHON_PATHSPEC_LICENSE = MPL-2.0
 PYTHON_PATHSPEC_LICENSE_FILES = LICENSE
 PYTHON_PATHSPEC_SETUP_TYPE = flit
 
-$(eval $(python-package))
 $(eval $(host-python-package))

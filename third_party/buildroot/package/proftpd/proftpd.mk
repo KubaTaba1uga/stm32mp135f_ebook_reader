@@ -31,10 +31,6 @@ ifeq ($(BR2_PACKAGE_LIBIDN2),y)
 PROFTPD_DEPENDENCIES += libidn2
 endif
 
-ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
-PROFTPD_DEPENDENCIES += libxcrypt
-endif
-
 ifeq ($(BR2_PACKAGE_PCRE2),y)
 PROFTPD_CONF_OPTS += --enable-pcre2
 PROFTPD_DEPENDENCIES += pcre2
@@ -47,13 +43,6 @@ PROFTPD_CONF_OPTS += --enable-cap
 PROFTPD_DEPENDENCIES += libcap
 else
 PROFTPD_CONF_OPTS += --disable-cap
-endif
-
-ifeq ($(BR2_PACKAGE_PROFTPD_MOD_LANG),y)
-PROFTPD_CONF_OPTS += --enable-nls
-ifneq ($(BR2_ENABLE_LOCALE),y)
-PROFTPD_DEPENDENCIES += libiconv
-endif
 endif
 
 ifeq ($(BR2_PACKAGE_PROFTPD_MOD_REWRITE),y)

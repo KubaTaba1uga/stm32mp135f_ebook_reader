@@ -1,6 +1,7 @@
 inline ntp syscalls fallback
 
-Upstream: https://bugs.ntp.org/show_bug.cgi?id=769
+Reference:
+ https://bugs.ntp.org/show_bug.cgi?id=769
 
 Signed-off-by: James Knight <james.knight@rockwellcollins.com>
 ---

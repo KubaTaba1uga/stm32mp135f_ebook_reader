@@ -74,8 +74,6 @@ define LIBTOOL_PATCH_HOOK
 			else \
 				patch -i support/libtool/buildroot-libtool-v2.4.patch $${i}; \
 			fi \
-		elif test $${ltmain_version} = "2.5"; then\
-			patch -i support/libtool/buildroot-libtool-v2.4.4.patch $${i}; \
 		fi \
 	done
 endef
@@ -202,6 +200,8 @@ else
 define $(2)_CONFIGURE_CMDS
 	(cd $$($$(PKG)_SRCDIR) && rm -rf config.cache; \
 	$$(HOST_CONFIGURE_OPTS) \
+	CFLAGS="$$(HOST_CFLAGS)" \
+	LDFLAGS="$$(HOST_LDFLAGS)" \
 	$$($$(PKG)_CONF_ENV) \
 	CONFIG_SITE=/dev/null \
 	./configure \

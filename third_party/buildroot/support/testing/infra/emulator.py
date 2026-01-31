@@ -1,11 +1,7 @@
-# SPDX-License-Identifier: GPL-2.0
-# SPDX-License-Identifier: ISC
-
 import os
 
 import pexpect
 import pexpect.replwrap
-import time
 
 import infra
 
@@ -45,7 +41,6 @@ class Emulator(object):
     def __init__(self, builddir, downloaddir, logtofile, timeout_multiplier):
         self.qemu = None
         self.repl = None
-        self.builddir = builddir
         self.downloaddir = downloaddir
         self.logfile = infra.open_log_file(builddir, "run", logtofile)
         # We use elastic runners on the cloud to runs our tests. Those runners
@@ -117,21 +112,12 @@ class Emulator(object):
         ldavg_str = f"{ldavg[0]:.2f}, {ldavg[1]:.2f}, {ldavg[2]:.2f}"
         self.logfile.write(f"> host loadavg: {ldavg_str}\n")
         self.logfile.write(f"> timeout multiplier: {self.timeout_multiplier}\n")
-        self.logfile.write(f"> emulator using {qemu_cmd[0]} version:\n")
-        host_bin = os.path.join(self.builddir, "host", "bin")
-        br_path = host_bin + os.pathsep + os.environ["PATH"]
-        qemu_env = {"QEMU_AUDIO_DRV": "none",
-                    "PATH": br_path}
-        pexpect.run(f"{qemu_cmd[0]} --version",
-                    encoding='utf-8',
-                    logfile=self.logfile,
-                    env=qemu_env)
         self.logfile.write("> starting qemu with '%s'\n" % " ".join(qemu_cmd))
         self.qemu = pexpect.spawn(qemu_cmd[0], qemu_cmd[1:],
                                   timeout=5 * self.timeout_multiplier,
                                   encoding='utf-8',
                                   codec_errors='replace',
-                                  env=qemu_env)
+                                  env={"QEMU_AUDIO_DRV": "none"})
         # We want only stdout into the log to avoid double echo
         self.qemu.logfile_read = self.logfile
 
@@ -152,10 +138,6 @@ class Emulator(object):
             self.qemu.sendline(password)
 
         self.connect_shell()
-
-        output, exit_code = self.run(f"date -s @{int(time.time())}")
-        if exit_code:
-            raise SystemError("Cannot set date in virtual machine")
 
     def connect_shell(self):
         extra_init_cmd = " && ".join([

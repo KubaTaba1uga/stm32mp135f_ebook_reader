@@ -4,4 +4,4 @@ config BR2_PACKAGE_LUA_ICONV
 	help
 	  Lua binding to the POSIX 'iconv' library
 
-	  https://github.com/lunarmodules/lua-iconv
+	  http://ittner.github.io/lua-iconv/

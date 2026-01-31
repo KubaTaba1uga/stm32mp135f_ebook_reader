@@ -12,36 +12,12 @@ BOOST_LICENSE = BSL-1.0
 BOOST_LICENSE_FILES = LICENSE_1_0.txt
 BOOST_CPE_ID_VENDOR = boost
 
-BOOST_TARGET_CXXFLAGS = $(TARGET_CXXFLAGS)
-
-BOOST_FLAGS = --with-toolset=gcc
-
-ifeq ($(BR2_PACKAGE_ICU),y)
-BOOST_FLAGS += --with-icu=$(STAGING_DIR)/usr
-BOOST_DEPENDENCIES += icu
-else
-BOOST_FLAGS += --without-icu
-endif
-
-ifeq ($(BR2_PACKAGE_BOOST_IOSTREAMS),y)
-BOOST_DEPENDENCIES += bzip2 zlib
-endif
-
-ifeq ($(BR2_PACKAGE_BOOST_PYTHON),y)
-BOOST_FLAGS += \
-	--with-python-root=$(HOST_DIR) \
-	--with-python=$(HOST_DIR)/bin/python$(PYTHON3_VERSION_MAJOR)
-BOOST_TARGET_CXXFLAGS += -I$(STAGING_DIR)/usr/include/python$(PYTHON3_VERSION_MAJOR)
-BOOST_DEPENDENCIES += python3
-endif
-
 # keep host variant as minimal as possible
 # regex & system are needed by host-riscv-isa-sim
 HOST_BOOST_FLAGS = --without-icu --with-toolset=gcc \
 	--without-libraries=$(subst $(space),$(comma),\
 	atomic \
-	chrono \
-	container \
+	chrono container \
 	context \
 	contract \
 	coroutine \
@@ -70,54 +46,6 @@ HOST_BOOST_FLAGS = --without-icu --with-toolset=gcc \
 	url \
 	wave\
 	)
-
-HOST_BOOST_OPTS += toolset=gcc threading=multi \
-	variant=release link=shared runtime-link=shared -j$(PARALLEL_JOBS) -q \
-	--ignore-site-config --layout=system --prefix=$(HOST_DIR) \
-	--user-config=$(@D)/user-config.jam
-
-ifeq ($(BR2_MIPS_OABI32),y)
-BOOST_ABI = o32
-else ifeq ($(BR2_arm)$(BR2_armeb)$(BR2_aarch64)$(BR2_aarch64_be),y)
-BOOST_ABI = aapcs
-else
-BOOST_ABI = sysv
-endif
-
-BOOST_OPTS += toolset=gcc \
-	threading=multi \
-	abi=$(BOOST_ABI) \
-	variant=$(if $(BR2_ENABLE_RUNTIME_DEBUG),debug,release) \
-	-j$(PARALLEL_JOBS) \
-	-q \
-	--ignore-site-config \
-	--layout=system \
-	--user-config=$(@D)/user-config.jam
-
-ifeq ($(BR2_sparc64),y)
-BOOST_OPTS += architecture=sparc instruction-set=ultrasparc
-endif
-
-ifeq ($(BR2_sparc),y)
-BOOST_OPTS += architecture=sparc instruction-set=v8
-endif
-
-# By default, Boost build and installs both the shared and static
-# variants. Override that if we want static only or shared only.
-ifeq ($(BR2_STATIC_LIBS),y)
-BOOST_OPTS += link=static runtime-link=static
-else ifeq ($(BR2_SHARED_LIBS),y)
-BOOST_OPTS += link=shared runtime-link=shared
-endif
-
-ifeq ($(BR2_PACKAGE_BOOST_LOCALE),y)
-ifeq ($(BR2_TOOLCHAIN_USES_UCLIBC),y)
-# posix backend needs monetary.h which isn't available on uClibc
-BOOST_OPTS += boost.locale.posix=off
-endif
-
-BOOST_DEPENDENCIES += $(if $(BR2_ENABLE_LOCALE),,libiconv)
-endif
 
 BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_ATOMIC),,atomic)
 BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_CHRONO),,chrono)
@@ -151,6 +79,78 @@ BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_TIMER),,timer)
 BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_TYPE_ERASURE),,type_erasure)
 BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_URL),,url)
 BOOST_WITHOUT_FLAGS += $(if $(BR2_PACKAGE_BOOST_WAVE),,wave)
+
+BOOST_TARGET_CXXFLAGS = $(TARGET_CXXFLAGS)
+
+BOOST_FLAGS = --with-toolset=gcc
+
+ifeq ($(BR2_PACKAGE_ICU),y)
+BOOST_FLAGS += --with-icu=$(STAGING_DIR)/usr
+BOOST_DEPENDENCIES += icu
+else
+BOOST_FLAGS += --without-icu
+endif
+
+ifeq ($(BR2_PACKAGE_BOOST_IOSTREAMS),y)
+BOOST_DEPENDENCIES += bzip2 zlib
+endif
+
+ifeq ($(BR2_PACKAGE_BOOST_PYTHON),y)
+BOOST_FLAGS += \
+	--with-python-root=$(HOST_DIR) \
+	--with-python=$(HOST_DIR)/bin/python$(PYTHON3_VERSION_MAJOR)
+BOOST_TARGET_CXXFLAGS += -I$(STAGING_DIR)/usr/include/python$(PYTHON3_VERSION_MAJOR)
+BOOST_DEPENDENCIES += python3
+endif
+
+HOST_BOOST_OPTS += --no-cmake-config toolset=gcc threading=multi \
+	variant=release link=shared runtime-link=shared -j$(PARALLEL_JOBS) -q \
+	--ignore-site-config --layout=system --prefix=$(HOST_DIR) \
+	--user-config=$(@D)/user-config.jam
+
+ifeq ($(BR2_MIPS_OABI32),y)
+BOOST_ABI = o32
+else ifeq ($(BR2_arm)$(BR2_armeb)$(BR2_aarch64)$(BR2_aarch64_be),y)
+BOOST_ABI = aapcs
+else
+BOOST_ABI = sysv
+endif
+
+BOOST_OPTS += --no-cmake-config \
+	toolset=gcc \
+	threading=multi \
+	abi=$(BOOST_ABI) \
+	variant=$(if $(BR2_ENABLE_RUNTIME_DEBUG),debug,release) \
+	-j$(PARALLEL_JOBS) \
+	-q \
+	--ignore-site-config \
+	--layout=system \
+	--user-config=$(@D)/user-config.jam
+
+ifeq ($(BR2_sparc64),y)
+BOOST_OPTS += architecture=sparc instruction-set=ultrasparc
+endif
+
+ifeq ($(BR2_sparc),y)
+BOOST_OPTS += architecture=sparc instruction-set=v8
+endif
+
+# By default, Boost build and installs both the shared and static
+# variants. Override that if we want static only or shared only.
+ifeq ($(BR2_STATIC_LIBS),y)
+BOOST_OPTS += link=static runtime-link=static
+else ifeq ($(BR2_SHARED_LIBS),y)
+BOOST_OPTS += link=shared runtime-link=shared
+endif
+
+ifeq ($(BR2_PACKAGE_BOOST_LOCALE),y)
+ifeq ($(BR2_TOOLCHAIN_USES_UCLIBC),y)
+# posix backend needs monetary.h which isn't available on uClibc
+BOOST_OPTS += boost.locale.posix=off
+endif
+
+BOOST_DEPENDENCIES += $(if $(BR2_ENABLE_LOCALE),,libiconv)
+endif
 
 BOOST_WITHOUT_FLAGS_COMMASEPARATED += $(subst $(space),$(comma),$(strip $(BOOST_WITHOUT_FLAGS)))
 BOOST_FLAGS += $(if $(BOOST_WITHOUT_FLAGS_COMMASEPARATED), --without-libraries=$(BOOST_WITHOUT_FLAGS_COMMASEPARATED))

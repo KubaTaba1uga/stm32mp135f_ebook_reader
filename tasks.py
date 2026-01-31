@@ -13,6 +13,54 @@ os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PA
 os.chdir(ROOT_PATH)
 
 
+
+@task
+def build_bsp(c, config="ebook_reader_dev_defconfig"):
+    """
+    @todo change config="ebook_reader_dev_defconfig" to config="ebook_reader_defconfig"
+          dev build should not be default.
+    """
+    repos = {
+        "buildroot": {
+            "tag": "st/2024.02.9",
+            "url": "https://github.com/bootlin/buildroot.git",
+        },
+        "linux": {
+            "tag": "v6.6-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/linux.git",
+        },
+        "uboot": {
+            "tag": "v2023.10-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/u-boot.git",
+        },
+        "optee": {
+            "tag": "4.0.0-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/optee_os.git",
+        },
+        "tf-a": {
+            "tag": "v2.10-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/arm-trusted-firmware.git",
+        },
+    }
+    _pr_info(f"Building BSP...")
+
+    if "dev" in config:
+        c.run("mkdir -p third_party")
+        with c.cd("third_party"):
+            for repo, rdata in repos.items():
+                c.run(f"git clone {rdata['url']} {repo} || true")
+                with c.cd(repo):
+                    c.run(f"git checkout {rdata['tag']}")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        c.run("make BR2_DL_DIR=../../build/third_party")
+
+    _pr_info(f"Building BSP completed")
+
+
 @task
 def add_repo(c, name, tag, url):
     _pr_info("Adding repo...")
@@ -43,7 +91,7 @@ def install(c):
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk curl \
               git libncurses5-dev python3 libpoppler-glib-dev"
-              f" {C_FORMATER} {C_LINTER} "
+            f" {C_FORMATER} {C_LINTER} "
         )
 
         c.run("virtualenv .venv")
@@ -113,7 +161,7 @@ def serve_docs(c, port=8000):
             [
                 f"sphinx-autobuild",
                 f"--port {port}",
-                f"--watch dummy_app/include",
+                f"--watch apps/display_driver/include",
                 f"docs build/docs/html",
             ]
         ),
@@ -150,19 +198,6 @@ def download(c, config="ebook_reader_dev_defconfig"):
         c.run("make BR2_DL_DIR=../../build/third_party source")
 
     _pr_info(f"Downloading dependencies completed")
-
-
-@task
-def build_bsp(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Building BSP...")
-
-    if config:
-        configure(c, config)
-
-    with c.cd("build/buildroot"):
-        c.run("make BR2_DL_DIR=../../build/third_party")
-
-    _pr_info(f"Building BSP completed")
 
 
 @task
@@ -517,8 +552,6 @@ def deploy_sdcard(c, dev="sda"):
     _pr_info(f"Deploy to sdcard completed")
 
 
-
-
 @task
 def lint(c, project=""):
     patterns = [
@@ -532,7 +565,7 @@ def lint(c, project=""):
     projects = ["display_driver", "ebook_reader"]
     if project:
         projects = [project]
-    
+
     for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
@@ -558,7 +591,7 @@ def format(c, project=""):
     projects = ["display_driver", "ebook_reader"]
     if project:
         projects = [project]
-    
+
     for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
@@ -570,7 +603,8 @@ def format(c, project=""):
                     _pr_info(f"{path} formated")
 
     _pr_info("Formating done")
-    
+
+
 ###############################################
 #                Private API                  #
 ###############################################

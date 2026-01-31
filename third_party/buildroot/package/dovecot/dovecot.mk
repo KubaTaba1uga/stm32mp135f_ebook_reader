@@ -22,10 +22,6 @@ DOVECOT_DEPENDENCIES = \
 DOVECOT_IGNORE_CVES += CVE-2016-4983
 
 # 0001-auth-Fix-handling-passdbs-with-identical-driver-args.patch
-
-# Note: this ignore CVE entry is reported as stale by pkg-stats, but
-# the NVD database is incorrect:
-# https://lore.kernel.org/buildroot/20250517181815.02ce0393@windsurf/
 DOVECOT_IGNORE_CVES += CVE-2022-30550
 
 DOVECOT_CONF_ENV = \
@@ -75,10 +71,6 @@ DOVECOT_CONF_OPTS += --with-sodium
 DOVECOT_DEPENDENCIES += libsodium
 else
 DOVECOT_CONF_OPTS += --without-sodium
-endif
-
-ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
-DOVECOT_DEPENDENCIES += libxcrypt
 endif
 
 ifeq ($(BR2_PACKAGE_LINUX_PAM),y)

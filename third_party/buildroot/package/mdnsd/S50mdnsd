@@ -1,5 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2317  # Don't warn about unreachable commands in this file
 
 DAEMON=mdnsd
 MDNSD=/usr/sbin/$DAEMON
@@ -37,9 +36,7 @@ reload() {
 
 case "$1" in
 	start|stop|restart|reload)
-		"$1"
-		status=$?
-		if [ "$status" -eq 0 ]; then
+		if "$1"; then
 			echo "OK"
 		else
 			echo "FAIL"
@@ -51,4 +48,4 @@ case "$1" in
 		;;
 esac
 
-exit "$status"
+exit $?

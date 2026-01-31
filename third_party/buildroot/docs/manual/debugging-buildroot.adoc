@@ -41,4 +41,3 @@ The script has access to the following variables:
   - +BINARIES_DIR+: the place where all binary files (aka images) are
     stored
   - +BASE_DIR+: the base output directory
-  - +PARALLEL_JOBS+: the number of jobs to use when running parallel processes.

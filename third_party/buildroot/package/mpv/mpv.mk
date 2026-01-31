@@ -14,188 +14,197 @@ MPV_LICENSE_FILES = LICENSE.GPL
 MPV_CPE_ID_VENDOR = mpv
 MPV_INSTALL_STAGING = YES
 
+MPV_NEEDS_EXTERNAL_WAF = YES
+
 # Some of these options need testing and/or tweaks
 MPV_CONF_OPTS = \
-	-Dcaca=disabled \
-	-Dcocoa=disabled \
-	-Dcoreaudio=disabled \
-	-Dcuda-hwaccel=disabled \
-	-Dlibmpv=true \
-	-Dopensles=disabled \
-	-Drubberband=disabled \
-	-Duchardet=disabled \
-	-Dvapoursynth=disabled
+	--prefix=/usr \
+	--disable-android \
+	--disable-caca \
+	--disable-cocoa \
+	--disable-coreaudio \
+	--disable-cuda-hwaccel \
+	--disable-opensles \
+	--disable-rubberband \
+	--disable-uchardet \
+	--disable-vapoursynth
 
 ifeq ($(BR2_REPRODUCIBLE),y)
-MPV_CONF_OPTS += -Dbuild-date=false
+MPV_CONF_OPTS += --disable-build-date
+endif
+
+ifeq ($(BR2_STATIC_LIBS),y)
+MPV_CONF_OPTS += --disable-libmpv-shared --enable-libmpv-static
+else
+MPV_CONF_OPTS += --enable-libmpv-shared --disable-libmpv-static
 endif
 
 ifeq ($(BR2_PACKAGE_ALSA_LIB),y)
-MPV_CONF_OPTS += -Dalsa=enabled
+MPV_CONF_OPTS += --enable-alsa
 MPV_DEPENDENCIES += alsa-lib
 else
-MPV_CONF_OPTS += -Dalsa=disabled
+MPV_CONF_OPTS += --disable-alsa
 endif
 
 ifeq ($(BR2_PACKAGE_MESA3D_GBM),y)
-MPV_CONF_OPTS += -Dgbm=enabled
+MPV_CONF_OPTS += --enable-gbm
 MPV_DEPENDENCIES += mesa3d
 ifeq ($(BR2_PACKAGE_LIBDRM),y)
-MPV_CONF_OPTS += -Degl-drm=enabled
+MPV_CONF_OPTS += --enable-egl-drm
 else
-MPV_CONF_OPTS += -Degl-drm=disabled
+MPV_CONF_OPTS += --disable-egl-drm
 endif
 else
-MPV_CONF_OPTS += -Dgbm=disabled -Degl-drm=disabled
+MPV_CONF_OPTS += --disable-gbm --disable-egl-drm
 endif
 
 # jack support
 # It also requires 64-bit sync intrinsics
 ifeq ($(BR2_TOOLCHAIN_HAS_SYNC_8)$(BR2_PACKAGE_JACK2),yy)
-MPV_CONF_OPTS += -Djack=enabled
+MPV_CONF_OPTS += --enable-jack
 MPV_DEPENDENCIES += jack2
 else
-MPV_CONF_OPTS += -Djack=disabled
+MPV_CONF_OPTS += --disable-jack
 endif
 
 # jpeg support
 ifeq ($(BR2_PACKAGE_JPEG),y)
-MPV_CONF_OPTS += -Djpeg=enabled
+MPV_CONF_OPTS += --enable-jpeg
 MPV_DEPENDENCIES += jpeg
 else
-MPV_CONF_OPTS += -Djpeg=disabled
+MPV_CONF_OPTS += --disable-jpeg
 endif
 
 # lcms2 support
 ifeq ($(BR2_PACKAGE_LCMS2),y)
-MPV_CONF_OPTS += -Dlcms2=enabled
+MPV_CONF_OPTS += --enable-lcms2
 MPV_DEPENDENCIES += lcms2
 else
-MPV_CONF_OPTS += -Dlcms2=disabled
+MPV_CONF_OPTS += --disable-lcms2
 endif
 
 # libarchive support
 ifeq ($(BR2_PACKAGE_LIBARCHIVE),y)
-MPV_CONF_OPTS += -Dlibarchive=enabled
+MPV_CONF_OPTS += --enable-libarchive
 MPV_DEPENDENCIES += libarchive
 else
-MPV_CONF_OPTS += -Dlibarchive=disabled
+MPV_CONF_OPTS += --disable-libarchive
 endif
 
 # bluray support
 ifeq ($(BR2_PACKAGE_LIBBLURAY),y)
-MPV_CONF_OPTS += -Dlibbluray=enabled
+MPV_CONF_OPTS += --enable-libbluray
 MPV_DEPENDENCIES += libbluray
 else
-MPV_CONF_OPTS += -Dlibbluray=disabled
+MPV_CONF_OPTS += --disable-libbluray
 endif
 
 # libcdio-paranoia
 ifeq ($(BR2_PACKAGE_LIBCDIO_PARANOIA),y)
-MPV_CONF_OPTS += -Dcdda=enabled
+MPV_CONF_OPTS += --enable-cdda
 MPV_DEPENDENCIES += libcdio-paranoia
 else
-MPV_CONF_OPTS += -Dcdda=disabled
+MPV_CONF_OPTS += --disable-cdda
 endif
 
 # libdvdnav
 ifeq ($(BR2_PACKAGE_LIBDVDNAV),y)
-MPV_CONF_OPTS += -Ddvdnav=enabled
+MPV_CONF_OPTS += --enable-dvdnav
 MPV_DEPENDENCIES += libdvdnav
 else
-MPV_CONF_OPTS += -Ddvdnav=disabled
+MPV_CONF_OPTS += --disable-dvdnav
 endif
 
 # libdrm
 ifeq ($(BR2_PACKAGE_LIBDRM),y)
-MPV_CONF_OPTS += -Ddrm=enabled
+MPV_CONF_OPTS += --enable-drm
 MPV_DEPENDENCIES += libdrm
 else
-MPV_CONF_OPTS += -Ddrm=disabled
+MPV_CONF_OPTS += --disable-drm
 endif
 
 # libvdpau
 ifeq ($(BR2_PACKAGE_LIBVDPAU),y)
-MPV_CONF_OPTS += -Dvdpau=enabled
+MPV_CONF_OPTS += --enable-vdpau
 MPV_DEPENDENCIES += libvdpau
 else
-MPV_CONF_OPTS += -Dvdpau=disabled
+MPV_CONF_OPTS += --disable-vdpau
 endif
 
 # LUA support, only for lua51/lua52/luajit
 # This enables the controller (OSD) together with libass
 ifeq ($(BR2_PACKAGE_LUA_5_1)$(BR2_PACKAGE_LUAJIT),y)
-MPV_CONF_OPTS += -Dlua=enabled
+MPV_CONF_OPTS += --enable-lua
 MPV_DEPENDENCIES += luainterpreter
 else
-MPV_CONF_OPTS += -Dlua=disabled
+MPV_CONF_OPTS += --disable-lua
 endif
 
 # OpenGL support
 ifeq ($(BR2_PACKAGE_HAS_LIBGL),y)
-MPV_CONF_OPTS += -Dgl=enabled
+MPV_CONF_OPTS += --enable-gl
 MPV_DEPENDENCIES += libgl
 else ifeq ($(BR2_PACKAGE_HAS_LIBGLES),y)
-MPV_CONF_OPTS += -Dgl=enabled
+MPV_CONF_OPTS += --enable-gl
 MPV_DEPENDENCIES += libgles
 else ifeq ($(BR2_PACKAGE_HAS_LIBEGL),y)
-MPV_CONF_OPTS += -Dgl=enabled
+MPV_CONF_OPTS += --enable-gl
 MPV_DEPENDENCIES += libegl
 else
-MPV_CONF_OPTS += -Dgl=disabled
+MPV_CONF_OPTS += --disable-gl
 endif
 
 # pulseaudio support
 ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
-MPV_CONF_OPTS += -Dpulse=enabled
+MPV_CONF_OPTS += --enable-pulse
 MPV_DEPENDENCIES += pulseaudio
 else
-MPV_CONF_OPTS += -Dpulse=disabled
+MPV_CONF_OPTS += --disable-pulse
 endif
 
 # SDL support
 # Sdl2 requires 64-bit sync intrinsics
 ifeq ($(BR2_TOOLCHAIN_HAS_SYNC_8)$(BR2_PACKAGE_SDL2),yy)
-MPV_CONF_OPTS += -Dsdl2=enabled
+MPV_CONF_OPTS += --enable-sdl2
 MPV_DEPENDENCIES += sdl2
 else
-MPV_CONF_OPTS += -Dsdl2=disabled
+MPV_CONF_OPTS += --disable-sdl2
 endif
 
 # Raspberry Pi support
 ifeq ($(BR2_PACKAGE_RPI_USERLAND),y)
-MPV_CONF_OPTS += -Drpi=enabled -Dgl=enabled
+MPV_CONF_OPTS += --enable-rpi --enable-gl
 MPV_DEPENDENCIES += rpi-userland
 else
-MPV_CONF_OPTS += -Drpi=disabled
+MPV_CONF_OPTS += --disable-rpi
 endif
 
 # va-api support
 ifeq ($(BR2_PACKAGE_LIBVA)$(BR2_PACKAGE_MPV_SUPPORTS_VAAPI),yy)
-MPV_CONF_OPTS += -Dvaapi=enabled
+MPV_CONF_OPTS += --enable-vaapi
 MPV_DEPENDENCIES += libva
 ifeq ($(BR2_PACKAGE_LIBDRM)$(BR2_PACKAGE_MESA3D_OPENGL_EGL),yy)
-MPV_CONF_OPTS += -Dvaapi-drm=enabled
+MPV_CONF_OPTS += --enable-vaapi-drm
 else
-MPV_CONF_OPTS += -Dvaapi-drm=disabled
+MPV_CONF_OPTS += --disable-vaapi-drm
 endif
 else
-MPV_CONF_OPTS += -Dvaapi=disabled -Dvaapi-drm=disabled
+MPV_CONF_OPTS += --disable-vaapi --disable-vaapi-drm
 endif
 
 # wayland support
 ifeq ($(BR2_PACKAGE_WAYLAND),y)
-MPV_CONF_OPTS += -Dwayland=enabled
+MPV_CONF_OPTS += --enable-wayland
 MPV_DEPENDENCIES += libxkbcommon wayland wayland-protocols
 else
-MPV_CONF_OPTS += -Dwayland=disabled
+MPV_CONF_OPTS += --disable-wayland
 endif
 
 # Base X11 support. Config.in ensures that if BR2_PACKAGE_XORG7 is
 # enabled, xlib_libX11, xlib_libXext, xlib_libXinerama,
 # xlib_libXrandr, xlib_libXScrnSaver.
 ifeq ($(BR2_PACKAGE_XORG7),y)
-MPV_CONF_OPTS += -Dx11=enabled
+MPV_CONF_OPTS += --enable-x11
 MPV_DEPENDENCIES += \
 	xlib_libX11 \
 	xlib_libXext \
@@ -205,19 +214,17 @@ MPV_DEPENDENCIES += \
 	xlib_libXScrnSaver
 # XVideo
 ifeq ($(BR2_PACKAGE_XLIB_LIBXV),y)
-MPV_CONF_OPTS += -Dxv=enabled
+MPV_CONF_OPTS += --enable-xv
 MPV_DEPENDENCIES += xlib_libXv
 else
-MPV_CONF_OPTS += -Dxv=disabled
+MPV_CONF_OPTS += --disable-xv
 endif
 else
-MPV_CONF_OPTS += -Dx11=disabled
+MPV_CONF_OPTS += --disable-x11
 endif
 
 ifeq ($(BR2_TOOLCHAIN_HAS_LIBATOMIC),y)
-MPV_CONF_OPTS += -Dstdatomic=enabled
-else
-MPV_CONF_OPTS += -Dstdatomic=disabled
+MPV_CONF_ENV += LDFLAGS="$(TARGET_LDFLAGS) -latomic"
 endif
 
-$(eval $(meson-package))
+$(eval $(waf-package))

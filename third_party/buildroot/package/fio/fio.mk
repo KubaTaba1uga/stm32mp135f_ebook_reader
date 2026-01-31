@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-FIO_VERSION = 3.38
-FIO_SITE = https://brick.kernel.dk/snaps
+FIO_VERSION = 3.34
+FIO_SITE = http://brick.kernel.dk/snaps
 FIO_LICENSE = GPL-2.0
 FIO_LICENSE_FILES = COPYING MORAL-LICENSE
 
@@ -16,10 +16,7 @@ FIO_DEPENDENCIES += libaio
 endif
 
 ifeq ($(BR2_PACKAGE_LIBNFS),y)
-FIO_OPTS += --enable-libnfs
-FIO_DEPENDENCIES += host-pkgconf libnfs
-else
-FIO_OPTS += --disable-libnfs
+FIO_DEPENDENCIES += libnfs
 endif
 
 ifeq ($(BR2_PACKAGE_LIBISCSI),y)

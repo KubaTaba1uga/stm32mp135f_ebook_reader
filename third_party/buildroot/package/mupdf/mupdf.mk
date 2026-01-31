@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-# python-pymupdf's version be compatible with mupdf's version
-MUPDF_VERSION = 1.23.9
+# python-pymupdf's version must match mupdf's version
+MUPDF_VERSION = 1.22.0
 MUPDF_SOURCE = mupdf-$(MUPDF_VERSION)-source.tar.lz
 MUPDF_SITE = https://mupdf.com/downloads/archive
 MUPDF_LICENSE = AGPL-3.0+
@@ -20,12 +20,6 @@ MUPDF_DEPENDENCIES = \
 	jbig2dec jpeg \
 	lcms2 openjpeg \
 	zlib
-
-# libfreeglut/0001-Plug-memory-leak-that-happens-upon-error.patch
-# Fix is in libfreeglut, but CVE applied to mupdf.
-MUPDF_IGNORE_CVES = \
-	CVE-2024-24258 \
-	CVE-2024-24259
 
 # mupdf doesn't use CFLAGS and LIBS but XCFLAGS and XLIBS instead.
 # with USE_SYSTEM_LIBS it will try to use system libraries instead of the bundled ones.

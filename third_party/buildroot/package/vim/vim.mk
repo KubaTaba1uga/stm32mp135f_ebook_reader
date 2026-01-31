@@ -63,8 +63,7 @@ define VIM_REMOVE_DOCS
 	$(RM) -rf $(TARGET_DIR)/usr/share/vim/vim*/doc/
 endef
 
-# Avoid oopses with vipw/vigr (from package shadow), lack of $EDITOR,
-# or other packages expecting plain 'vi' command to exist.
+# Avoid oopses with vipw/vigr, lack of $EDITOR and 'vi' command expectation
 ifeq ($(BR2_ROOTFS_MERGED_USR),y)
 define VIM_INSTALL_VI_SYMLINK
 	ln -sf vim $(TARGET_DIR)/usr/bin/vi

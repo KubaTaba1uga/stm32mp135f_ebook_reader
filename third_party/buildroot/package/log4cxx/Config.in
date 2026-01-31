@@ -4,7 +4,6 @@ config BR2_PACKAGE_LOG4CXX
 	depends on !BR2_STATIC_LIBS
 	depends on BR2_INSTALL_LIBSTDCPP
 	depends on BR2_TOOLCHAIN_HAS_THREADS
-	depends on BR2_USE_WCHAR # mbsinit
 	depends on BR2_USE_MMU # apr
 	depends on BR2_USE_WCHAR || BR2_TOOLCHAIN_GCC_AT_LEAST_7 # boost
 	depends on BR2_TOOLCHAIN_SUPPORTS_ALWAYS_LOCKFREE_ATOMIC_INTS || BR2_TOOLCHAIN_GCC_AT_LEAST_7 # boost-thread
@@ -22,9 +21,9 @@ config BR2_PACKAGE_LOG4CXX
 
 	  https://logging.apache.org/log4cxx/
 
-comment "log4cxx needs a toolchain w/ C++, threads, dynamic library, wchar"
+comment "log4cxx needs a toolchain w/ C++, threads, dynamic library"
 	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_TOOLCHAIN_HAS_THREADS || \
-		BR2_STATIC_LIBS || !BR2_USE_WCHAR
+		BR2_STATIC_LIBS
 	depends on BR2_USE_MMU
 
 comment "log4cxx needs a toolchain w/ wchar or gcc >= 7"

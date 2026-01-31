@@ -1,6 +1,7 @@
 Add support of linenoise (replace readline)
 
-Upstream: http://lua-users.org/lists/lua-l/2010-03/msg00879.html
+see discussion, http://lua-users.org/lists/lua-l/2010-03/msg00879.html
+
 Signed-off-by: Francois Perrad <francois.perrad@gadz.org>
 
 Index: b/src/lua.c

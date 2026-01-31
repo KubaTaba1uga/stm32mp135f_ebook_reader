@@ -11,4 +11,4 @@ config BR2_PACKAGE_PYTHON_ASGIREF
 	    - Server base classes, asgiref.server
 	    - A WSGI-to-ASGI adapter, in asgiref.wsgi
 
-	  https://github.com/django/asgiref/
+	  http://github.com/django/asgiref/

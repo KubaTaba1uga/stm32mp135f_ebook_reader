@@ -83,7 +83,7 @@ HOST_GCC_COMMON_CONF_OPTS = \
 	--with-mpc=$(HOST_DIR) \
 	--with-mpfr=$(HOST_DIR) \
 	--with-pkgversion="Buildroot $(BR2_VERSION_FULL)" \
-	--with-bugurl="https://gitlab.com/buildroot.org/buildroot/-/issues" \
+	--with-bugurl="http://bugs.buildroot.net/" \
 	--without-zstd
 
 ifeq ($(BR2_REPRODUCIBLE),y)

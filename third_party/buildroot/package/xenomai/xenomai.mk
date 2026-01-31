@@ -14,9 +14,9 @@ XENOMAI_SITE = $(call qstrip,$(BR2_PACKAGE_XENOMAI_REPOSITORY))
 XENOMAI_SITE_METHOD = git
 else
 XENOMAI_SOURCE = xenomai-$(XENOMAI_VERSION).tar.bz2
-XENOMAI_SITE = https://source.denx.de/Xenomai/xenomai/-/archive/v$(XENOMAI_VERSION)
+XENOMAI_SITE = https://ftp.denx.de/pub/xenomai/xenomai/stable
 endif
-# The source archive does not have the autoconf/automake material generated.
+# We're patching configure.ac
 XENOMAI_AUTORECONF = YES
 
 # Exclude all from the hash check, but the latest version.

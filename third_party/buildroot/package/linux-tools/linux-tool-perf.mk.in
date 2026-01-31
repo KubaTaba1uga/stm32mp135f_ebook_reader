@@ -180,7 +180,8 @@ define PERF_INSTALL_REMOVE_SCRIPTS
 endef
 
 LINUX_TOOLS_BIN_ARCH_EXCLUDE += \
-	/usr/libexec/perf-core/tests/
+	/usr/libexec/perf-core/tests/pe-file.exe \
+	/usr/libexec/perf-core/tests/pe-file.exe.debug
 endif
 
 define PERF_INSTALL_TARGET_CMDS

@@ -61,7 +61,7 @@ mk_tar_gz() {
     # Create POSIX tarballs, since that's the format the most reproducible
     ${TAR} cf - --transform="s#^\./#${base_dir}/#S" \
              --numeric-owner --owner=0 --group=0 --mtime="${date}" \
-             --format=posix --pax-option="${pax_options}" --mode='go=u,go-w' \
+             --format=posix --pax-option="${pax_options}" \
              -T "${tmp}.sorted" >"${tmp}.tar"
 
     # Compress the archive
@@ -93,10 +93,6 @@ post_process_repack() {
 
     mk_tar_gz "${in_dir}/${base_dir}" "${base_dir}" "${date}" "${out}"
 }
-
-trace() { local msg="${1}"; shift; printf "%s: ${msg}" "${my_name}" "${@}"; }
-warn()  { trace "${@}" >&2; }
-error() { warn "${@}"; exit 1; }
 
 # Keep this line and the following as last lines in this file.
 # vim: ft=bash

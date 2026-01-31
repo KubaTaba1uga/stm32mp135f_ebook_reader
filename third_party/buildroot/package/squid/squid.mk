@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-SQUID_VERSION = 6.13
+SQUID_VERSION = 6.10
 SQUID_SOURCE = squid-$(SQUID_VERSION).tar.xz
-SQUID_SITE = https://github.com/squid-cache/squid/releases/download/SQUID_$(subst .,_,$(SQUID_VERSION))
+SQUID_SITE = http://www.squid-cache.org/Versions/v6
 SQUID_LICENSE = GPL-2.0+
 SQUID_LICENSE_FILES = COPYING
 SQUID_CPE_ID_VENDOR = squid-cache
@@ -50,10 +50,6 @@ SQUID_CONF_OPTS += --with-mit-krb5
 SQUID_DEPENDENCIES += libkrb5
 else
 SQUID_CONF_OPTS += --without-mit-krb5
-endif
-
-ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
-SQUID_DEPENDENCIES += libxcrypt
 endif
 
 ifeq ($(BR2_PACKAGE_OPENSSL),y)

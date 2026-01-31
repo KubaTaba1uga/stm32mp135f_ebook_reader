@@ -2,7 +2,7 @@
 PROJECT_NAME           = "STM32MP135F eBook Reader"
 
 # Where to find your source code
-INPUT                  = dummy_app/include display_driver/include
+INPUT                  = apps/display_driver/include
 
 # Recurse into subdirectories
 RECURSIVE              = YES

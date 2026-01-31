@@ -16,3 +16,4 @@ ebook_reader/subprojects/cmake_poppler
 ebook_reader/subprojects/poppler/include/*
 old*
 docs/.$ebook_reader_fsm.drawio.bkp
+third_party

@@ -4,12 +4,12 @@
 #
 ################################################################################
 
-GCNANO_BINARIES_LIB_VERSION = 6.4.21
+GCNANO_BINARIES_LIB_VERSION = 6.4.19
 GCNANO_BINARIES_DRIVER_VERSION = $(GCNANO_BINARIES_LIB_VERSION)
 
 GCNANO_BINARIES_SITE = $(call github,STMicroelectronics,gcnano-binaries,$(GCNANO_BINARIES_VERSION))
-GCNANO_BINARIES_VERSION = 7c181cacf89f918039e64934fdc33fe817a052cd
-GCNANO_BINARIES_USERLAND_DATE_VERSION = 20250226
+GCNANO_BINARIES_VERSION = 359d5007ef19575f6b8ca3071cf90d3848778ae7
+GCNANO_BINARIES_USERLAND_DATE_VERSION = 20240911
 ifeq ($(BR2_arm),y)
 GCNANO_BINARIES_USERLAND_VERSION = stm32mp1-$(GCNANO_BINARIES_LIB_VERSION)-$(GCNANO_BINARIES_USERLAND_DATE_VERSION)
 GCNANO_BINARIES_ARCH_TYPE = arm
@@ -69,7 +69,7 @@ define GCNANO_BINARIES_INSTALL
 	cp -a $(@D)/$(GCNANO_BINARIES_USERLAND_SUBDIR)/release/include/* $(1)/usr/include/
 	cd $(@D)/$(GCNANO_BINARIES_USERLAND_SUBDIR)/pkgconfig/ ; \
 	for file in *.pc ; do \
-		sed -e "s|#PREFIX#|/usr|" -e "s|#VERSION#|24.0.7|" $$file > $$file.temp ; \
+		sed -e "s|#PREFIX#|/usr|" -e "s|#VERSION#|24.0.5|" $$file > $$file.temp ; \
 		$(INSTALL) -D -m 0644 $$file.temp $(1)/usr/lib/pkgconfig/$$file ; \
 	done
 endef

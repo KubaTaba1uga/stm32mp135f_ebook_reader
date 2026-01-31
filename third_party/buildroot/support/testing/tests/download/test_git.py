@@ -7,7 +7,10 @@ import infra
 
 
 class GitTestBase(infra.basetest.BRConfigTest):
-    config = ""
+    config = \
+        """
+        BR2_BACKUP_SITE=""
+        """
     gitremotedir = infra.filepath("tests/download/git-remote")
     gitremote = None
 
@@ -53,10 +56,6 @@ class TestGitHash(GitTestBase):
             self.check_hash("bad")
         self.check_hash("good")
         self.check_hash("nohash")
-        self.check_hash("export-subst")
-        with open(os.path.join(self.builddir, "dl", "export-subst", "git", "file2"), "r") as f:
-            blob = f.read()
-        self.assertEqual(blob, "0fdb95cf4f3c5ed4003287649cabb33c5f843e26\n")
 
 
 class TestGitRefs(GitTestBase):

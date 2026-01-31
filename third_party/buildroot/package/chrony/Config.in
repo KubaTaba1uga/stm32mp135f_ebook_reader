@@ -6,7 +6,7 @@ config BR2_PACKAGE_CHRONY
 	  Chrony is a pair of programs which are used to maintain the
 	  accuracy of the system clock.
 
-	  https://chrony-project.org/
+	  http://chrony.tuxfamily.org/
 
 if BR2_PACKAGE_CHRONY
 

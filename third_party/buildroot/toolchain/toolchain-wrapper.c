@@ -36,9 +36,25 @@ static char sysroot[PATH_MAX];
 static char _time_[sizeof("-D__TIME__=\"HH:MM:SS\"")];
 static char _date_[sizeof("-D__DATE__=\"MMM DD YYYY\"")];
 
-/* Maximum amount of arguments to reserve space for by default.
-   Must be > predef_args */
-#define DEFAULT_MAX_ARGS	1024
+/**
+ * GCC errors out with certain combinations of arguments (examples are
+ * -mfloat-abi={hard|soft} and -m{little|big}-endian), so we have to ensure
+ * that we only pass the predefined one to the real compiler if the inverse
+ * option isn't in the argument list.
+ * This specifies the worst case number of extra arguments we might pass
+ * Currently, we may have:
+ * 	-mfloat-abi=
+ * 	-march=
+ * 	-mcpu=
+ * 	-D__TIME__=
+ * 	-D__DATE__=
+ * 	-Wno-builtin-macro-redefined
+ * 	-Wl,-z,now
+ * 	-Wl,-z,relro
+ * 	-fPIE
+ * 	-pie
+ */
+#define EXCLUSIVE_ARGS	10
 
 static char *predef_args[] = {
 #ifdef BR_CCACHE
@@ -229,8 +245,7 @@ int main(int argc, char **argv)
 	char *progpath = argv[0];
 	char *basename;
 	char *env_debug;
-	int ret, i, count = 0, debug = 0, found_shared = 0, found_nonoption = 0;
-	size_t n_args;
+	int ret, i, count = 0, debug = 0, found_shared = 0;
 
 	/* Debug the wrapper to see arguments it was called with.
 	 * If environment variable BR2_DEBUG_WRAPPER is:
@@ -296,33 +311,13 @@ int main(int argc, char **argv)
 		return 3;
 	}
 
-	/* any non-option (E.G. source / object files) arguments passed? */
+	/* skip all processing --help is specified */
 	for (i = 1; i < argc; i++) {
-		if (argv[i][0] != '-') {
-			found_nonoption = 1;
-			break;
-		}
-	}
-
-	/* Check for unsafe library and header paths */
-	for (i = 1; i < argc; i++) {
-		const struct str_len_s *opt;
-		for (opt=unsafe_opts; opt->str; opt++ ) {
-			/* Skip any non-unsafe option. */
-			if (strncmp(argv[i], opt->str, opt->len))
-				continue;
-
-			/* Handle both cases:
-			 *  - path is a separate argument,
-			 *  - path is concatenated with option.
-			 */
-			if (argv[i][opt->len] == '\0') {
-				i++;
-				if (i == argc)
-					break;
-				check_unsafe_path(argv[i-1], argv[i], 0);
-			} else
-				check_unsafe_path(argv[i], argv[i] + opt->len, 1);
+		if (!strcmp(argv[i], "--help")) {
+			argv[0] = path;
+			if (execv(path, argv))
+				perror(path);
+			return 1;
 		}
 	}
 
@@ -339,18 +334,16 @@ int main(int argc, char **argv)
 		return 3;
 	}
 
-	cur = args = malloc(DEFAULT_MAX_ARGS * sizeof(char *));
+	cur = args = malloc(sizeof(predef_args) +
+			    (sizeof(char *) * (argc + EXCLUSIVE_ARGS)));
 	if (args == NULL) {
 		perror(__FILE__ ": malloc");
 		return 2;
 	}
 
 	/* start with predefined args */
-	for (i = 0; i < sizeof(predef_args) / sizeof(predef_args[0]); i++) {
-		/* skip linker flags when we know we are not linking */
-		if (found_nonoption || strncmp(predef_args[i], "-Wl,", strlen("-Wl,")))
-			*cur++ = predef_args[i];
-	}
+	memcpy(cur, predef_args, sizeof(predef_args));
+	cur += sizeof(predef_args) / sizeof(predef_args[0]);
 
 #ifdef BR_FLOAT_ABI
 	/* add float abi if not overridden in args */
@@ -470,7 +463,7 @@ int main(int argc, char **argv)
 		    !strcmp(argv[i], "-D__UBOOT__"))
 			break;
 	}
-	if (i == argc && found_nonoption) {
+	if (i == argc) {
 		/* https://wiki.gentoo.org/wiki/Hardened/Toolchain#Mark_Read-Only_Appropriate_Sections */
 #ifdef BR2_RELRO_PARTIAL
 		*cur++ = "-Wl,-z,relro";
@@ -481,17 +474,34 @@ int main(int argc, char **argv)
 #endif
 	}
 
-	n_args = (cur - args);
-	if ((n_args + argc) > DEFAULT_MAX_ARGS) {
-		args = realloc(args, (n_args + argc) * sizeof(char *));
-		if (args == NULL) {
-			perror(__FILE__ ": realloc");
-			return 2;
+	/* Check for unsafe library and header paths */
+	for (i = 1; i < argc; i++) {
+		const struct str_len_s *opt;
+		for (opt=unsafe_opts; opt->str; opt++ ) {
+			/* Skip any non-unsafe option. */
+			if (strncmp(argv[i], opt->str, opt->len))
+				continue;
+
+			/* Handle both cases:
+			 *  - path is a separate argument,
+			 *  - path is concatenated with option.
+			 */
+			if (argv[i][opt->len] == '\0') {
+				i++;
+				if (i == argc)
+					break;
+				check_unsafe_path(argv[i-1], argv[i], 0);
+			} else
+				check_unsafe_path(argv[i], argv[i] + opt->len, 1);
 		}
 	}
 
-	/* append forward args and terminating NULL */
-	memcpy(&args[n_args], &argv[1], sizeof(char *) * argc);
+	/* append forward args */
+	memcpy(cur, &argv[1], sizeof(char *) * (argc - 1));
+	cur += argc - 1;
+
+	/* finish with NULL termination */
+	*cur = NULL;
 
 	exec_args = args;
 #ifdef BR_CCACHE
@@ -509,7 +519,7 @@ int main(int argc, char **argv)
 		}
 #endif
 #ifdef BR_CCACHE_BASEDIR
-		/* Allow basedir to be overridden through the environment */
+		/* Allow compilercheck to be overridden through the environment */
 		if (setenv("CCACHE_BASEDIR", BR_CCACHE_BASEDIR, 0)) {
 			perror(__FILE__ ": Failed to set CCACHE_BASEDIR");
 			return 3;

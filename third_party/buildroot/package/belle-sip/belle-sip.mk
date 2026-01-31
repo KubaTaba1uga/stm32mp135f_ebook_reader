@@ -35,6 +35,10 @@ endif
 
 BELLE_SIP_CFLAGS = $(TARGET_CFLAGS)
 
+ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_99410),y)
+BELLE_SIP_CFLAGS += -O0
+endif
+
 BELLE_SIP_CONF_OPTS += -DCMAKE_C_FLAGS="$(BELLE_SIP_CFLAGS)"
 
 $(eval $(cmake-package))

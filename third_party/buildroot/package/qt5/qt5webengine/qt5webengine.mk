@@ -61,6 +61,7 @@ QT5WEBENGINE_DEPENDENCIES += \
 	host-freetype \
 	host-gperf \
 	host-harfbuzz \
+	host-icu \
 	host-ninja \
 	host-nodejs \
 	host-pkgconf \
@@ -70,31 +71,35 @@ QT5WEBENGINE_DEPENDENCIES += \
 	host-python3 \
 	host-webp \
 	host-zlib \
+	ffmpeg \
 	freetype \
+	jpeg \
 	lcms2 \
 	libevent \
 	libnss \
 	libvpx \
 	libxml2 \
 	libxslt \
-	opus \
+	re2 \
 	snappy \
 	webp
 
 QT5WEBENGINE_CONF_OPTS += \
 	-webengine-embedded-build \
+	-webengine-ffmpeg \
+	-webengine-icu \
 	-webengine-opus \
 	-webengine-webchannel \
 	-webengine-webp \
 	-feature-build-qtwebengine-core \
 	-feature-webengine-core-support \
-	-feature-webengine-noexecstack \
 	-feature-webengine-system-dbus \
 	-feature-webengine-system-fontconfig \
 	-feature-webengine-system-freetype \
 	-feature-webengine-system-glib \
 	-feature-webengine-system-glibc \
 	-feature-webengine-system-harfbuzz \
+	-feature-webengine-system-jpeg \
 	-feature-webengine-system-khr \
 	-feature-webengine-system-lcms2 \
 	-feature-webengine-system-libevent \
@@ -103,6 +108,7 @@ QT5WEBENGINE_CONF_OPTS += \
 	-feature-webengine-system-ninja \
 	-feature-webengine-system-nss \
 	-feature-webengine-system-png \
+	-feature-webengine-system-re2 \
 	-feature-webengine-system-snappy \
 	-feature-webengine-system-zlib
 
@@ -117,7 +123,7 @@ QT5WEBENGINE_CONF_OPTS += \
 	-no-feature-webengine-developer-build \
 	-no-feature-webengine-full-debug-info \
 	-no-feature-webengine-native-spellchecker \
-	-no-feature-webengine-system-jpeg \
+	-no-feature-webengine-noexecstack \
 	-no-feature-webengine-system-minizip \
 	-no-feature-webengine-system-gn
 

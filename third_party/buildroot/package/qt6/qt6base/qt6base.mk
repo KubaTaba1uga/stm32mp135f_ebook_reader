@@ -9,6 +9,23 @@ QT6BASE_SITE = $(QT6_SITE)
 QT6BASE_SOURCE = qtbase-$(QT6_SOURCE_TARBALL_PREFIX)-$(QT6BASE_VERSION).tar.xz
 QT6BASE_CPE_ID_VENDOR = qt
 QT6BASE_CPE_ID_PRODUCT = qt
+# 0001-QDnsLookup-Unix-make-sure-we-don-t-overflow-the-buff.patch
+QT6BASE_IGNORE_CVES += CVE-2023-33285
+# 0002-Hsts-match-header-names-case-insensitively.patch
+QT6BASE_IGNORE_CVES += CVE-2023-32762
+# 0005-Fix-specific-overflow-in-qtextlayout.patch
+QT6BASE_IGNORE_CVES += CVE-2023-32763
+# 0009-QXmlStreamReader-Raise-error-on-unexpected-tokens.patch
+QT6BASE_IGNORE_CVES += CVE-2023-38197
+# 0011-HPack-fix-incorrect-integer-overflow-check.patch
+QT6BASE_IGNORE_CVES += CVE-2023-38197
+# 0013-QXmlStreamReader-make-fastScanName-indicate-parsing-.patch
+QT6BASE_IGNORE_CVES += CVE-2023-37369
+# 0014-Schannel-Reject-certificate-not-signed-by-a-configur.patch
+# 0015-Ssl-Copy-the-on-demand-cert-loading-bool-from-defaul.patch
+QT6BASE_IGNORE_CVES += CVE-2023-34410
+# 0016-HTTP2-Delay-any-communication-until-encrypted-can-be.patch
+QT6BASE_IGNORE_CVES += CVE-2024-39936
 
 QT6BASE_CMAKE_BACKEND = ninja
 
@@ -42,7 +59,6 @@ QT6BASE_INSTALL_STAGING = YES
 
 QT6BASE_CONF_OPTS = \
 	-DQT_HOST_PATH=$(HOST_DIR) \
-	-DINSTALL_ARCHDATADIR=lib/qt6 \
 	-DFEATURE_xml=OFF \
 	-DFEATURE_sql=OFF \
 	-DFEATURE_testlib=OFF \
@@ -83,72 +99,20 @@ HOST_QT6BASE_DEPENDENCIES = \
 	host-libb2 \
 	host-pcre2 \
 	host-zlib
-
 HOST_QT6BASE_CONF_OPTS = \
+	-DFEATURE_gui=OFF \
+	-DFEATURE_concurrent=OFF \
 	-DFEATURE_xml=ON \
+	-DFEATURE_sql=OFF \
+	-DFEATURE_testlib=OFF \
+	-DFEATURE_network=OFF \
 	-DFEATURE_dbus=OFF \
 	-DFEATURE_icu=OFF \
 	-DFEATURE_glib=OFF \
-	-DFEATURE_sql=OFF \
 	-DFEATURE_system_doubleconversion=ON \
 	-DFEATURE_system_libb2=ON \
 	-DFEATURE_system_pcre2=ON \
 	-DFEATURE_system_zlib=ON
-
-ifeq ($(BR2_PACKAGE_HOST_QT6BASE_CONCURRENT),y)
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_concurrent=ON
-else
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_concurrent=OFF
-endif
-
-# We need host-qt6base with Gui support when building host-qt6shadertools,
-# otherwise the build is skipped and no qsb host tool is generated.
-# qt6shadertools fail to build if qsb is not available.
-ifeq ($(BR2_PACKAGE_HOST_QT6BASE_GUI),y)
-HOST_QT6BASE_CONF_OPTS += \
-	-DFEATURE_gui=ON \
-	-DFEATURE_freetype=OFF \
-	-DFEATURE_vulkan=OFF \
-	-DFEATURE_linuxfb=ON \
-	-DFEATURE_xcb=OFF \
-	-DFEATURE_opengl=OFF -DINPUT_opengl=no \
-	-DFEATURE_harfbuzz=OFF \
-	-DFEATURE_png=OFF \
-	-DFEATURE_gif=OFF \
-	-DFEATURE_jpeg=OFF \
-	-DFEATURE_printsupport=OFF \
-	-DFEATURE_kms=OFF \
-	-DFEATURE_fontconfig=OFF \
-	-DFEATURE_libinput=OFF \
-	-DFEATURE_tslib=OFF \
-	-DFEATURE_eglfs=OFF
-
-ifeq ($(BR2_PACKAGE_HOST_QT6BASE_WIDGETS),y)
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_widgets=ON
-else
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_widgets=OFF
-endif
-
-else
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_gui=OFF
-endif
-
-# The Network module is explicitly required by qt6tools.
-ifeq ($(BR2_PACKAGE_HOST_QT6BASE_NETWORK),y)
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_network=ON
-else
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_network=OFF
-endif
-
-# We need host-qt6base with Testlib support when building host-qt6declarative
-# with QuickTest support. QuickTest support is further required for building the
-# qmltestrunner host tool. qt6declarative will fail to build if qmltestrunner is
-# not available.
-ifeq ($(BR2_PACKAGE_HOST_QT6BASE_TEST),y)
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_testlib=ON
-else
-HOST_QT6BASE_CONF_OPTS += -DFEATURE_testlib=OFF
-endif
 
 # Conditional blocks below are ordered by alphabetic ordering of the
 # BR2_PACKAGE_* option.
@@ -203,7 +167,6 @@ QT6BASE_CONF_OPTS += \
 QT6BASE_DEPENDENCIES += \
 	libxcb \
 	libxkbcommon \
-	xcb-util-cursor \
 	xcb-util-wm \
 	xcb-util-image \
 	xcb-util-keysyms \

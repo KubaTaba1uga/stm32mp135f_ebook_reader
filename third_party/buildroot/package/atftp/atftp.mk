@@ -36,9 +36,4 @@ else
 ATFTP_CONF_OPTS += --disable-libpcre
 endif
 
-define ATFTP_INSTALL_INIT_SYSV
-	$(INSTALL) -m 755 -D package/atftp/S80atftpd \
-		$(TARGET_DIR)/etc/init.d/S80atftpd
-endef
-
 $(eval $(autotools-package))

@@ -22,7 +22,8 @@ Run the emulation with:
         -blockdev node-name=pflash0,driver=file,read-only=on,filename=output/images/RISCV_VIRT_CODE.fd \
         -blockdev node-name=pflash1,driver=file,filename=output/images/RISCV_VIRT_VARS.fd \
         \
-        -drive file=output/images/disk.img,format=raw \
+        -drive file=output/images/disk.img,format=raw,id=hd0 \
+        -device virtio-blk-device,drive=hd0 \
         \
         -netdev user,id=net0 \
         -device virtio-net-device,netdev=net0 # qemu_riscv64_virt_efi_defconfig

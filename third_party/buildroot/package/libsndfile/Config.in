@@ -5,4 +5,4 @@ config BR2_PACKAGE_LIBSNDFILE
 	  containing sampled sound (such as MS Windows WAV and the
 	  Apple/SGI AIFF format) through one standard library interface.
 
-	  https://libsndfile.github.io/libsndfile/
+	  http://www.mega-nerd.com/libsndfile/

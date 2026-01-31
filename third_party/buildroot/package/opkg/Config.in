@@ -17,7 +17,7 @@ config BR2_PACKAGE_OPKG
 	  conforms to a subset of debian's policy manual regarding
 	  control files.
 
-	  https://git.yoctoproject.org/opkg/
+	  https://code.google.com/archive/p/opkg/
 
 if BR2_PACKAGE_OPKG
 

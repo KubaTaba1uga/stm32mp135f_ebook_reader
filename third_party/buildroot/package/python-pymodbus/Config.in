@@ -1,6 +1,8 @@
 config BR2_PACKAGE_PYTHON_PYMODBUS
 	bool "python-pymodbus"
+	select BR2_PACKAGE_PYTHON_SIX # runtime
+	select BR2_PACKAGE_PYTHON_SERIAL # runtime
 	help
-	  A fully featured modbus protocol stack in python.
+	  Pymodbus is a full Modbus protocol implementation.
 
-	  https://github.com/pymodbus-dev/pymodbus/
+	  https://github.com/riptideio/pymodbus

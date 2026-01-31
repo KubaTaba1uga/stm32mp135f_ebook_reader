@@ -38,7 +38,6 @@ between distributions).
 ** +file+ (must be in +/usr/bin/file+)
 ** +bc+
 ** +findutils+
-** +awk+
 
 * Source fetching tools:
 ** +wget+
@@ -76,7 +75,6 @@ packages using any of these methods, you will need to install the
 corresponding tool on the host system:
 +
 ** +bazaar+
-** +curl+
 ** +cvs+
 ** +git+
 ** +mercurial+

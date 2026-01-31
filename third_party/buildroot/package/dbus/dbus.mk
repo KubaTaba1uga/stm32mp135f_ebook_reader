@@ -33,9 +33,7 @@ DBUS_CONF_OPTS = \
 	--disable-xml-docs \
 	--disable-doxygen-docs \
 	--with-system-socket=/run/dbus/system_bus_socket \
-	--with-system-pid-file=/run/messagebus.pid \
-	--with-session-socket-dir=/tmp \
-	--runstatedir=/run
+	--with-system-pid-file=/run/messagebus.pid
 
 ifeq ($(BR2_STATIC_LIBS),y)
 DBUS_CONF_OPTS += LIBS='-pthread'
