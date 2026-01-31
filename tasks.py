@@ -6,12 +6,15 @@ from invoke import task
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
+APPS_PATH = os.path.join(ROOT_PATH, "apps")
+EBOOK_READER_PATH = os.path.join(ROOT_PATH, "ebook_reader")
+DISPLAY_DRIVER_PATH = os.path.join(ROOT_PATH, "display_driver")
+
 C_FORMATER = "clang-format-19"
 C_LINTER = "clang-tidy-19"
 
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
-
 
 
 @task
@@ -318,7 +321,7 @@ def fbuild_linux_dt(c):
 
 @task
 def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
-    ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
+    ereader_path = EBOOK_READER_PATH
     if not os.path.exists(ereader_path):
         return
 
@@ -345,8 +348,8 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
 
         c.run(
             f"rm -rf subprojects/display_driver && "
-            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
-            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
+            f"ln -s {DISPLAY_DRIVER_PATH} "
+            f"{os.path.join(ereader_path, 'subprojects', 'display_driver')}"
         )
 
         c.run(
@@ -371,7 +374,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
 
 @task
 def fbuild_ebook_reader_test(c):
-    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    tests_path = EBOOK_READER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -395,7 +398,7 @@ def fbuild_ebook_reader_test(c):
 
 @task
 def fbuild_display_driver(c):
-    driver_path = os.path.join(ROOT_PATH, "display_driver")
+    driver_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(driver_path):
         return
 
@@ -405,9 +408,10 @@ def fbuild_display_driver(c):
         "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
     )
 
+    build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
+    c.run(f"mkdir -p {build_dir}")
+    
     with c.cd(driver_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
-        c.run(f"mkdir -p {build_dir}")
         root = os.path.abspath(ROOT_PATH)
         with open(cross_tpl_path, "r", encoding="utf-8") as f:
             cross_txt = f.read()
@@ -431,7 +435,7 @@ def fbuild_display_driver(c):
 
 @task
 def test_ebook_reader(c, asan_options=None):
-    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    tests_path = EBOOK_READER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -449,7 +453,7 @@ def test_ebook_reader(c, asan_options=None):
 
 @task
 def fbuild_display_driver_test(c):
-    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    tests_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -471,7 +475,7 @@ def fbuild_display_driver_test(c):
 
 @task
 def test_display_driver(c, asan_options=None):
-    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    tests_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(tests_path):
         return
 
