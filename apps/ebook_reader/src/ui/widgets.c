@@ -2,7 +2,10 @@
 #include <stdio.h>
 
 #include "ui/widgets.h"
+#include "core/lv_obj_style_gen.h"
+#include "font/lv_font.h"
 #include "misc/lv_color.h"
+#include "misc/lv_style.h"
 #include "utils/mem.h"
 #include "utils/time.h"
 
@@ -14,13 +17,13 @@ struct UiMenuBookWidget {
   int id;
 };
 
-const int bar_y = 64;
+const int bar_y = 48;
 const int menu_x_off = 48;
 const int menu_y_off = 64;
 const int menu_book_x = 296;
 const int menu_book_text_y = 80;
 const int menu_book_y = 392 + menu_book_text_y;
-const int bar_clock_x = 320;
+const int bar_clock_x = 336;
 
 lv_obj_t *ui_wx_obj_create(void *parent) {
 
@@ -60,6 +63,7 @@ ui_wx_bar_t ui_wx_bar_create(void) {
 
   lv_obj_t *clock_text = lv_label_create(clock);
   lv_obj_set_style_border_width(clock_text, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(clock_text, &lv_font_montserrat_30, 0);  
   static char buf[100];
   char *res = time_now_dump(buf, sizeof(buf));
   assert(res != NULL);
@@ -119,7 +123,7 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                                          const uint8_t *thumbnail, int id,
                                          ui_t gui) {
   lv_obj_t *book_card = ui_wx_obj_create(menu);
-  lv_obj_set_size(book_card, menu_book_x, menu_book_y);
+  lv_obj_set_size(book_card, menu_book_x + 16, menu_book_y+16);
 
   // Configure data required to display book
   struct UiMenuBookWidget *book_data =
@@ -139,7 +143,7 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
     dsc->data_size = dsc->header.w * dsc->header.h * 4;
     dsc->data = thumbnail;
     lv_image_set_src(book_img, dsc);
-    lv_obj_set_style_border_width(book_img, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(book_img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_clear_flag(book_img, LV_OBJ_FLAG_CLICK_FOCUSABLE);
   }
 
@@ -148,14 +152,15 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
   lv_obj_set_pos(book_label, 0, menu_book_y - (menu_book_text_y * 0.75));
   lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
                               LV_PART_MAIN);
+  lv_obj_set_style_text_font(book_label, &lv_font_montserrat_24, 0);
   lv_label_set_text(book_label, book_title);
 
   // Configure not focused border
-  lv_obj_set_style_border_width(book_card, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(book_card, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   // Configure focused border
-  lv_obj_set_style_outline_width(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
-  lv_obj_set_style_outline_pad(book_card, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_width(book_card, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_pad(book_card, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
   lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
                                  LV_PART_MAIN | LV_STATE_FOCUSED);
 

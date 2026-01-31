@@ -360,6 +360,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
                 f" -Ddisplay={display} "
                 if not local
                 else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
+                # else " -Ddisplay=x11 "                
             )
         )
 
@@ -384,6 +385,7 @@ def fbuild_ebook_reader_test(c):
         build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
         c.run(
             f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+            
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"

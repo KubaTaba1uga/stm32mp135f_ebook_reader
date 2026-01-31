@@ -20,7 +20,6 @@ struct Pdf {
 };
 
 struct PdfBook {
-  /* PopplerDocument *document; */
   cairo_surface_t *thumbnail;
   char *title;
 };
@@ -80,9 +79,16 @@ static const char *book_module_pdf_book_get_title(book_t book) {
   fread(cmd_buf, 1, sizeof(cmd_buf), pdfinfo);
 
   const char *title_start = strstr(cmd_buf, "Title:");
-  assert(title_start != NULL);
+  if (!title_start) {
+    err_o = err_errnof(ENODATA, "No title in: %s", book->file_path);
+    goto error_popen_cleanup;
+  }
+
   const char *title_end = strstr(title_start, "\n");
-  assert(title_end != NULL);
+  if (!title_start) {
+    err_o = err_errnof(ENODATA, "No title in: %s", book->file_path);
+    goto error_popen_cleanup;
+  }
 
   pclose(pdfinfo);
 
@@ -97,6 +103,8 @@ static const char *book_module_pdf_book_get_title(book_t book) {
 
   return pdf_book->title;
 
+error_popen_cleanup:
+  pclose(pdfinfo);
 error_out:
   puts("ERROR");
   return NULL;
@@ -126,10 +134,10 @@ static const unsigned char *book_module_pdf_book_get_thumbnail(book_t book,
     goto error_out;
   }
 
-  cairo_surface_t *surface =
+  pdf_book->thumbnail =
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
-  unsigned char *thumbnail = cairo_image_surface_get_data(surface);
+  unsigned char *thumbnail = cairo_image_surface_get_data(pdf_book->thumbnail);
 
   pclose(pdfinfo);
 
@@ -152,7 +160,6 @@ static void book_module_pdf_book_destroy(book_t book) {
   if (pdf_book->thumbnail) {
     cairo_surface_destroy(pdf_book->thumbnail);
   }
-  mem_free(pdf_book->thumbnail);
   mem_free(pdf_book->title);
   mem_free(pdf_book);
 
