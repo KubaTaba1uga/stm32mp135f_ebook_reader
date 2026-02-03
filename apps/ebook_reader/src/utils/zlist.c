@@ -35,8 +35,9 @@ zlist_node_t zlist_pop(zlist_t list, int idx) {
     if (node) {
       list->head = node->next;
       node->next = NULL;
+      list->len--;
     }
-    list->len--;
+
     return node;
   }
 

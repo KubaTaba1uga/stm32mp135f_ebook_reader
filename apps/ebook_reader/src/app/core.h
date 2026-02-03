@@ -5,9 +5,11 @@
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
+#include "utils/zlist.h"
 
 typedef struct App *app_t;
 typedef struct AppCtx *app_ctx_t;
+typedef struct AppEventData *app_event_t;
 
 /**
    @brief Events occuring in the system.
@@ -69,6 +71,7 @@ struct AppCtx {
 };
 
 struct AppEventData {
+  struct ZListNode next;
   enum AppEventEnum event;
   void *data;
 };
@@ -94,5 +97,7 @@ const char *app_event_dump(enum AppEventEnum event);
    @param error Error which will be handled by error module.
 */
 void app_raise_error(app_t app, err_t error);
+
+
 
 #endif // EBOOK_READER_APP_CORE_H
