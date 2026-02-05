@@ -55,7 +55,9 @@ ui_wx_reader_settings_create(void);
 void ui_wx_reader_settings_destroy(ui_wx_reader_settings_t reader_settings);
 
 typedef lv_obj_t *ui_wx_reader_settings_field_t;
-ui_wx_reader_settings_field_t ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings, const char *field);
+ui_wx_reader_settings_field_t ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings, const char *field, int i, void *data);
 void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field);
+void *ui_wx_reader_settings_field_get_data(ui_wx_reader_settings_field_t field);
+int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field);
 
 #endif // UI_WIDGETS_H

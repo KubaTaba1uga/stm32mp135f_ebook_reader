@@ -23,6 +23,13 @@ struct UiMenuBookWidget {
   int id;
 };
 
+struct UiReaderFieldWidget {
+  lv_obj_t *field;
+  lv_obj_t *label;
+  void *data;
+  int id;
+};
+
 const int bar_y = 48;
 const int menu_x_off = 48;
 const int menu_y_off = 64;
@@ -234,7 +241,7 @@ ui_wx_reader_settings_t ui_wx_reader_settings_create(void) {
                  lv_display_get_vertical_resolution(NULL) - setting_y);
   /* lv_obj_set_style_bg_color(settings, lv_color_black(), 0); */
   lv_gridnav_add(settings, LV_GRIDNAV_CTRL_NONE);
-  
+
   lv_style_t *style = mem_malloc(sizeof(lv_style_t));
   lv_style_init(style);
   lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW_WRAP);
@@ -245,7 +252,7 @@ ui_wx_reader_settings_t ui_wx_reader_settings_create(void) {
   lv_style_set_bg_color(style, lv_color_white());
   lv_obj_add_style(settings, style, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_user_data(settings, style);
-  
+
   return settings;
 }
 
@@ -255,25 +262,29 @@ void ui_wx_reader_settings_destroy(ui_wx_reader_settings_t reader_settings) {
 
 ui_wx_reader_settings_field_t
 ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings,
-                                const char *field) {
+                                const char *field, int id, void *data) {
   const int setting_x = 480;
-  
+
   ui_wx_reader_settings_field_t field_wx = ui_wx_obj_create(reader_settings);
   lv_obj_t *field_label = lv_label_create(field_wx);
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
-                              LV_PART_MAIN);
-  lv_obj_set_size(field_wx, setting_x, 60);  
+  lv_obj_set_style_text_color(field_label, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_size(field_wx, setting_x - 40, 60);
   lv_label_set_text(field_label, field);
-  lv_obj_set_user_data(field_wx, field_label);
+
+  struct UiReaderFieldWidget *field_data =
+      mem_malloc(sizeof(struct UiReaderFieldWidget));
+  *field_data = (struct UiReaderFieldWidget){
+      .data = data, .id = id, .field = field_wx, .label = field_label};
+  lv_obj_set_user_data(field_wx, field_data);
 
   // Configure not focused border
   lv_obj_set_style_border_width(field_wx, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   // Configure focused border
-  lv_obj_set_style_outline_width(field_wx, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
-  lv_obj_set_style_outline_pad(field_wx, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
-  lv_obj_set_style_outline_color(field_wx, lv_color_hex(0x00A0FF),
-                                 LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_border_width(field_wx, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(field_wx, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_border_color(field_wx, lv_color_hex(0x00A0FF),
+                                LV_PART_MAIN | LV_STATE_FOCUSED);
 
   // Disable scrolling inside a field
   lv_label_set_long_mode(field_label, LV_LABEL_LONG_MODE_CLIP);
@@ -281,15 +292,23 @@ ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings,
   lv_obj_clear_flag(field_label, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_add_flag(field_wx, LV_OBJ_FLAG_CLICK_FOCUSABLE);
   lv_obj_clear_flag(field_wx, LV_OBJ_FLAG_SCROLLABLE);
-  
-lv_obj_add_flag(field_wx, LV_OBJ_FLAG_CLICKABLE);
 
-  
   return field_wx;
 }
 
 void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field) {
-  lv_obj_t *label = lv_obj_get_user_data(field);
-  lv_obj_del(label);
+  struct UiReaderFieldWidget *field_data = lv_obj_get_user_data(field);
+  lv_obj_del(field_data->label);
   lv_obj_del(field);
 };
+
+void *
+ui_wx_reader_settings_field_get_data(ui_wx_reader_settings_field_t field) {
+  struct UiReaderFieldWidget *field_data = lv_obj_get_user_data(field);
+  return field_data->data;
+}
+
+int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field) {
+  struct UiReaderFieldWidget *field_data = lv_obj_get_user_data(field);
+  return &field_data->id;
+}
