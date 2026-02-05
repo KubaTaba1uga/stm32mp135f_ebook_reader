@@ -2,11 +2,15 @@
 #include <stdio.h>
 
 #include "core/lv_obj.h"
+#include "core/lv_obj_event.h"
+#include "core/lv_obj_pos.h"
 #include "core/lv_obj_style_gen.h"
 #include "font/lv_font.h"
+#include "layouts/flex/lv_flex.h"
 #include "lv_api_map_v8.h"
 #include "misc/lv_color.h"
 #include "misc/lv_style.h"
+#include "misc/lv_types.h"
 #include "ui/widgets.h"
 #include "utils/mem.h"
 #include "utils/time.h"
@@ -219,3 +223,73 @@ ui_wx_reader_t ui_wx_reader_create(int page_len,
 }
 
 void ui_wx_reader_destroy(ui_wx_reader_t reader) { lv_obj_del(reader); }
+
+ui_wx_reader_settings_t ui_wx_reader_settings_create(void) {
+  const int setting_x = 480;
+  const int setting_y = 800;
+  lv_obj_t *settings = ui_wx_obj_create(lv_screen_active());
+  lv_obj_set_size(settings, setting_x, setting_y);
+  lv_obj_set_pos(settings,
+                 lv_display_get_horizontal_resolution(NULL) - setting_x,
+                 lv_display_get_vertical_resolution(NULL) - setting_y);
+  /* lv_obj_set_style_bg_color(settings, lv_color_black(), 0); */
+  lv_gridnav_add(settings, LV_GRIDNAV_CTRL_NONE);
+  
+  lv_style_t *style = mem_malloc(sizeof(lv_style_t));
+  lv_style_init(style);
+  lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW_WRAP);
+  lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_SPACE_EVENLY);
+  lv_style_set_layout(style, LV_LAYOUT_FLEX);
+  lv_style_set_pad_column(style, 16);
+  lv_style_set_pad_row(style, 8);
+  lv_style_set_bg_color(style, lv_color_white());
+  lv_obj_add_style(settings, style, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_user_data(settings, style);
+  
+  return settings;
+}
+
+void ui_wx_reader_settings_destroy(ui_wx_reader_settings_t reader_settings) {
+  lv_obj_del(reader_settings);
+}
+
+ui_wx_reader_settings_field_t
+ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings,
+                                const char *field) {
+  const int setting_x = 480;
+  
+  ui_wx_reader_settings_field_t field_wx = ui_wx_obj_create(reader_settings);
+  lv_obj_t *field_label = lv_label_create(field_wx);
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
+                              LV_PART_MAIN);
+  lv_obj_set_size(field_wx, setting_x, 60);  
+  lv_label_set_text(field_label, field);
+  lv_obj_set_user_data(field_wx, field_label);
+
+  // Configure not focused border
+  lv_obj_set_style_border_width(field_wx, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  // Configure focused border
+  lv_obj_set_style_outline_width(field_wx, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_pad(field_wx, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_color(field_wx, lv_color_hex(0x00A0FF),
+                                 LV_PART_MAIN | LV_STATE_FOCUSED);
+
+  // Disable scrolling inside a field
+  lv_label_set_long_mode(field_label, LV_LABEL_LONG_MODE_CLIP);
+  lv_obj_clear_flag(field_label, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  lv_obj_clear_flag(field_label, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(field_wx, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  lv_obj_clear_flag(field_wx, LV_OBJ_FLAG_SCROLLABLE);
+  
+lv_obj_add_flag(field_wx, LV_OBJ_FLAG_CLICKABLE);
+
+  
+  return field_wx;
+}
+
+void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field) {
+  lv_obj_t *label = lv_obj_get_user_data(field);
+  lv_obj_del(label);
+  lv_obj_del(field);
+};

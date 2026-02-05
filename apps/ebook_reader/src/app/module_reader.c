@@ -1,7 +1,6 @@
 #include "app/core.h"
 #include "app/module.h"
 #include "book/book.h"
-#include "ui/screen.h"
 #include "ui/ui.h"
 #include "utils/log.h"
 #include "utils/mem.h"
@@ -11,13 +10,12 @@ typedef struct AppReader *app_module_reader_t;
 enum AppReaderStateEnum {
   AppReaderStateEnum_NONE = 0,
   AppReaderStateEnum_PAGE,
+  AppReaderStateEnum_SETTINGS,
   AppReaderStateEnum_MAX,
 };
 
 struct AppReader {
   enum AppReaderStateEnum state;
-  int x_offset;
-  int y_offset;
   book_t book;
   app_t owner;
   ui_t ui;
@@ -28,7 +26,12 @@ struct AppReaderFsmTransition {
   void (*action)(app_module_reader_t, app_ctx_t, enum AppEventEnum, void *);
 };
 
+// Generic API
 static const char *app_reader_state_dump(enum AppReaderStateEnum);
+static void app_module_reader_close(void *);
+static void app_module_reader_destroy(void *);
+
+// Page API
 static void app_module_reader_page_open(app_module_reader_t, app_ctx_t,
                                         enum AppEventEnum, void *);
 static void app_module_reader_page_prev(app_module_reader_t, app_ctx_t,
@@ -38,8 +41,16 @@ static void app_module_reader_page_next(app_module_reader_t, app_ctx_t,
 static void app_module_reader_step(void *, app_ctx_t, enum AppEventEnum,
                                    void *);
 static void app_module_reader_page_closed(app_module_reader_t);
-static void app_module_reader_close(void *);
-static void app_module_reader_destroy(void *);
+
+// Settings API
+static void app_module_reader_settings_open(app_module_reader_t, app_ctx_t,
+                                            enum AppEventEnum, void *);
+static void app_module_reader_settings_next(app_module_reader_t, app_ctx_t,
+                                            enum AppEventEnum, void *);
+static void app_module_reader_settings_prev(app_module_reader_t, app_ctx_t,
+                                            enum AppEventEnum, void *);
+static void app_module_reader_settings_select(app_module_reader_t, app_ctx_t,
+                                              enum AppEventEnum, void *);
 
 struct AppReaderFsmTransition
     reader_fsm_table[AppReaderStateEnum_MAX][AppEventEnum_MAX] = {
@@ -51,17 +62,42 @@ struct AppReaderFsmTransition
                         .action = app_module_reader_page_open,
                     },
             },
-        [AppReaderStateEnum_PAGE] = {
-            [AppEventEnum_BTN_LEFT] =
-                {
-                    .next_state = AppReaderStateEnum_PAGE,
-                    .action = app_module_reader_page_prev,
-                },
-            [AppEventEnum_BTN_RIGTH] =
-                {
-                    .next_state = AppReaderStateEnum_PAGE,
-                    .action = app_module_reader_page_next,
-                },
+        [AppReaderStateEnum_PAGE] =
+            {
+                [AppEventEnum_BTN_LEFT] =
+                    {
+                        .next_state = AppReaderStateEnum_PAGE,
+                        .action = app_module_reader_page_prev,
+                    },
+                [AppEventEnum_BTN_RIGTH] =
+                    {
+                        .next_state = AppReaderStateEnum_PAGE,
+                        .action = app_module_reader_page_next,
+                    },
+                [AppEventEnum_BTN_ENTER] =
+                    {
+                        .next_state = AppReaderStateEnum_SETTINGS,
+                        .action = app_module_reader_settings_open,
+                    },
+            },
+        [AppReaderStateEnum_SETTINGS] =
+            {
+                [AppEventEnum_BTN_UP] =
+                    {
+                        .next_state = AppReaderStateEnum_SETTINGS,
+                        .action = app_module_reader_settings_next,
+                    },
+                [AppEventEnum_BTN_DOWN] =
+                    {
+                        .next_state = AppReaderStateEnum_SETTINGS,
+                        .action = app_module_reader_settings_prev,
+                    },
+                [AppEventEnum_BTN_ENTER] =
+                    {
+                        .next_state = AppReaderStateEnum_SETTINGS,
+                        .action = app_module_reader_settings_select,
+                    },
+                // @to-do: add new events for substates
             },
 };
 
@@ -145,10 +181,11 @@ static void app_module_reader_page_closed(app_module_reader_t reader) {
 
 static const char *app_reader_state_dump(enum AppReaderStateEnum state) {
   static char *dumps[] = {
-      [AppReaderStateEnum_PAGE] = "state_page",
+    [AppReaderStateEnum_PAGE] = "state_page",
+      [AppReaderStateEnum_SETTINGS] = "state_settings",    
   };
 
-  if (state <= AppReaderStateEnum_NONE || state >= AppReaderStateEnum_MAX ||
+  if (state <= AppReaderStateEnum_NONE || state > AppReaderStateEnum_MAX ||
       !dumps[state]) {
     return "Unknown";
   }
@@ -163,12 +200,12 @@ static void app_module_reader_page_prev(app_module_reader_t reader,
   page_no--;
   book_set_page_no(reader->book, page_no);
 
-  ui_reader_destroy(ctx->ui);  
+  ui_reader_destroy(ctx->ui);
   err_o = ui_reader_init(ctx->ui, reader->book);
   ERR_TRY(err_o);
 
   return;
-  
+
 error_out:
   app_raise_error(reader->owner, err_o);
 }
@@ -185,7 +222,39 @@ static void app_module_reader_page_next(app_module_reader_t reader,
   ERR_TRY(err_o);
 
   return;
-  
+
 error_out:
   app_raise_error(reader->owner, err_o);
 }
+
+static void app_module_reader_settings_open(app_module_reader_t reader,
+                                            app_ctx_t ctx,
+                                            enum AppEventEnum event,
+                                            void *arg) {
+  static const char *fields[] = {
+      "Set zoom",
+      "Set X offset",
+      "Set Y offset",
+      "Back",
+  };  
+  err_o = ui_reader_settings_init(ctx->ui, fields, sizeof(fields) / sizeof(char *));
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_settings_next(app_module_reader_t reader,
+                                            app_ctx_t ctx,
+                                            enum AppEventEnum event,
+                                            void *arg) {}
+static void app_module_reader_settings_prev(app_module_reader_t reader,
+                                            app_ctx_t ctx,
+                                            enum AppEventEnum event,
+                                            void *arg) {}
+static void app_module_reader_settings_select(app_module_reader_t reader,
+                                              app_ctx_t ctx,
+                                              enum AppEventEnum event,
+                                              void *arg) {}

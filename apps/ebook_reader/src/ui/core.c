@@ -179,6 +179,18 @@ static void ui_reader_book_event_cb(lv_event_t *e, book_t book, ui_t ui) {
   }    
   }
 
+err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len){    
+  err_o = ui_screen_reader_settings_init(&ui->screen, fields,fields_len,  LV_EVENT_KEY,
+                                ui_reader_book_event_cb,
+                                ui_display_get_input_group(&ui->display));
+  ERR_TRY(err_o);
+
+  return 0;
+
+error_out:
+  return err_o;
+}
+  
 /* void ui_reader_book_event_cb______(lv_event_t *e) { */
 /*   book_t book = lv_event_get_user_data(e); */
 /*   lv_key_t key = lv_event_get_key(e); */
