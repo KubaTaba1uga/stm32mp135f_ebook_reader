@@ -1,6 +1,7 @@
 #include "app/core.h"
 #include "app/module.h"
 #include "book/book.h"
+#include "ui/screen.h"
 #include "ui/ui.h"
 #include "utils/log.h"
 #include "utils/mem.h"
@@ -17,7 +18,7 @@ struct AppReader {
   enum AppReaderStateEnum state;
   int x_offset;
   int y_offset;
-  book_t book;  
+  book_t book;
   app_t owner;
   ui_t ui;
 };
@@ -28,11 +29,15 @@ struct AppReaderFsmTransition {
 };
 
 static const char *app_reader_state_dump(enum AppReaderStateEnum);
-static void app_module_reader_open_page(app_module_reader_t, app_ctx_t,
+static void app_module_reader_page_open(app_module_reader_t, app_ctx_t,
+                                        enum AppEventEnum, void *);
+static void app_module_reader_page_prev(app_module_reader_t, app_ctx_t,
+                                        enum AppEventEnum, void *);
+static void app_module_reader_page_next(app_module_reader_t, app_ctx_t,
                                         enum AppEventEnum, void *);
 static void app_module_reader_step(void *, app_ctx_t, enum AppEventEnum,
                                    void *);
-static void app_module_reader_close_page(app_module_reader_t);
+static void app_module_reader_page_closed(app_module_reader_t);
 static void app_module_reader_close(void *);
 static void app_module_reader_destroy(void *);
 
@@ -43,8 +48,20 @@ struct AppReaderFsmTransition
                 [AppEventEnum_BOOK_SELECTED] =
                     {
                         .next_state = AppReaderStateEnum_PAGE,
-                        .action = app_module_reader_open_page,
+                        .action = app_module_reader_page_open,
                     },
+            },
+        [AppReaderStateEnum_PAGE] = {
+            [AppEventEnum_BTN_LEFT] =
+                {
+                    .next_state = AppReaderStateEnum_PAGE,
+                    .action = app_module_reader_page_prev,
+                },
+            [AppEventEnum_BTN_RIGTH] =
+                {
+                    .next_state = AppReaderStateEnum_PAGE,
+                    .action = app_module_reader_page_next,
+                },
             },
 };
 
@@ -91,7 +108,7 @@ static void app_module_reader_close(void *module) {
 
   switch (reader->state) {
   case AppReaderStateEnum_PAGE:
-    app_module_reader_close_page(reader);
+    app_module_reader_page_closed(reader);
     break;
   default:;
   }
@@ -104,26 +121,24 @@ static void app_module_reader_close(void *module) {
 
 static void app_module_reader_destroy(void *module) { mem_free(module); };
 
-static void app_module_reader_open_page(app_module_reader_t reader,
+static void app_module_reader_page_open(app_module_reader_t reader,
                                         app_ctx_t ctx, enum AppEventEnum event,
                                         void *arg) {
   book_t book = arg;
 
-
-
   err_o = ui_reader_init(ctx->ui, book);
   ERR_TRY(err_o);
 
-  reader->ui = ctx->ui;  
+  reader->ui = ctx->ui;
   reader->book = book;
-  
+
   return;
 
 error_out:
   app_raise_error(reader->owner, err_o);
 }
 
-static void app_module_reader_close_page(app_module_reader_t reader) {
+static void app_module_reader_page_closed(app_module_reader_t reader) {
   ui_reader_destroy(reader->ui);
   book_destroy(&reader->book);
 };
@@ -140,3 +155,37 @@ static const char *app_reader_state_dump(enum AppReaderStateEnum state) {
 
   return dumps[state];
 };
+
+static void app_module_reader_page_prev(app_module_reader_t reader,
+                                        app_ctx_t ctx, enum AppEventEnum event,
+                                        void *arg) {
+  int page_no = book_get_page_no(reader->book);
+  page_no--;
+  book_set_page_no(reader->book, page_no);
+
+  ui_reader_destroy(ctx->ui);  
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+  
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_page_next(app_module_reader_t reader,
+                                        app_ctx_t ctx, enum AppEventEnum event,
+                                        void *arg) {
+  int page_no = book_get_page_no(reader->book);
+  page_no++;
+  book_set_page_no(reader->book, page_no);
+
+  ui_reader_destroy(ctx->ui);
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+  
+error_out:
+  app_raise_error(reader->owner, err_o);
+}

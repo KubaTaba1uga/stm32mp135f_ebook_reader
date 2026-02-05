@@ -27,6 +27,8 @@ struct AppFsmTransition {
   void (*action)(app_module_t, app_ctx_t, enum AppEventEnum, void *);
 };
 
+static void do_nothing(app_module_t, app_ctx_t, enum AppEventEnum, void *);
+
 static const struct AppFsmTransition
     fsm_table[AppStateEnum_MAX][AppEventEnum_MAX] = {
         [AppStateEnum_BOOT] =
@@ -47,22 +49,26 @@ static const struct AppFsmTransition
                         .next_state = AppStateEnum_MENU,
                         .action = app_module_menu_select_book,
                     },
-
                 [AppEventEnum_BOOK_SELECTED] =
                     {
                         .next_state = AppStateEnum_READER,
                     },
-
+                [AppEventEnum_BTN_MENU] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = do_nothing,
+                    },
                 [AppEventEnum_ERROR_RAISED] =
                     {
                         .next_state = AppStateEnum_ERROR,
                     },
             },
-        [AppStateEnum_READER] = {
+        [AppStateEnum_READER] =
+            {
                 [AppEventEnum_BTN_ENTER] =
                     {
                         .next_state = AppStateEnum_READER,
-                    },            
+                    },
                 [AppEventEnum_BTN_UP] =
                     {
                         .next_state = AppStateEnum_READER,
@@ -158,7 +164,6 @@ void app_destroy(app_t *out) {
   *out = NULL;
 };
 
-
 void app_event_post(app_t app, enum AppEventEnum event, void *data) {
   app_event_t ev = mem_malloc(sizeof(struct AppEventData));
   *ev = (struct AppEventData){
@@ -200,7 +205,7 @@ static void app_step(app_t app) {
 
     trans.action(next_module, &app->ctx, event->event, event->data);
     app->current_state = trans.next_state;
-    
+
     mem_free(event);
   }
 }
@@ -278,3 +283,5 @@ static app_event_t app_ev_queue_pull(app_t app) {
   return mem_container_of(node, struct AppEventData, next);
 };
 
+static void do_nothing(app_module_t __, app_ctx_t ___, enum AppEventEnum ____,
+                       void *_____) {}

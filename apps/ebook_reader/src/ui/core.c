@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "book/book.h"
+#include "core/lv_group.h"
+#include "misc/lv_event.h"
 #include "ui/display.h"
 #include "ui/screen.h"
 #include "ui/ui.h"
@@ -24,6 +26,7 @@ struct Ui {
 };
 
 static void ui_menu_book_event_cb(lv_event_t *e);
+static void ui_reader_book_event_cb(lv_event_t *e, book_t, ui_t);
 
 err_t ui_init(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
@@ -133,17 +136,17 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
     *id = ui_wx_menu_book_get_id(book);
     ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, id);
   }
+
+  if (key == LV_KEY_ESC) {
+    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, NULL);    
+  }    
 }
 
-lv_group_t *group;
-static void ui_reader_book_event_cb(lv_event_t *e);
 err_t ui_reader_init(ui_t ui, book_t book) {
-  group = ui_display_get_input_group(&ui->display);
-  err_o = ui_screen_reader_init(&ui->screen, ui, book, LV_EVENT_ALL,
-                                ui_reader_book_event_cb, group);
+  err_o = ui_screen_reader_init(&ui->screen, ui, book, LV_EVENT_KEY,
+                                ui_reader_book_event_cb,
+                                ui_display_get_input_group(&ui->display));
   ERR_TRY(err_o);
-
-  gui = ui;
 
   return 0;
 
@@ -156,67 +159,84 @@ void ui_reader_destroy(ui_t ui) {
   ui_screen_destroy(&ui->screen);
 };
 
-static void ui_reader_book_event_cb(lv_event_t *e) {
-  book_t book = lv_event_get_user_data(e);
+static void ui_reader_book_event_cb(lv_event_t *e, book_t book, ui_t ui) {
   lv_key_t key = lv_event_get_key(e);
 
-  log_debug("Ui received key: %d'", key);
-
-  if (key == '\r' || key == '\n') {
-    key = LV_KEY_ENTER;
+  if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, book);
+  } else if (key == LV_KEY_LEFT) {
+    ui->inputh.callback(UiInputEventEnum_LEFT, ui->inputh.data, book);
+  } else if (key == LV_KEY_RIGHT) {
+    ui->inputh.callback(UiInputEventEnum_RIGTH, ui->inputh.data, book);
+  } else if (key == LV_KEY_UP) {
+    ui->inputh.callback(UiInputEventEnum_UP, ui->inputh.data, book);
+  } else if (key == LV_KEY_DOWN) {
+    ui->inputh.callback(UiInputEventEnum_DOWN, ui->inputh.data, book);
   }
 
-  static int x_offset = 0;
-  static int y_offset = 0;
-  static double scale = 1;
-  
-  if (key == 17) {
-    y_offset -= 25;
-    book_set_y_offset(book, y_offset);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
-  }
-  
-  if (key == 18) {
-    y_offset += 25;
-    book_set_y_offset(book, y_offset);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
+  else if (key == LV_KEY_ESC) {
+    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, book);    
+  }    
   }
 
-  if (key == 19) {
-    x_offset += 25;
-    book_set_x_offset(book, x_offset);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
-  }
+/* void ui_reader_book_event_cb______(lv_event_t *e) { */
+/*   book_t book = lv_event_get_user_data(e); */
+/*   lv_key_t key = lv_event_get_key(e); */
 
-  if (key == 20) {
-    x_offset -= 25;
-    book_set_x_offset(book, x_offset);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
-  }
+/*   log_debug("Ui received key: %d'", key); */
 
-  if (key == 43) {
-    scale += 0.1;
-    book_set_scale(book, scale);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
+/*   if (key == '\r' || key == '\n') { */
+/*     key = LV_KEY_ENTER; */
+/*   } */
 
-  }
-  if (key == 45) {
-    scale -= 0.1;
-    book_set_scale(book, scale);
-    ui_screen_destroy(&gui->screen);
-    ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL,
-                          ui_reader_book_event_cb, group);
+/*   static int x_offset = 0; */
+/*   static int y_offset = 0; */
+/*   static double scale = 1; */
 
-  }
-  
-}
+/*   if (key == 17) { */
+/*     y_offset -= 25; */
+/*     book_set_y_offset(book, y_offset); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+
+/*   if (key == 18) { */
+/*     y_offset += 25; */
+/*     book_set_y_offset(book, y_offset); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+
+/*   if (key == 19) { */
+/*     x_offset += 25; */
+/*     book_set_x_offset(book, x_offset); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+
+/*   if (key == 20) { */
+/*     x_offset -= 25; */
+/*     book_set_x_offset(book, x_offset); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+
+/*   if (key == 43) { */
+/*     scale += 0.1; */
+/*     book_set_scale(book, scale); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+/*   if (key == 45) { */
+/*     scale -= 0.1; */
+/*     book_set_scale(book, scale); */
+/*     ui_screen_destroy(&gui->screen); */
+/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
+/*                           ui_reader_book_event_cb, group); */
+/*   } */
+/* } */

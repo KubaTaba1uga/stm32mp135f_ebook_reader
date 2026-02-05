@@ -193,7 +193,7 @@ static int book_get_extension(book_api_t api, const char *path) {
 }
 
 const char *book_get_title(book_t book) {
-  return book->owner->modules[book->extension].book_get_title(book);
+  return book->title;
 }
 
 const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
@@ -210,11 +210,10 @@ book_t books_list_pop(books_list_t list, int idx) {
   return book;
 }
 
-const unsigned char *book_get_page(book_t book, int x, int y, int page_no,
-                                   int *buf_len) {
+const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
   puts(__func__);
   return book->owner->modules[book->extension].book_get_page(book, x, y,
-                                                             page_no, buf_len);
+                                                             buf_len);
 }
 
 void book_set_x_offset(book_t book, int value) { book->x_off = value; }
@@ -229,7 +228,17 @@ void book_destroy(book_t *book) {
   }
 
   (*book)->owner->modules[(*book)->extension].book_destroy(*book);
-  mem_free((void *)(*book)->file_path);  
+  mem_free((void *)(*book)->file_path);
   mem_free(*book);
   *book = NULL;
 };
+
+int book_get_max_page_no(book_t book) { return book->max_page_number; }
+
+int book_get_page_no(book_t book) { return book->page_number; }
+
+void book_set_page_no(book_t book, int page_no) {
+  book->page_number =
+      page_no < book->max_page_number ? page_no : book->max_page_number;
+}
+

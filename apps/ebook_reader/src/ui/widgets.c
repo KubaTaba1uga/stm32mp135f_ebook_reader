@@ -1,12 +1,13 @@
 #include <lvgl.h>
 #include <stdio.h>
 
-#include "ui/widgets.h"
+#include "core/lv_obj.h"
 #include "core/lv_obj_style_gen.h"
 #include "font/lv_font.h"
 #include "lv_api_map_v8.h"
 #include "misc/lv_color.h"
 #include "misc/lv_style.h"
+#include "ui/widgets.h"
 #include "utils/mem.h"
 #include "utils/time.h"
 
@@ -44,15 +45,15 @@ ui_wx_bar_t ui_wx_bar_create(void) {
   lv_obj_set_size(bar, lv_display_get_horizontal_resolution(NULL), bar_y);
   lv_obj_set_pos(bar, 0, 0);
 
-  static lv_style_t bar_style;
-  lv_style_init(&bar_style);
-  lv_style_set_border_color(&bar_style, lv_color_black());
-  lv_style_set_border_width(&bar_style, 2);
-  lv_style_set_border_opa(&bar_style, LV_OPA_100);
-  lv_style_set_border_side(&bar_style,
+  lv_style_t *bar_style = mem_malloc(sizeof(lv_style_t));
+  lv_style_init(bar_style);
+  lv_style_set_border_color(bar_style, lv_color_black());
+  lv_style_set_border_width(bar_style, 2);
+  lv_style_set_border_opa(bar_style, LV_OPA_100);
+  lv_style_set_border_side(bar_style,
                            (lv_border_side_t)(LV_BORDER_SIDE_BOTTOM));
-  lv_style_set_pad_all(&bar_style, 0);
-  lv_obj_add_style(bar, &bar_style, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_style_set_pad_all(bar_style, 0);
+  lv_obj_add_style(bar, bar_style, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   const int bar_clock_y = bar_y - 2;
   lv_obj_t *clock = ui_wx_obj_create(bar);
@@ -64,12 +65,13 @@ ui_wx_bar_t ui_wx_bar_create(void) {
 
   lv_obj_t *clock_text = lv_label_create(clock);
   lv_obj_set_style_border_width(clock_text, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_text_font(clock_text, &lv_font_montserrat_30, 0);  
+  lv_obj_set_style_text_font(clock_text, &lv_font_montserrat_30, 0);
   static char buf[100];
   char *res = time_now_dump(buf, sizeof(buf));
   assert(res != NULL);
   lv_label_set_text(clock_text, time_now_dump(buf, sizeof(buf)));
   lv_obj_set_user_data(clock, clock_text);
+  lv_obj_set_user_data(clock_text, bar_style);
 
   lv_label_set_long_mode(clock_text, LV_LABEL_LONG_MODE_CLIP);
   lv_obj_clear_flag(clock_text, LV_OBJ_FLAG_SCROLLABLE);
@@ -82,8 +84,11 @@ ui_wx_bar_t ui_wx_bar_create(void) {
 void ui_wx_bar_destroy(ui_wx_bar_t bar) {
   lv_obj_t *clock = lv_obj_get_user_data(bar);
   lv_obj_t *clock_text = lv_obj_get_user_data(clock);
+  lv_style_t *bar_style = lv_obj_get_user_data(clock_text);
   lv_obj_del(clock_text);
   lv_obj_del(clock);
+  lv_style_reset(bar_style);
+  mem_free(bar_style);
   lv_obj_del(bar);
 }
 
@@ -103,20 +108,26 @@ ui_wx_menu_t ui_wx_menu_create(void) {
   lv_obj_set_style_border_width(menu_container, 0,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
 
-  static lv_style_t style;
-  lv_style_init(&style);
-  lv_style_set_flex_flow(&style, LV_FLEX_FLOW_ROW_WRAP);
-  lv_style_set_flex_main_place(&style, LV_FLEX_ALIGN_SPACE_EVENLY);
-  lv_style_set_layout(&style, LV_LAYOUT_FLEX);
-  lv_style_set_pad_column(&style, 96);
-  lv_style_set_pad_row(&style, 48);
-  lv_style_set_bg_color(&style, lv_color_white());
-  lv_obj_add_style(menu_container, &style, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_style_t *style = mem_malloc(sizeof(lv_style_t));
+  lv_style_init(style);
+  lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW_WRAP);
+  lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_SPACE_EVENLY);
+  lv_style_set_layout(style, LV_LAYOUT_FLEX);
+  lv_style_set_pad_column(style, 96);
+  lv_style_set_pad_row(style, 48);
+  lv_style_set_bg_color(style, lv_color_white());
+  lv_obj_add_style(menu_container, style, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_user_data(menu_container, style);
 
   return menu_container;
 }
 
-void ui_wx_menu_destroy(ui_wx_menu_t menu) { lv_obj_del(menu); }
+void ui_wx_menu_destroy(ui_wx_menu_t menu) {
+  lv_style_t *style = lv_obj_get_user_data(menu);
+  lv_style_reset(style);
+  lv_obj_del(menu);
+  mem_free(style);
+}
 
 ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                                          const char *book_title,
@@ -124,7 +135,7 @@ ui_wx_menu_book_t ui_wx_menu_book_create(ui_wx_menu_t menu,
                                          const uint8_t *thumbnail, int id,
                                          ui_t gui) {
   lv_obj_t *book_card = ui_wx_obj_create(menu);
-  lv_obj_set_size(book_card, menu_book_x + 16, menu_book_y+16);
+  lv_obj_set_size(book_card, menu_book_x + 16, menu_book_y + 16);
 
   // Configure data required to display book
   struct UiMenuBookWidget *book_data =
@@ -191,23 +202,20 @@ ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t book) {
   return book_data->gui;
 };
 
-
 ui_wx_reader_t ui_wx_reader_create(int page_len,
                                    const unsigned char *page_buf) {
   puts(__func__);
   lv_obj_t *page_wx = lv_image_create(lv_screen_active());
- 
+
   static lv_img_dsc_t dsc = {0};
   dsc.header.cf = LV_COLOR_FORMAT_ARGB8888;
-  dsc.header.w =  lv_display_get_horizontal_resolution(NULL);
+  dsc.header.w = lv_display_get_horizontal_resolution(NULL);
   dsc.header.h = lv_display_get_vertical_resolution(NULL);
   dsc.data_size = page_len;
   dsc.data = page_buf;
   lv_image_set_src(page_wx, &dsc);
- 
+
   return page_wx;
 }
 
-void ui_wx_reader_destroy(ui_wx_reader_t reader) {
-  lv_obj_del(reader);
-}  
+void ui_wx_reader_destroy(ui_wx_reader_t reader) { lv_obj_del(reader); }

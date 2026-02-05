@@ -19,6 +19,9 @@ const char *book_get_title(book_t);
 void book_set_x_offset(book_t, int);
 void book_set_y_offset(book_t, int);
 void book_set_scale(book_t, double);
+int book_get_max_page_no(book_t);
+int book_get_page_no(book_t);
+void book_set_page_no(book_t, int);
 const unsigned char *book_get_thumbnail(book_t, int x, int y);
 books_list_t book_api_find_books(book_api_t);
 book_t books_list_get(books_list_t);
@@ -26,7 +29,7 @@ int books_list_len(books_list_t);
 void books_list_reset(books_list_t);
 void books_list_destroy(books_list_t);
 book_t books_list_pop(books_list_t, int);
-const unsigned char *book_get_page(book_t book, int x, int y, int page_no,
+const unsigned char *book_get_page(book_t book, int x, int y,
                                    int *buf_len) ;
 
 
