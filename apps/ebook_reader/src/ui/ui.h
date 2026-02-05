@@ -36,6 +36,7 @@ void ui_menu_destroy(ui_t ui);
 err_t ui_reader_init(ui_t ui, book_t book);
 err_t ui_reader_change_page(ui_t ui, book_t book, int page_i);
 err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len);
+void ui_reader_settings_destroy(ui_t ui);
 void ui_reader_destroy(ui_t ui);
 
 

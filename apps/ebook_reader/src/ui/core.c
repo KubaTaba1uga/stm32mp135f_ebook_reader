@@ -26,7 +26,7 @@ struct Ui {
 };
 
 static void ui_menu_book_event_cb(lv_event_t *e);
-static void ui_reader_book_event_cb(lv_event_t *e, book_t, ui_t);
+static void ui_reader_book_event_cb(lv_event_t *e, void *, ui_t);
 
 err_t ui_init(ui_t *out,
               void (*callback)(enum UiInputEventEnum event, void *data,
@@ -138,8 +138,8 @@ static void ui_menu_book_event_cb(lv_event_t *e) {
   }
 
   if (key == LV_KEY_ESC) {
-    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, NULL);    
-  }    
+    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, NULL);
+  }
 }
 
 err_t ui_reader_init(ui_t ui, book_t book) {
@@ -159,38 +159,42 @@ void ui_reader_destroy(ui_t ui) {
   ui_screen_destroy(&ui->screen);
 };
 
-static void ui_reader_book_event_cb(lv_event_t *e, book_t book, ui_t ui) {
+static void ui_reader_book_event_cb(lv_event_t *e, void *data, ui_t ui) {
   lv_key_t key = lv_event_get_key(e);
 
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
-    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, book);
+    ui->inputh.callback(UiInputEventEnum_ENTER, ui->inputh.data, data);
   } else if (key == LV_KEY_LEFT) {
-    ui->inputh.callback(UiInputEventEnum_LEFT, ui->inputh.data, book);
+    ui->inputh.callback(UiInputEventEnum_LEFT, ui->inputh.data, data);
   } else if (key == LV_KEY_RIGHT) {
-    ui->inputh.callback(UiInputEventEnum_RIGTH, ui->inputh.data, book);
+    ui->inputh.callback(UiInputEventEnum_RIGTH, ui->inputh.data, data);
   } else if (key == LV_KEY_UP) {
-    ui->inputh.callback(UiInputEventEnum_UP, ui->inputh.data, book);
+    ui->inputh.callback(UiInputEventEnum_UP, ui->inputh.data, data);
   } else if (key == LV_KEY_DOWN) {
-    ui->inputh.callback(UiInputEventEnum_DOWN, ui->inputh.data, book);
+    ui->inputh.callback(UiInputEventEnum_DOWN, ui->inputh.data, data);
   }
 
   else if (key == LV_KEY_ESC) {
-    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, book);    
-  }    
+    ui->inputh.callback(UiInputEventEnum_MENU, ui->inputh.data, data);
   }
+}
 
-err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len){    
-  err_o = ui_screen_reader_settings_init(&ui->screen, fields,fields_len,  LV_EVENT_KEY,
-                                ui_reader_book_event_cb,
-                                ui_display_get_input_group(&ui->display));
+err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len) {
+  err_o = ui_screen_reader_settings_init(
+      &ui->screen, fields, fields_len, ui_display_get_input_group(&ui->display));
   ERR_TRY(err_o);
-
+  
   return 0;
 
 error_out:
   return err_o;
 }
-  
+
+void ui_reader_settings_destroy(ui_t ui){
+  ui_screen_reader_settings_destroy(&ui->screen);
+  }
+
+
 /* void ui_reader_book_event_cb______(lv_event_t *e) { */
 /*   book_t book = lv_event_get_user_data(e); */
 /*   lv_key_t key = lv_event_get_key(e); */
