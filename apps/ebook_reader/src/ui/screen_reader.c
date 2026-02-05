@@ -36,7 +36,13 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   assert(book != NULL);
   assert(out != NULL);
   assert(ui != NULL);
-
+  ui_screen_reader_t screen;
+  
+  if (out->screen_data) {
+    screen = out->screen_data;
+    goto out;
+    }
+  
   int page_size = 0;
   const unsigned char *page_data =
       book_get_page(book, lv_display_get_horizontal_resolution(NULL),
@@ -53,7 +59,7 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
     goto error_out;
   }
 
-  ui_screen_reader_t screen = mem_malloc(sizeof(struct UiScreenReader));
+ screen = mem_malloc(sizeof(struct UiScreenReader));
   *screen = (struct UiScreenReader){
       .event_cb = event_cb,
       .reader = reader,
@@ -67,9 +73,11 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
       .screen_data = screen,
   };
 
-  lv_group_add_obj(group, reader);
-  lv_obj_add_event_cb(reader, ui_screen_reader_book_event_cb, event, screen);
   lv_obj_set_user_data(reader, book);
+  
+ out:    
+  lv_group_add_obj(group, screen->reader);
+  lv_obj_add_event_cb(screen->reader, ui_screen_reader_book_event_cb, event, screen);
 
   return 0;
 

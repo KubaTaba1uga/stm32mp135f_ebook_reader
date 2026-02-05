@@ -184,11 +184,11 @@ static void app_module_reader_page_closed(app_module_reader_t reader) {
 
 static const char *app_reader_state_dump(enum AppReaderStateEnum state) {
   static char *dumps[AppReaderStateEnum_MAX] = {
-    [AppReaderStateEnum_PAGE] = "state_page",
-    [AppReaderStateEnum_SETTINGS] = "state_settings",
-    [AppReaderStateEnum_SET_ZOOM] = "state_zoom",
-    [AppReaderStateEnum_SET_X_OFF] = "state_set_x_off",
-      [AppReaderStateEnum_SET_Y_OFF] = "state_set_y_off",    
+      [AppReaderStateEnum_PAGE] = "state_page",
+      [AppReaderStateEnum_SETTINGS] = "state_settings",
+      [AppReaderStateEnum_SET_ZOOM] = "state_zoom",
+      [AppReaderStateEnum_SET_X_OFF] = "state_set_x_off",
+      [AppReaderStateEnum_SET_Y_OFF] = "state_set_y_off",
   };
 
   if (state <= AppReaderStateEnum_NONE || state > AppReaderStateEnum_MAX ||
