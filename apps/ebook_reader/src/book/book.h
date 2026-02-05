@@ -14,6 +14,7 @@ typedef struct Book *book_t;
 */
 err_t book_api_init(book_api_t *);
 void book_api_destroy(book_api_t *);
+void book_destroy(book_t *);
 const char *book_get_title(book_t);
 void book_set_x_offset(book_t, int);
 void book_set_y_offset(book_t, int);

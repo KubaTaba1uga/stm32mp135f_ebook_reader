@@ -150,6 +150,7 @@ void app_destroy(app_t *out) {
     return;
   }
 
+  app_module_close(&(*out)->modules[(*out)->current_state]);
   app_modules_destroy((*out)->modules, AppStateEnum_MAX);
   book_api_destroy(&(*out)->ctx.book_api);
   ui_destroy(&(*out)->ctx.ui);

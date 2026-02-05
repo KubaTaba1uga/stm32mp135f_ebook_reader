@@ -1,5 +1,6 @@
 #include "app/core.h"
 #include "app/module.h"
+#include "book/book.h"
 #include "ui/ui.h"
 #include "utils/log.h"
 #include "utils/mem.h"
@@ -13,9 +14,10 @@ enum AppReaderStateEnum {
 };
 
 struct AppReader {
-  enum AppReaderStateEnum state;  
+  enum AppReaderStateEnum state;
   int x_offset;
   int y_offset;
+  book_t book;  
   app_t owner;
   ui_t ui;
 };
@@ -43,7 +45,7 @@ struct AppReaderFsmTransition
                         .next_state = AppReaderStateEnum_PAGE,
                         .action = app_module_reader_open_page,
                     },
-            },        
+            },
 };
 
 err_t app_module_reader_init(app_module_t out, app_t app) {
@@ -70,15 +72,18 @@ static void app_module_reader_step(void *module, app_ctx_t ctx,
   trans = reader_fsm_table[reader->state][event];
 
   if (!trans.action) {
-    log_debug("Triggered transaction without action: event=%s, state=%s", app_event_dump(event), app_reader_state_dump(reader->state));
+    log_debug("Triggered transaction without action: event=%s, state=%s",
+              app_event_dump(event), app_reader_state_dump(reader->state));
     goto out;
   }
+
+  log_debug("%s -> %s, event=%s", app_reader_state_dump(reader->state),
+            app_reader_state_dump(trans.next_state), app_event_dump(event));
 
   trans.action(reader, ctx, event, arg);
   reader->state = trans.next_state;
 
- out:;    
-
+out:;
 }
 
 static void app_module_reader_close(void *module) {
@@ -93,6 +98,8 @@ static void app_module_reader_close(void *module) {
 
   reader->state = AppReaderStateEnum_NONE;
   ui_reader_destroy(reader->ui);
+
+  reader->ui = NULL;
 };
 
 static void app_module_reader_destroy(void *module) { mem_free(module); };
@@ -102,9 +109,14 @@ static void app_module_reader_open_page(app_module_reader_t reader,
                                         void *arg) {
   book_t book = arg;
 
+
+
   err_o = ui_reader_init(ctx->ui, book);
   ERR_TRY(err_o);
 
+  reader->ui = ctx->ui;  
+  reader->book = book;
+  
   return;
 
 error_out:
@@ -113,6 +125,7 @@ error_out:
 
 static void app_module_reader_close_page(app_module_reader_t reader) {
   ui_reader_destroy(reader->ui);
+  book_destroy(&reader->book);
 };
 
 static const char *app_reader_state_dump(enum AppReaderStateEnum state) {

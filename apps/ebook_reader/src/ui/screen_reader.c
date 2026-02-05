@@ -64,6 +64,7 @@ error_out:
 };
 
 static void ui_screen_reader_destroy(void *screen) {
+  puts(__func__);  
   ui_screen_reader_t reader_screen = screen;
   ui_wx_reader_destroy(reader_screen->reader);
   mem_free(screen);

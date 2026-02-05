@@ -111,8 +111,10 @@ books_list_t book_api_find_books(book_api_t api) {
     book = mem_malloc(sizeof(struct Book));
 
     *book = (struct Book){
-      .extension = book_ext, .file_path = file_path, .owner = api,
-      .scale = 1,
+        .extension = book_ext,
+        .file_path = file_path,
+        .owner = api,
+        .scale = 1,
     };
 
     zlist_append(&list->books, &book->next);
@@ -210,17 +212,24 @@ book_t books_list_pop(books_list_t list, int idx) {
 
 const unsigned char *book_get_page(book_t book, int x, int y, int page_no,
                                    int *buf_len) {
-  puts(__func__)  ;
+  puts(__func__);
   return book->owner->modules[book->extension].book_get_page(book, x, y,
                                                              page_no, buf_len);
 }
 
 void book_set_x_offset(book_t book, int value) { book->x_off = value; }
 
-void book_set_y_offset(book_t book, int value){
-  book->y_off = value;
+void book_set_y_offset(book_t book, int value) { book->y_off = value; }
+
+void book_set_scale(book_t book, double value) { book->scale = value; }
+
+void book_destroy(book_t *book) {
+  if (!book || !*book) {
+    return;
   }
 
-void book_set_scale(book_t  book, double value){
-  book->scale = value;
-  }
+  (*book)->owner->modules[(*book)->extension].book_destroy(*book);
+  mem_free((void *)(*book)->file_path);  
+  mem_free(*book);
+  *book = NULL;
+};

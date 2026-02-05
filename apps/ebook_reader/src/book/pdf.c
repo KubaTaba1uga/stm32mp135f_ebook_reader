@@ -10,6 +10,7 @@
 #include "book/core.h"
 #include "cairo.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 
 typedef struct Pdf *pdf_t;
@@ -82,6 +83,7 @@ static const char *book_module_pdf_book_get_title(book_t book) {
 
   fread(cmd_buf, 1, sizeof(cmd_buf), pdfinfo);
 
+  
   const char *title_start = strstr(cmd_buf, "Title:");
   if (!title_start) {
     err_o = err_errnof(ENODATA, "No title in: %s", book->file_path);
@@ -94,8 +96,6 @@ static const char *book_module_pdf_book_get_title(book_t book) {
     goto error_popen_cleanup;
   }
 
-  pclose(pdfinfo);
-
   title_start += strlen("Title:");
   while (isspace(*title_start) && title_start < title_end) {
     title_start++;
@@ -104,7 +104,8 @@ static const char *book_module_pdf_book_get_title(book_t book) {
   pdf_book->title = mem_malloc(title_end - title_start + 1);
   memset(pdf_book->title, 0, title_end - title_start + 1);
   memcpy(pdf_book->title, title_start, title_end - title_start);
-
+  pclose(pdfinfo);
+  
   return pdf_book->title;
 
 error_popen_cleanup:
@@ -168,6 +169,7 @@ static void book_module_pdf_book_destroy(book_t book) {
     cairo_surface_destroy(pdf_book->page);
   }
 
+  log_info("Destroyed %s", pdf_book->title)  ;
   mem_free(pdf_book->title);
   mem_free(pdf_book);
 
@@ -204,10 +206,11 @@ book_module_pdf_get_page(book_t book, int x, int y, int page_no, int *buf_len) {
   cairo_paint(cr);
 
   unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
-
-  pclose(pdfinfo);
-
   *buf_len = x * y * 4;
+  
+  pclose(pdfinfo);
+  cairo_surface_destroy(surface);
+  cairo_destroy(cr);
 
   return page;
 
