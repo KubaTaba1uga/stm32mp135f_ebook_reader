@@ -111,10 +111,8 @@ books_list_t book_api_find_books(book_api_t api) {
     book = mem_malloc(sizeof(struct Book));
 
     *book = (struct Book){
-        .extension = book_ext,
-        .file_path = file_path,
-        .owner = api,
-        .scale = 1,
+      .extension = book_ext, .file_path = file_path, .owner = api, .scale = 1,
+      .page_number = 1,      
     };
 
     zlist_append(&list->books, &book->next);

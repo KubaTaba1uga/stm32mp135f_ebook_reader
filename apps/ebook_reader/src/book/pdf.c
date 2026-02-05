@@ -200,8 +200,10 @@ static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
 
   char cmd_buf[4096] = {0};
   snprintf(cmd_buf, sizeof(cmd_buf),
-           "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d -aa "
-           "yes -aaVector yes -png -mono %s",
+           /* "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d -aa " */
+           /* "yes -aaVector yes -png -mono %s", */
+           "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d "
+           "-png -mono %s",
            book->page_number, book->page_number, (int)(x * book->scale),
            (int)(y * book->scale), book->file_path);
   FILE *pdfinfo = popen(cmd_buf, "r");
