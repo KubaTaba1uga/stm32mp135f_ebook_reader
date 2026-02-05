@@ -63,8 +63,7 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   };
 
   lv_group_add_obj(group, reader);
- lv_obj_add_event_cb(
-      reader, ui_screen_reader_book_event_cb, event, screen);
+  lv_obj_add_event_cb(reader, ui_screen_reader_book_event_cb, event, screen);
   lv_obj_set_user_data(reader, book);
 
   return 0;
@@ -92,34 +91,61 @@ static void ui_screen_reader_settings_event_cb(lv_event_t *e) {
   puts(__func__);
   ui_wx_reader_settings_field_t f = lv_event_get_user_data(e);
   ui_screen_reader_t reader = ui_wx_reader_settings_field_get_data(f);
-  lv_group_focus_obj(f);
-  /* int *id = ui_wx_reader_settings_field_get_id(f);   */
+  lv_key_t key = lv_event_get_key(e);
+
   printf("ptr=%p\n", f);
   reader->event_cb(e, NULL, reader->owner);
+  
+  if (key == LV_KEY_UP) {
+    
+    /* lv_group_focus_next(reader->group); */
+    
+    /* return; */
+  }
+
+  if (key == LV_KEY_DOWN) {
+    /* printf("START"); */
+    /* lv_group_focus_prev(reader->group); */
+    /* printf("END");     */
+    /* return; */
+  }
+
 }
 
 err_t ui_screen_reader_settings_init(
     ui_screen_t screen, const char **fields, int fields_len, int event,
     void (*event_cb)(lv_event_t *e, book_t book, ui_t ui), lv_group_t *group) {
-  puts(__func__)  ;
+  puts(__func__);
   ui_wx_reader_settings_t settings = ui_wx_reader_settings_create();
   ui_screen_reader_t reader_screen = screen->screen_data;
 
-  reader_screen->event_cb = event_cb;
+  lv_obj_remove_event_cb_with_user_data(
+      reader_screen->reader, ui_screen_reader_book_event_cb, reader_screen);
 
+  lv_group_remove_obj(reader_screen->reader);
+  
+  uint32_t n = lv_group_get_obj_count(group);
+  printf("group members: %u\n", (unsigned)n);
+
+  
+  reader_screen->event_cb = event_cb;
+  lv_group_add_obj(group, settings);
+
+  
   reader_screen->fields =
       mem_malloc(sizeof(ui_wx_reader_settings_field_t) * fields_len);
   for (int i = 0; i < fields_len; i++) {
     ui_wx_reader_settings_field_t f =
-        ui_wx_reader_settings_add_field(settings, fields[i], i, reader_screen);    
-    lv_obj_add_flag(f, LV_OBJ_FLAG_CLICK_FOCUSABLE);
-    lv_obj_add_flag(f, LV_OBJ_FLAG_CLICKABLE);
+        ui_wx_reader_settings_add_field(settings, fields[i], i, reader_screen);
+    /* lv_obj_add_flag(f, LV_OBJ_FLAG_CLICK_FOCUSABLE); */
+    /* lv_obj_add_flag(f, LV_OBJ_FLAG_CLICKABLE); */
     lv_obj_add_event_cb(f, ui_screen_reader_settings_event_cb, event, f);
-    lv_group_add_obj(group, f);
-    
+    /* lv_group_add_obj(group, f); */
+
     reader_screen->fields[i] = f;
+    printf("ptr=%p\n", f);
   }
-  lv_group_focus_obj(reader_screen->fields[0]);
-  
+  /* lv_group_focus_obj(reader_screen->fields[0]); */
+
   return 0;
 }

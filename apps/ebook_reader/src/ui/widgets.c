@@ -234,13 +234,16 @@ void ui_wx_reader_destroy(ui_wx_reader_t reader) { lv_obj_del(reader); }
 ui_wx_reader_settings_t ui_wx_reader_settings_create(void) {
   const int setting_x = 480;
   const int setting_y = 800;
+  
   lv_obj_t *settings = ui_wx_obj_create(lv_screen_active());
-  lv_obj_set_size(settings, setting_x, setting_y);
+  lv_gridnav_add(settings, LV_GRIDNAV_CTRL_NONE);
+
   lv_obj_set_pos(settings,
                  lv_display_get_horizontal_resolution(NULL) - setting_x,
                  lv_display_get_vertical_resolution(NULL) - setting_y);
+  lv_obj_set_size(settings, setting_x, setting_y);
   /* lv_obj_set_style_bg_color(settings, lv_color_black(), 0); */
-  lv_gridnav_add(settings, LV_GRIDNAV_CTRL_NONE);
+
 
   lv_style_t *style = mem_malloc(sizeof(lv_style_t));
   lv_style_init(style);
