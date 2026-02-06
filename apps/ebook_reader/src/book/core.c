@@ -111,8 +111,11 @@ books_list_t book_api_find_books(book_api_t api) {
     book = mem_malloc(sizeof(struct Book));
 
     *book = (struct Book){
-      .extension = book_ext, .file_path = file_path, .owner = api, .scale = 1,
-      .page_number = 1,      
+        .extension = book_ext,
+        .file_path = file_path,
+        .owner = api,
+        .scale = 1,
+        .page_number = 1,
     };
 
     zlist_append(&list->books, &book->next);
@@ -190,9 +193,7 @@ static int book_get_extension(book_api_t api, const char *path) {
   return -1;
 }
 
-const char *book_get_title(book_t book) {
-  return book->title;
-}
+const char *book_get_title(book_t book) { return book->title; }
 
 const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
   return book->owner->modules[book->extension].book_get_thumbnail(book, x, y);
@@ -240,3 +241,4 @@ void book_set_page_no(book_t book, int page_no) {
       page_no < book->max_page_number ? page_no : book->max_page_number;
 }
 
+double book_get_scale(book_t book) { return book->scale; }

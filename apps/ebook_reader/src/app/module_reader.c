@@ -2,8 +2,10 @@
 #include "app/module.h"
 #include "book/book.h"
 #include "ui/ui.h"
+#include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
+#include <stdio.h>
 
 typedef struct AppReader *app_module_reader_t;
 
@@ -57,6 +59,27 @@ static void app_module_reader_settings_open(app_module_reader_t, app_ctx_t,
                                             enum AppEventEnum, void *);
 static void app_module_reader_settings_select(app_module_reader_t, app_ctx_t,
                                               enum AppEventEnum, void *);
+// Set zoom API
+static void app_module_reader_set_zoom_open(app_module_reader_t, app_ctx_t,
+                                            enum AppEventEnum, void *);
+static void app_module_reader_set_zoom_up(app_module_reader_t, app_ctx_t,
+                                          enum AppEventEnum, void *);
+static void app_module_reader_set_zoom_down(app_module_reader_t, app_ctx_t,
+                                            enum AppEventEnum, void *);
+static void app_module_reader_set_zoom_close(app_module_reader_t, app_ctx_t,
+                                             enum AppEventEnum, void *);
+
+// Set X offset API
+static void app_module_reader_set_x_off_open(app_module_reader_t reader,
+                                             app_ctx_t ctx,
+                                             enum AppEventEnum event,
+                                             void *arg);
+
+// Set Y offset API
+static void app_module_reader_set_y_off_open(app_module_reader_t reader,
+                                             app_ctx_t ctx,
+                                             enum AppEventEnum event,
+                                             void *arg);
 
 struct AppReaderFsmTransition
     reader_fsm_table[AppReaderStateEnum_MAX][AppEventEnum_MAX] = {
@@ -93,6 +116,52 @@ struct AppReaderFsmTransition
                         .next_state = AppReaderStateEnum_SETTINGS,
                         .action = app_module_reader_settings_select,
                     },
+                [AppEventEnum_READER_ZOOM_OPENED] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_ZOOM,
+                        .action = app_module_reader_set_zoom_open,
+                    },
+                [AppEventEnum_READER_X_OFF_OPENED] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_X_OFF,
+                        .action = app_module_reader_set_x_off_open,
+                    },
+                [AppEventEnum_READER_Y_OFF_OPENED] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_Y_OFF,
+                        .action = app_module_reader_set_y_off_open,
+                    },
+                [AppEventEnum_BOOK_SELECTED] =
+                    {
+                        .next_state = AppReaderStateEnum_PAGE,
+                        .action = app_module_reader_page_open,
+                    },
+            },
+        [AppReaderStateEnum_SET_ZOOM] =
+            {
+                [AppEventEnum_BTN_ENTER] =
+                    {
+                        .next_state = AppReaderStateEnum_PAGE,
+                        .action = app_module_reader_set_zoom_close,
+                    },
+                [AppEventEnum_BTN_UP] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_ZOOM,
+                        .action = app_module_reader_set_zoom_up,
+                    },
+                [AppEventEnum_BTN_DOWN] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_ZOOM,
+                        .action = app_module_reader_set_zoom_down,
+                    },
+            },
+        [AppReaderStateEnum_SET_X_OFF] =
+            {
+
+            },
+        [AppReaderStateEnum_SET_Y_OFF] =
+            {
+
             },
 };
 
@@ -154,8 +223,6 @@ static void app_module_reader_close(void *module) {
 
   reader->state = AppReaderStateEnum_NONE;
   ui_reader_destroy(reader->ui);
-
-  reader->ui = NULL;
 };
 
 static void app_module_reader_destroy(void *module) { mem_free(module); };
@@ -251,54 +318,105 @@ error_out:
 static void app_module_reader_set_zoom_open(app_module_reader_t reader,
                                             app_ctx_t ctx,
                                             enum AppEventEnum event, void *arg);
-static void app_module_reader_set_x_off_open(app_module_reader_t reader,
-                                             app_ctx_t ctx,
-                                             enum AppEventEnum event,
-                                             void *arg);
-static void app_module_reader_set_y_off_open(app_module_reader_t reader,
-                                             app_ctx_t ctx,
-                                             enum AppEventEnum event,
-                                             void *arg);
 static void app_module_reader_settings_select(app_module_reader_t reader,
                                               app_ctx_t ctx,
                                               enum AppEventEnum event,
                                               void *arg) {
-  static struct AppReaderFsmTransition
-      settings_fsm_table[sizeof(fields) / sizeof(char *)] = {
-          {
-              .next_state = AppReaderStateEnum_SET_ZOOM,
-              .action = app_module_reader_set_zoom_open,
-          },
-          {
-              .next_state = AppReaderStateEnum_SET_X_OFF,
-              .action = app_module_reader_set_x_off_open,
-          },
-          {
-              .next_state = AppReaderStateEnum_SET_Y_OFF,
-              .action = app_module_reader_set_y_off_open,
-          },
-          {
-              .next_state = AppReaderStateEnum_PAGE,
-              .action = app_module_reader_page_open,
-          },
-      };
+  puts(__func__);
+  static enum AppEventEnum next_event[] = {
+      AppEventEnum_READER_ZOOM_OPENED,
+      AppEventEnum_READER_X_OFF_OPENED,
+      AppEventEnum_READER_Y_OFF_OPENED,
+      AppEventEnum_BOOK_SELECTED,
+  };
   int *id = arg;
 
-  struct AppReaderFsmTransition trans = settings_fsm_table[*id];
-
-  if (*id >= sizeof(fields) / sizeof(char *) || !trans.action ||
-      !trans.next_state) {
+  if (*id >= sizeof(fields) / sizeof(char *)) {
     return;
   }
 
-  app_module_reader_step_priv(&trans, reader, ctx, event, arg);
+  app_event_post(reader->owner, next_event[*id], NULL);
   ui_reader_settings_destroy(reader->ui);
 }
 
 static void app_module_reader_set_zoom_open(app_module_reader_t reader,
                                             app_ctx_t ctx,
                                             enum AppEventEnum event,
-                                            void *arg) {}
+                                            void *arg) {
+  puts(__func__);
+  err_o = ui_reader_set_scale_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_set_zoom_up(app_module_reader_t reader,
+                                          app_ctx_t ctx,
+                                          enum AppEventEnum event, void *arg) {
+  puts(__func__);
+  double scale = book_get_scale(reader->book);
+  scale += 0.1;
+  book_set_scale(reader->book, scale);
+
+  ui_reader_set_scale_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  err_o = ui_reader_set_scale_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+static void app_module_reader_set_zoom_down(app_module_reader_t reader,
+                                            app_ctx_t ctx,
+                                            enum AppEventEnum event,
+                                            void *arg) {
+  puts(__func__);
+  double scale = book_get_scale(reader->book);
+  scale -= 0.1;
+  book_set_scale(reader->book, scale);
+
+  ui_reader_set_scale_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  err_o = ui_reader_set_scale_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_set_zoom_close(app_module_reader_t reader,
+                                             app_ctx_t ctx,
+                                             enum AppEventEnum event,
+                                             void *arg) {
+  puts(__func__);
+
+  ui_reader_set_scale_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
 static void app_module_reader_set_x_off_open(app_module_reader_t reader,
                                              app_ctx_t ctx,
                                              enum AppEventEnum event,

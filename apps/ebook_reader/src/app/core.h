@@ -46,6 +46,9 @@ enum AppEventEnum {
    */
   AppEventEnum_BTN_MENU,
   AppEventEnum_BOOK_SELECTED,
+  AppEventEnum_READER_ZOOM_OPENED,
+  AppEventEnum_READER_X_OFF_OPENED,
+  AppEventEnum_READER_Y_OFF_OPENED,
   /**
    Once any module meet error that cannot be gracefully handled
    so the user can go back to using the device we emmit ERROR_RAISED.

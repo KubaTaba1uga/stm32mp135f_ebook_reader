@@ -85,6 +85,22 @@ static const struct AppFsmTransition
                     {
                         .next_state = AppStateEnum_READER,
                     },
+                [AppEventEnum_BOOK_SELECTED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_ZOOM_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_X_OFF_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_Y_OFF_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },		
                 [AppEventEnum_BTN_MENU] =
                     {
                         .next_state = AppStateEnum_MENU,

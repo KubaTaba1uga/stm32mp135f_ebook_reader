@@ -34,10 +34,12 @@ err_t ui_menu_init(ui_t ui, books_list_t blist, int book_i);
 void ui_menu_destroy(ui_t ui);
 
 err_t ui_reader_init(ui_t ui, book_t book);
+void ui_reader_destroy(ui_t ui);
 err_t ui_reader_change_page(ui_t ui, book_t book, int page_i);
 err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len);
 void ui_reader_settings_destroy(ui_t ui);
-void ui_reader_destroy(ui_t ui);
+err_t ui_reader_set_scale_init(ui_t ui, book_t book);
+void ui_reader_set_scale_destroy(ui_t ui);
 
 
 

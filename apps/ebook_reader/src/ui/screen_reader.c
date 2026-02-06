@@ -15,6 +15,7 @@ struct UiScreenReader {
   void (*event_cb)(lv_event_t *e, void *book, ui_t ui);
   ui_wx_reader_settings_field_t *fields;
   ui_wx_reader_settings_t settings;
+  ui_wx_reader_set_scale_t scale;
   ui_wx_reader_t reader;
   lv_group_t *group;
   int fields_len;
@@ -37,12 +38,12 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   assert(out != NULL);
   assert(ui != NULL);
   ui_screen_reader_t screen;
-  
+
   if (out->screen_data) {
     screen = out->screen_data;
     goto out;
-    }
-  
+  }
+
   int page_size = 0;
   const unsigned char *page_data =
       book_get_page(book, lv_display_get_horizontal_resolution(NULL),
@@ -59,7 +60,7 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
     goto error_out;
   }
 
- screen = mem_malloc(sizeof(struct UiScreenReader));
+  screen = mem_malloc(sizeof(struct UiScreenReader));
   *screen = (struct UiScreenReader){
       .event_cb = event_cb,
       .reader = reader,
@@ -74,10 +75,11 @@ err_t ui_screen_reader_init(ui_screen_t out, ui_t ui, book_t book, int event,
   };
 
   lv_obj_set_user_data(reader, book);
-  
- out:    
+
+out:
   lv_group_add_obj(group, screen->reader);
-  lv_obj_add_event_cb(screen->reader, ui_screen_reader_book_event_cb, event, screen);
+  lv_obj_add_event_cb(screen->reader, ui_screen_reader_book_event_cb, event,
+                      screen);
 
   return 0;
 
@@ -113,6 +115,8 @@ err_t ui_screen_reader_settings_init(ui_screen_t screen, const char **fields,
   ui_wx_reader_settings_t settings = ui_wx_reader_settings_create();
   ui_screen_reader_t reader_screen = screen->screen_data;
   reader_screen->settings = settings;
+  assert(reader_screen != NULL);
+  assert(reader_screen->reader != NULL);
 
   ui_screen_reader_cleanup(reader_screen);
 
@@ -148,5 +152,36 @@ void ui_screen_reader_settings_destroy(ui_screen_t screen) {
   for (int i = 0; i < reader->fields_len; i++) {
     ui_wx_reader_settings_field_destroy(reader->fields[i]);
   }
-  mem_free(reader->fields)  ;
+  mem_free(reader->fields);
+}
+
+static void ui_screen_reader_scale_event_cb(lv_event_t *e) {
+  puts(__func__);
+  ui_screen_reader_t reader = lv_event_get_user_data(e);
+  reader->event_cb(e, reader, reader->owner);
+}
+
+err_t ui_screen_reader_set_scale_init(ui_screen_t screen, book_t book,
+                                      lv_group_t *group) {
+  puts(__func__);
+  double scale_value = book_get_scale(book);
+  ui_wx_reader_set_scale_t scale = ui_wx_reader_set_scale_create(scale_value);
+  ui_screen_reader_t reader_screen = screen->screen_data;
+  reader_screen->scale = scale;
+
+  lv_obj_t *key_catcher = lv_obj_create(scale);
+  lv_obj_set_size(key_catcher, 1, 1);
+  lv_obj_add_flag(key_catcher, LV_OBJ_FLAG_HIDDEN);
+  lv_group_add_obj(group, key_catcher);
+  lv_group_focus_obj(key_catcher);
+  lv_obj_add_event_cb(key_catcher, ui_screen_reader_scale_event_cb,
+                      LV_EVENT_KEY, reader_screen);
+
+  return 0;
+}
+
+void ui_screen_reader_set_scale_destroy(ui_screen_t screen) {
+  puts(__func__);
+  ui_screen_reader_t reader_screen = screen->screen_data;
+  ui_wx_reader_set_scale_destroy(reader_screen->scale);
 }
