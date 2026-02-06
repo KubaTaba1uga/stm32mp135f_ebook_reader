@@ -60,10 +60,15 @@ void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field);
 void *ui_wx_reader_settings_field_get_data(ui_wx_reader_settings_field_t field);
 int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field);
 
-typedef lv_obj_t *ui_wx_reader_set_scale_t;
-ui_wx_reader_set_scale_t
-ui_wx_reader_set_scale_create(double scale);
-void ui_wx_reader_set_scale_destroy(ui_wx_reader_set_scale_t );
+typedef lv_obj_t *ui_wx_reader_set_hor_num_t;
+ui_wx_reader_set_hor_num_t
+ui_wx_reader_set_hor_num_create(double hor_num);
+void ui_wx_reader_set_hor_num_destroy(ui_wx_reader_set_hor_num_t );
+
+typedef lv_obj_t *ui_wx_reader_set_ver_num_t;
+ui_wx_reader_set_ver_num_t
+ui_wx_reader_set_ver_num_create(double ver_num);
+void ui_wx_reader_set_ver_num_destroy(ui_wx_reader_set_ver_num_t );
 
 
 #endif // UI_WIDGETS_H

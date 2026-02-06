@@ -242,3 +242,7 @@ void book_set_page_no(book_t book, int page_no) {
 }
 
 double book_get_scale(book_t book) { return book->scale; }
+
+int book_get_x_off(book_t book) { return book->x_off; }
+
+int book_get_y_off(book_t book) { return book->y_off; }

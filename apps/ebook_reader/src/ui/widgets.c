@@ -316,45 +316,45 @@ int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field) {
   return &field_data->id;
 }
 
-ui_wx_reader_set_scale_t ui_wx_reader_set_scale_create(double scale) {
+ui_wx_reader_set_hor_num_t ui_wx_reader_set_hor_num_create(double hor_num) {
   const int setting_x = 800;
   const int setting_y = 480;
 
-  lv_obj_t *set_scale = ui_wx_obj_create(lv_screen_active());
-  lv_gridnav_add(set_scale, LV_GRIDNAV_CTRL_NONE);
+  lv_obj_t *set_hor_num = ui_wx_obj_create(lv_screen_active());
+  lv_gridnav_add(set_hor_num, LV_GRIDNAV_CTRL_NONE);
 
-  lv_obj_set_pos(set_scale,
+  lv_obj_set_pos(set_hor_num,
                  (lv_display_get_horizontal_resolution(NULL) - setting_x) / 2,
                  (lv_display_get_vertical_resolution(NULL) - setting_y) / 2);
-  lv_obj_set_size(set_scale, setting_x, setting_y);
-  /* lv_obj_set_style_bg_color(set_scale, lv_color_black(), 0); */
+  lv_obj_set_size(set_hor_num, setting_x, setting_y);
+  /* lv_obj_set_style_bg_color(set_hor_num, lv_color_black(), 0); */
 
-  lv_obj_t *up_btn = lv_button_create(set_scale);
+  lv_obj_t *up_btn = lv_button_create(set_hor_num);
   lv_obj_t *up_label = lv_label_create(up_btn);
   lv_label_set_text(up_label, LV_SYMBOL_UP);
 
   char buf[8] = {0};
-  snprintf(buf, sizeof(buf), "%2.3f", scale);
+  snprintf(buf, sizeof(buf), "%2.3f", hor_num);
   puts(buf);
-  lv_obj_t *scale_label = lv_label_create(set_scale);
-  lv_label_set_text(scale_label, buf);
+  lv_obj_t *hor_num_label = lv_label_create(set_hor_num);
+  lv_label_set_text(hor_num_label, buf);
 
-  lv_obj_t *down_btn = lv_button_create(set_scale);
+  lv_obj_t *down_btn = lv_button_create(set_hor_num);
   lv_obj_t *down_label = lv_label_create(down_btn);
   lv_label_set_text(down_label, LV_SYMBOL_DOWN);
 
-  lv_obj_set_layout(set_scale, LV_LAYOUT_FLEX);
-  lv_obj_set_flex_flow(set_scale, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_layout(set_hor_num, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(set_hor_num, LV_FLEX_FLOW_COLUMN);
 
   lv_obj_set_flex_align(
-      set_scale,
+      set_hor_num,
       LV_FLEX_ALIGN_CENTER,  
       LV_FLEX_ALIGN_CENTER,  
       LV_FLEX_ALIGN_CENTER); 
 
-  lv_obj_set_style_pad_row(set_scale, 16, 0);
+  lv_obj_set_style_pad_row(set_hor_num, 16, 0);
   lv_obj_set_style_pad_all(
-      set_scale, 24, 0);
+      set_hor_num, 24, 0);
 
 
   lv_obj_set_size(up_btn, 220, 90);
@@ -363,20 +363,20 @@ ui_wx_reader_set_scale_t ui_wx_reader_set_scale_create(double scale) {
   lv_obj_center(up_label);
   lv_obj_center(down_label);
 
-  lv_obj_set_style_text_font(scale_label, &lv_font_montserrat_30, 0);
+  lv_obj_set_style_text_font(hor_num_label, &lv_font_montserrat_30, 0);
   lv_obj_set_style_text_font(up_label, &lv_font_montserrat_30, 0);
   lv_obj_set_style_text_font(down_label, &lv_font_montserrat_30, 0);
 
-  lv_obj_set_style_border_width(scale_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(hor_num_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(up_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(down_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_border_width(set_scale, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(set_hor_num, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
   
-  lv_obj_set_style_text_align(scale_label, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_set_style_text_align(hor_num_label, LV_TEXT_ALIGN_CENTER, 0);
 
-  return set_scale;
+  return set_hor_num;
 }
 
-void ui_wx_reader_set_scale_destroy(ui_wx_reader_set_scale_t scale) {
-  lv_obj_del(scale);
+void ui_wx_reader_set_hor_num_destroy(ui_wx_reader_set_hor_num_t hor_num) {
+  lv_obj_del(hor_num);
 };

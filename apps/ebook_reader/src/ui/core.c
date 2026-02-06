@@ -210,6 +210,25 @@ void ui_reader_set_scale_destroy(ui_t ui) {
   ui_screen_reader_set_scale_destroy(&ui->screen);
 }
 
+err_t ui_reader_set_x_off_init(ui_t ui, book_t book) {
+  err_o = ui_screen_reader_set_x_off_init(
+      &ui->screen, book, ui_display_get_input_group(&ui->display));
+  ERR_TRY(err_o);
+
+  return 0;
+
+error_out:
+  return err_o;
+  
+  }
+
+void ui_reader_set_x_off_destroy(ui_t ui) {
+  ui_screen_reader_set_x_off_destroy(&ui->screen);
+  
+}
+
+
+
 /* void ui_reader_book_event_cb______(lv_event_t *e) { */
 /*   book_t book = lv_event_get_user_data(e); */
 /*   lv_key_t key = lv_event_get_key(e); */

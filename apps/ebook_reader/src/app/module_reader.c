@@ -74,6 +74,12 @@ static void app_module_reader_set_x_off_open(app_module_reader_t reader,
                                              app_ctx_t ctx,
                                              enum AppEventEnum event,
                                              void *arg);
+static void app_module_reader_set_x_off_up(app_module_reader_t, app_ctx_t,
+                                           enum AppEventEnum, void *);
+static void app_module_reader_set_x_off_down(app_module_reader_t, app_ctx_t,
+                                             enum AppEventEnum, void *);
+static void app_module_reader_set_x_off_close(app_module_reader_t, app_ctx_t,
+                                              enum AppEventEnum, void *);
 
 // Set Y offset API
 static void app_module_reader_set_y_off_open(app_module_reader_t reader,
@@ -157,7 +163,21 @@ struct AppReaderFsmTransition
             },
         [AppReaderStateEnum_SET_X_OFF] =
             {
-
+                [AppEventEnum_BTN_ENTER] =
+                    {
+                        .next_state = AppReaderStateEnum_PAGE,
+                        .action = app_module_reader_set_x_off_close,
+                    },
+                [AppEventEnum_BTN_LEFT] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_X_OFF,
+                        .action = app_module_reader_set_x_off_down,
+                    },
+                [AppEventEnum_BTN_RIGTH] =
+                    {
+                        .next_state = AppReaderStateEnum_SET_X_OFF,
+                        .action = app_module_reader_set_x_off_up,
+                    },
             },
         [AppReaderStateEnum_SET_Y_OFF] =
             {
@@ -420,7 +440,81 @@ error_out:
 static void app_module_reader_set_x_off_open(app_module_reader_t reader,
                                              app_ctx_t ctx,
                                              enum AppEventEnum event,
-                                             void *arg) {}
+                                             void *arg) {
+  puts(__func__);
+  err_o = ui_reader_set_x_off_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_set_x_off_up(app_module_reader_t reader,
+                                          app_ctx_t ctx,
+                                          enum AppEventEnum event, void *arg) {
+  puts(__func__);
+  double x_off = book_get_x_off(reader->book);
+  x_off += 50;
+  book_set_x_offset(reader->book, x_off);
+
+  ui_reader_set_x_off_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  err_o = ui_reader_set_x_off_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);  
+}
+static void app_module_reader_set_x_off_down(app_module_reader_t reader,
+                                          app_ctx_t ctx,
+                                          enum AppEventEnum event, void *arg) {
+  puts(__func__);
+  double x_off = book_get_x_off(reader->book);
+  x_off -= 50;
+  book_set_x_offset(reader->book, x_off);
+
+  ui_reader_set_x_off_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  err_o = ui_reader_set_x_off_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+static void app_module_reader_set_x_off_close(app_module_reader_t reader,
+                                             app_ctx_t ctx,
+                                             enum AppEventEnum event,
+                                             void *arg) {
+    puts(__func__);
+
+  ui_reader_set_x_off_destroy(ctx->ui);
+  app_module_reader_close(reader);
+
+  err_o = ui_reader_init(ctx->ui, reader->book);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  app_raise_error(reader->owner, err_o);
+}
+
+
 static void app_module_reader_set_y_off_open(app_module_reader_t reader,
                                              app_ctx_t ctx,
                                              enum AppEventEnum event,

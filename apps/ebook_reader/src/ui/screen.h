@@ -41,4 +41,13 @@ err_t ui_screen_reader_set_scale_init(ui_screen_t screen, book_t book,
                                       lv_group_t *group);
 void ui_screen_reader_set_scale_destroy(ui_screen_t screen);
 
+err_t ui_screen_reader_set_x_off_init(ui_screen_t screen, book_t book,
+                                      lv_group_t *group);
+void ui_screen_reader_set_x_off_destroy(ui_screen_t screen);
+
+err_t ui_screen_reader_set_y_off_init(ui_screen_t screen, book_t book,
+                                      lv_group_t *group);
+void ui_screen_reader_set_y_off_destroy(ui_screen_t screen);
+
+
 #endif // UI_SCREEN_H

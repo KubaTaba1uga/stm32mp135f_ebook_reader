@@ -22,6 +22,8 @@ void book_set_scale(book_t, double);
 int book_get_max_page_no(book_t);
 int book_get_page_no(book_t);
 double book_get_scale(book_t);
+int book_get_x_off(book_t);
+int book_get_y_off(book_t);
 void book_set_page_no(book_t, int);
 const unsigned char *book_get_thumbnail(book_t, int x, int y);
 books_list_t book_api_find_books(book_api_t);
