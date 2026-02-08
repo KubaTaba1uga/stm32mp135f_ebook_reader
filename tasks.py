@@ -6,9 +6,8 @@ from invoke import task
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
-APPS_PATH = os.path.join(ROOT_PATH, "apps")
-EBOOK_READER_PATH = os.path.join(APPS_PATH, "ebook_reader")
-DISPLAY_DRIVER_PATH = os.path.join(APPS_PATH, "display_driver")
+EBOOK_READER_PATH = os.path.join(ROOT_PATH, "ebook_reader")
+DISPLAY_DRIVER_PATH = os.path.join(ROOT_PATH, "display_driver")
 
 C_FORMATER = "clang-format-19"
 C_LINTER = "clang-tidy-19"
@@ -164,7 +163,7 @@ def serve_docs(c, port=8000):
             [
                 f"sphinx-autobuild",
                 f"--port {port}",
-                f"--watch apps/display_driver/include",
+                f"--watch display_driver/include",
                 f"docs build/docs/html",
             ]
         ),

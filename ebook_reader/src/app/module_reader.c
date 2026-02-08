@@ -595,6 +595,7 @@ static void app_module_reader_set_y_off_up(app_module_reader_t reader,
 error_out:
   app_raise_error(reader->owner, err_o);
 }
+
 static void app_module_reader_set_y_off_down(app_module_reader_t reader,
                                              app_ctx_t ctx,
                                              enum AppEventEnum event,
