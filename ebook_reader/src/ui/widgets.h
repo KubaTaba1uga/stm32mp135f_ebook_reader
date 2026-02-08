@@ -45,4 +45,30 @@ int ui_wx_menu_book_get_id(ui_wx_menu_book_t);
 ui_t ui_wx_menu_book_get_ui(ui_wx_menu_book_t);
 void ui_wx_menu_book_destroy(ui_wx_menu_book_t);
 
+typedef lv_obj_t *ui_wx_reader_t;
+ui_wx_reader_t ui_wx_reader_create(int page_len, const unsigned char *page_buf);
+void ui_wx_reader_destroy(ui_wx_reader_t reader);
+
+typedef lv_obj_t *ui_wx_reader_settings_t;
+ui_wx_reader_settings_t
+ui_wx_reader_settings_create(void);
+void ui_wx_reader_settings_destroy(ui_wx_reader_settings_t reader_settings);
+
+typedef lv_obj_t *ui_wx_reader_settings_field_t;
+ui_wx_reader_settings_field_t ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings, const char *field, int i, void *data);
+void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field);
+void *ui_wx_reader_settings_field_get_data(ui_wx_reader_settings_field_t field);
+int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field);
+
+typedef lv_obj_t *ui_wx_reader_set_hor_num_t;
+ui_wx_reader_set_hor_num_t
+ui_wx_reader_set_hor_num_create(double hor_num);
+void ui_wx_reader_set_hor_num_destroy(ui_wx_reader_set_hor_num_t );
+
+typedef lv_obj_t *ui_wx_reader_set_ver_num_t;
+ui_wx_reader_set_ver_num_t
+ui_wx_reader_set_ver_num_create(double ver_num);
+void ui_wx_reader_set_ver_num_destroy(ui_wx_reader_set_ver_num_t );
+
+
 #endif // UI_WIDGETS_H

@@ -10,7 +10,7 @@ struct AppError {
   ui_t ui;
 };
 
-static void app_module_error_open(void *, app_ctx_t, void *);
+static void app_module_error_open(void *, app_ctx_t, enum AppEventEnum, void *);
 static void app_module_error_close(void *);
 static void app_module_error_destroy(void *);
 
@@ -30,7 +30,7 @@ err_t app_module_error_init(app_module_t out, app_t app) {
   return 0;
 };
 
-static void app_module_error_open(void *module, app_ctx_t ctx, void *arg) {
+static void app_module_error_open(void *module, app_ctx_t ctx, enum AppEventEnum event, void *arg) {
   log_error(arg);
 }
 

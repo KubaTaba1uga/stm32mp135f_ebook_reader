@@ -17,7 +17,7 @@ struct AppMenu {
   books_list_t blist;
 };
 
-static void app_module_menu_open(void *, app_ctx_t, void *);
+static void app_module_menu_open(void *, app_ctx_t, enum AppEventEnum, void *);
 static void app_module_menu_close(void *);
 static void app_module_menu_destroy(void *);
 
@@ -41,7 +41,7 @@ err_t app_module_menu_init(app_module_t out, app_t app) {
    @todo We should display sth wich would indicate lack of books instead of
    raising error.
 */
-static void app_module_menu_open(void *module, app_ctx_t ctx, void *__) {
+static void app_module_menu_open(void *module, app_ctx_t ctx, enum AppEventEnum __, void *___) {
   assert(module != NULL);
   assert(ctx->book_api != NULL);
 
@@ -67,6 +67,7 @@ error_out:
 }
 
 static void app_module_menu_close(void *module) {
+  puts(__func__);
   app_module_menu_t menu = module;
 
   if (menu->ui) {
@@ -80,15 +81,18 @@ static void app_module_menu_close(void *module) {
 };
 
 static void app_module_menu_destroy(void *module) {
+  puts(__func__);  
   app_module_menu_close(module);
   mem_free(module);
 };
 
-/**
-   @todo Instead of NULL add book. Propably need sth like list_pop to receive
-   book.
- */
-void app_module_menu_select_book(app_module_t module, app_ctx_t __, void *___) {
+void app_module_menu_select_book(app_module_t module, app_ctx_t __, enum AppEventEnum ___, void *data) {
   app_module_menu_t menu = module->module_data;
-  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED, NULL);
+  int *current_book_i = data;
+  app_event_post(menu->owner, AppEventEnum_BOOK_SELECTED,
+                 books_list_pop(menu->blist, *current_book_i));
+  mem_free(current_book_i);
 }
+
+
+

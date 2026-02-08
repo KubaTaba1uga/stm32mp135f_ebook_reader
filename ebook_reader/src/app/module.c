@@ -18,12 +18,12 @@ error_out:
   return err_o;
 }
 
-void app_module_open(app_module_t module, app_ctx_t ctx, void *ev_data) {
+void app_module_open(app_module_t module, app_ctx_t ctx, enum AppEventEnum event, void *ev_data) {
   if (!module->open) {
     return;
   }
-
-  module->open(module->module_data, ctx, ev_data);
+  
+  module->open(module->module_data, ctx, event, ev_data);
 };
 
 void app_module_close(app_module_t module) {

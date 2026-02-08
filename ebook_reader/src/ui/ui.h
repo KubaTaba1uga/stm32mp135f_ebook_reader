@@ -30,14 +30,22 @@ void ui_destroy(ui_t *out);
 */
 void ui_panic(ui_t ui);
 
-/**
-   @brief Create menu screen.
-*/
 err_t ui_menu_init(ui_t ui, books_list_t blist, int book_i);
-
-/**
-   @brief Delete menu screen.
-*/
 void ui_menu_destroy(ui_t ui);
+
+err_t ui_reader_init(ui_t ui, book_t book);
+void ui_reader_destroy(ui_t ui);
+err_t ui_reader_change_page(ui_t ui, book_t book, int page_i);
+err_t ui_reader_settings_init(ui_t ui, const char **fields, int fields_len);
+void ui_reader_settings_destroy(ui_t ui);
+err_t ui_reader_set_scale_init(ui_t ui, book_t book);
+void ui_reader_set_scale_destroy(ui_t ui);
+err_t ui_reader_set_x_off_init(ui_t ui, book_t book);
+void ui_reader_set_x_off_destroy(ui_t ui);
+err_t ui_reader_set_y_off_init(ui_t ui, book_t book);
+void ui_reader_set_y_off_destroy(ui_t ui);
+
+
+
 
 #endif // UI_H

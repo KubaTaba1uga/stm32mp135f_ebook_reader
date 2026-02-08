@@ -6,11 +6,61 @@ from invoke import task
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
+EBOOK_READER_PATH = os.path.join(ROOT_PATH, "ebook_reader")
+DISPLAY_DRIVER_PATH = os.path.join(ROOT_PATH, "display_driver")
+
 C_FORMATER = "clang-format-19"
 C_LINTER = "clang-tidy-19"
 
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
+
+
+@task
+def build_bsp(c, config="ebook_reader_dev_defconfig"):
+    """
+    @todo change config="ebook_reader_dev_defconfig" to config="ebook_reader_defconfig"
+          dev build should not be default.
+    """
+    repos = {
+        "buildroot": {
+            "tag": "st/2024.02.9",
+            "url": "https://github.com/bootlin/buildroot.git",
+        },
+        "linux": {
+            "tag": "v6.6-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/linux.git",
+        },
+        "uboot": {
+            "tag": "v2023.10-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/u-boot.git",
+        },
+        "optee": {
+            "tag": "4.0.0-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/optee_os.git",
+        },
+        "tf-a": {
+            "tag": "v2.10-stm32mp-r2",
+            "url": "https://github.com/STMicroelectronics/arm-trusted-firmware.git",
+        },
+    }
+    _pr_info(f"Building BSP...")
+
+    if "dev" in config:
+        c.run("mkdir -p third_party")
+        with c.cd("third_party"):
+            for repo, rdata in repos.items():
+                c.run(f"git clone {rdata['url']} {repo} || true")
+                with c.cd(repo):
+                    c.run(f"git checkout {rdata['tag']}")
+
+    if config:
+        configure(c, config)
+
+    with c.cd("build/buildroot"):
+        c.run("make BR2_DL_DIR=../../build/third_party")
+
+    _pr_info(f"Building BSP completed")
 
 
 @task
@@ -43,7 +93,7 @@ def install(c):
               gcc g++ bash patch gzip bzip2 perl tar cpio \
               unzip rsync file bc findutils gawk curl \
               git libncurses5-dev python3 libpoppler-glib-dev"
-              f" {C_FORMATER} {C_LINTER} "
+            f" {C_FORMATER} {C_LINTER} "
         )
 
         c.run("virtualenv .venv")
@@ -113,7 +163,7 @@ def serve_docs(c, port=8000):
             [
                 f"sphinx-autobuild",
                 f"--port {port}",
-                f"--watch dummy_app/include",
+                f"--watch display_driver/include",
                 f"docs build/docs/html",
             ]
         ),
@@ -150,19 +200,6 @@ def download(c, config="ebook_reader_dev_defconfig"):
         c.run("make BR2_DL_DIR=../../build/third_party source")
 
     _pr_info(f"Downloading dependencies completed")
-
-
-@task
-def build_bsp(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Building BSP...")
-
-    if config:
-        configure(c, config)
-
-    with c.cd("build/buildroot"):
-        c.run("make BR2_DL_DIR=../../build/third_party")
-
-    _pr_info(f"Building BSP completed")
 
 
 @task
@@ -283,7 +320,7 @@ def fbuild_linux_dt(c):
 
 @task
 def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
-    ereader_path = os.path.join(ROOT_PATH, "ebook_reader")
+    ereader_path = EBOOK_READER_PATH
     if not os.path.exists(ereader_path):
         return
 
@@ -310,8 +347,8 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
 
         c.run(
             f"rm -rf subprojects/display_driver && "
-            f"ln -s {os.path.join(ROOT_PATH, 'display_driver')} "
-            f"{os.path.join(ROOT_PATH, 'ebook_reader', 'subprojects', 'display_driver')}"
+            f"ln -s {DISPLAY_DRIVER_PATH} "
+            f"{os.path.join(ereader_path, 'subprojects', 'display_driver')}"
         )
 
         c.run(
@@ -322,6 +359,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
                 f" -Ddisplay={display} "
                 if not local
                 else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
+                # else " -Ddisplay=x11 "                
             )
         )
 
@@ -336,7 +374,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
 
 @task
 def fbuild_ebook_reader_test(c):
-    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    tests_path = EBOOK_READER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -346,6 +384,7 @@ def fbuild_ebook_reader_test(c):
         build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
         c.run(
             f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+            
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
@@ -360,7 +399,7 @@ def fbuild_ebook_reader_test(c):
 
 @task
 def fbuild_display_driver(c):
-    driver_path = os.path.join(ROOT_PATH, "display_driver")
+    driver_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(driver_path):
         return
 
@@ -370,9 +409,10 @@ def fbuild_display_driver(c):
         "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
     )
 
+    build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
+    c.run(f"mkdir -p {build_dir}")
+    
     with c.cd(driver_path):
-        build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
-        c.run(f"mkdir -p {build_dir}")
         root = os.path.abspath(ROOT_PATH)
         with open(cross_tpl_path, "r", encoding="utf-8") as f:
             cross_txt = f.read()
@@ -396,7 +436,7 @@ def fbuild_display_driver(c):
 
 @task
 def test_ebook_reader(c, asan_options=None):
-    tests_path = os.path.join(ROOT_PATH, "ebook_reader")
+    tests_path = EBOOK_READER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -414,7 +454,7 @@ def test_ebook_reader(c, asan_options=None):
 
 @task
 def fbuild_display_driver_test(c):
-    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    tests_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -436,7 +476,7 @@ def fbuild_display_driver_test(c):
 
 @task
 def test_display_driver(c, asan_options=None):
-    tests_path = os.path.join(ROOT_PATH, "display_driver")
+    tests_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(tests_path):
         return
 
@@ -517,8 +557,6 @@ def deploy_sdcard(c, dev="sda"):
     _pr_info(f"Deploy to sdcard completed")
 
 
-
-
 @task
 def lint(c, project=""):
     patterns = [
@@ -532,7 +570,7 @@ def lint(c, project=""):
     projects = ["display_driver", "ebook_reader"]
     if project:
         projects = [project]
-    
+
     for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
@@ -558,7 +596,7 @@ def format(c, project=""):
     projects = ["display_driver", "ebook_reader"]
     if project:
         projects = [project]
-    
+
     for proj in projects:
         proj_patterns = [f"{proj}/{pattern}" for pattern in patterns]
         for pattern in proj_patterns:
@@ -570,7 +608,8 @@ def format(c, project=""):
                     _pr_info(f"{path} formated")
 
     _pr_info("Formating done")
-    
+
+
 ###############################################
 #                Private API                  #
 ###############################################

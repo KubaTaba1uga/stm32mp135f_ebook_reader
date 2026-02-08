@@ -80,11 +80,13 @@ error_out:
 };
 
 static void ui_screen_menu_destroy(void *screen) {
+  puts(__func__) ;
   ui_screen_menu_t menu = screen;
   for (int i = menu->books.len - 1; i >= 0; i--) {
     ui_wx_menu_book_destroy(menu->books.buf[i]);
   }
 
+  lv_group_remove_obj(menu->menu);  
   mem_free(menu->books.buf);
   ui_wx_menu_destroy(menu->menu);
   ui_wx_bar_destroy(menu->bar);

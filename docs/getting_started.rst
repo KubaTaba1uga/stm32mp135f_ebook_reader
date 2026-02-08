@@ -1,54 +1,76 @@
 Getting started
 ===============
 
-If you look for guides like how to upload new ebook onto a reader, that is not here. This part of documentation aim at people who are meant to develop something onto the device, new app new functionality, choose yourself. In further chapters i will try to be describing how the ebook reader was build so you can happily modify it's every part. First step in our journey will be obtaining firmware's source code:
+To start working with the repository, use git to download it onto your machine:
 
 .. code-block:: console
 
-   $ git clone http://github.com/KubaTaba1uga/stm32mp135f_ebook_reader.git
+   $ git clone https://github.com/KubaTaba1uga/stm32mp135f_ebook_reader
    $ cd stm32mp135f_ebook_reader
 
-To build all elements of the device (operating system, bootloader, libraries ...) we need to install required dependencies like compiler, script language interpreter etc. :
+The directory you are in is divided into few parts, we have the applications
+in the apps directory, there are programs and libraries that we developed to allow you read books on the device.
+
+There is also br2_external_tree directory which is a buildroot external tree directory, we use buildroot to build sdcard and libraries which are used by our apps. So you will find there stuff like linux config, bootloader config, apps build configs, librariies confgs etc. 
+
+To build sd card containing the app use invoke command ``build-bsp``:
 
 .. code-block:: console
 
-   $ sudo apt install python3-invoke
-   $ inv install
-
-   
-Build the SD card image
------------------------
-
-The device's firmware is on the SD card. When we box a brand new device we flash firmware onto the SD card and inject it to the device. The repository you just downloaded contain all source code required to build the sd card from scratch allowing the developer to repeat whole building process on it's own machine. Before making any changes however, we need to verify that you can rebuild the SD card image and boot the device successfully because if the device stops working from any reason we want you to be able to go back to default settings and confirm it is the firmware's fault. To build the BSP (Board Support Package) image perform following command:
-
-.. code-block:: console
-
+   $ sudo apt install -y python3-invoke
    $ inv build-bsp
+   $ sudo dd bs=4M conv=fsync if=build/sdcard.img of=/dev/sda
 
-.. note::
-   
-   This step will take a while so please be patient.
-   
+Development build
+-----------------
 
-Deploy the image to an SD card
-------------------------------
-
-Once the image is built, insert the SD card into your workstation and identify its device path (for example: ``/dev/sda``).
-
-Then deploy the image:
+Flashing SD card every time we change something in the app would make development frustrating, so we have also a development build, which aim to speed up development efforts by using TFTP+NFS to boot linux and the app itself. You can build it once again using ``build-bsp`` command:
 
 .. code-block:: console
 
-   $ inv deploy-sdcard /dev/sda
+   $ inv build-bsp -c ebook_reader_dev_defconfig
 
-.. warning::
+before you flash SD card and boot the device, remember to configure your machine appropriatly, you need TFTP and NFS server configured as well as configured network card to work with DWC USB gadget on the device:
 
-   Double-check the device path before running the deploy command.
-   Using the wrong device (e.g. your system disk) will overwrite data.
+- :doc:`Set up NIC <dev/set_up_nic>`
+- :doc:`Set up TFTP <dev/set_up_tftp>`
+- :doc:`Set up NFS <dev/set_up_nfs>`
+- :doc:`Prepare SD card <dev/set_up_sdcard>`
 
-Boot the device
----------------
+Once all host configuration is done, you can connect USB C cable to your ebook reader and boot it up, if all went good you should see how uboot is downloading linux image from your machine in the logs:
 
-Now insert the SD card back into the eBook reader and power it on. The device should boot normally using the freshly built firmware.
+.. code-block:: console
 
-Once you confirmed that device is working properly, you can go further to part where we modify the ebook's firmware.
+   using dwc2-udc, OUT ep2out-bulk IN ep1in-bulk STATUS ep3in-int
+   MAC f8:dc:7a:00:00:02
+   HOST MAC f8:dc:7a:00:00:01
+   crq->brequest:0x0
+   high speed config #1: 2 mA, Ethernet Gadget, using CDC Ethernet
+   USB network up!
+   Using usb@49000000 device
+   TFTP from server 192.168.7.1; our IP address is 192.168.7.2
+   Filename 'zImage'.
+   Load address: 0xc0200000
+   Loading: ##################################################  7.9 MiB
+	    11 MiB/s
+   done
+   Bytes transferred = 8299976 (7ea5c8 hex)
+   high speed config #1: 2 mA, Ethernet Gadget, using CDC Ethernet
+   USB network up!
+   Using usb@49000000 device
+   TFTP from server 192.168.7.1; our IP address is 192.168.7.2
+   Filename 'stm32mp135f-dk-ebook_reader.dtb'.
+   Load address: 0xc2400000
+   Loading: ##################################################  53.5 KiB
+	    7.5 MiB/s
+   done
+   Bytes transferred = 54736 (d5d0 hex)
+   Kernel image @ 0xc0200000 [ 0x000000 - 0x7ea5c8 ]
+   ## Flattened Device Tree blob at c2400000
+      Booting using the fdt blob at 0xc2400000
+   Working FDT set to c2400000
+      Loading Device Tree to cffef000, end cffff5cf ... OK
+   Working FDT set to cffef000
+
+   Starting kernel ...
+
