@@ -231,7 +231,7 @@ static void app_module_reader_step_priv(struct AppReaderFsmTransition *trans,
   app_module_reader_t reader = module;
 
   if (!trans->action) {
-    log_debug("Triggered transaction without action: event=%s, state=%s",
+    log_debug("Triggered transition without action: event=%s, state=%s",
               app_event_dump(event), app_reader_state_dump(reader->state));
     goto out;
   }
@@ -357,7 +357,6 @@ static void app_module_reader_page_reopen(app_module_reader_t reader,
                                           app_ctx_t ctx,
                                           enum AppEventEnum event, void *arg) {
   ui_reader_destroy(ctx->ui);
-
   app_module_reader_page_open(reader, ctx, event, reader->book);
 }
 
