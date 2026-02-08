@@ -5,9 +5,11 @@
 #include "book/book.h"
 #include "ui/ui.h"
 #include "utils/err.h"
+#include "utils/zlist.h"
 
 typedef struct App *app_t;
 typedef struct AppCtx *app_ctx_t;
+typedef struct AppEventData *app_event_t;
 
 /**
    @brief Events occuring in the system.
@@ -44,6 +46,9 @@ enum AppEventEnum {
    */
   AppEventEnum_BTN_MENU,
   AppEventEnum_BOOK_SELECTED,
+  AppEventEnum_READER_ZOOM_OPENED,
+  AppEventEnum_READER_X_OFF_OPENED,
+  AppEventEnum_READER_Y_OFF_OPENED,
   /**
    Once any module meet error that cannot be gracefully handled
    so the user can go back to using the device we emmit ERROR_RAISED.
@@ -68,25 +73,11 @@ struct AppCtx {
   book_api_t book_api;
 };
 
-enum AppStateEnum {
-  AppStateEnum_BOOT = 0,
-  AppStateEnum_MENU,
-  AppStateEnum_READER,
-  AppStateEnum_ERROR,
-  // Add more states here
-  AppStateEnum_MAX,
-};
-
-struct AppCtx {
-  ui_t ui;
-  book_api_t book_api;  
-};
-
 struct AppEventData {
+  struct ZListNode next;
   enum AppEventEnum event;
   void *data;
 };
-
 
 /**
   @brief Post event to the app.
@@ -109,5 +100,7 @@ const char *app_event_dump(enum AppEventEnum event);
    @param error Error which will be handled by error module.
 */
 void app_raise_error(app_t app, err_t error);
+
+
 
 #endif // EBOOK_READER_APP_CORE_H
