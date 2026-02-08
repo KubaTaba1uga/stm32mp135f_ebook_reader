@@ -159,7 +159,7 @@ void ui_screen_reader_settings_destroy(ui_screen_t screen) {
   mem_free(reader->fields);
 }
 
-static void ui_screen_reader_scale_event_cb(lv_event_t *e) {
+static void ui_screen_reader_fields_event_cb(lv_event_t *e) {
   puts(__func__);
   ui_screen_reader_t reader = lv_event_get_user_data(e);
   reader->event_cb(e, reader, reader->owner);
@@ -181,7 +181,7 @@ err_t ui_screen_reader_set_scale_init(ui_screen_t screen, book_t book,
   lv_group_focus_obj(key_catcher);
   lv_group_focus_obj(key_catcher);
   lv_obj_set_user_data(scale, key_catcher);
-  lv_obj_add_event_cb(key_catcher, ui_screen_reader_scale_event_cb,
+  lv_obj_add_event_cb(key_catcher, ui_screen_reader_fields_event_cb,
                       LV_EVENT_KEY, reader_screen);
 
   return 0;
@@ -210,7 +210,7 @@ err_t ui_screen_reader_set_x_off_init(ui_screen_t screen, book_t book,
   lv_group_add_obj(group, key_catcher);
   lv_group_focus_obj(key_catcher);
   lv_obj_set_user_data(x_off, key_catcher);
-  lv_obj_add_event_cb(key_catcher, ui_screen_reader_scale_event_cb,
+  lv_obj_add_event_cb(key_catcher, ui_screen_reader_fields_event_cb,
                       LV_EVENT_KEY, reader_screen);
 
   return 0;
@@ -222,4 +222,34 @@ void ui_screen_reader_set_x_off_destroy(ui_screen_t screen) {
   lv_obj_t *x_off = lv_obj_get_user_data(reader_screen->ver_num);
   lv_obj_del(x_off);
   ui_wx_reader_set_ver_num_destroy(reader_screen->ver_num);
+}
+
+err_t ui_screen_reader_set_y_off_init(ui_screen_t screen, book_t book,
+                                      lv_group_t *group) {
+  puts(__func__);
+  double y_off_value = book_get_y_off(book);
+  ui_wx_reader_set_hor_num_t y_off =
+      ui_wx_reader_set_hor_num_create(y_off_value);
+  ui_screen_reader_t reader_screen = screen->screen_data;
+  reader_screen->hor_num = y_off;
+
+  lv_obj_t *key_catcher = lv_obj_create(y_off);
+  lv_obj_set_size(key_catcher, 1, 1);
+  lv_obj_add_flag(key_catcher, LV_OBJ_FLAG_HIDDEN);
+  lv_group_add_obj(group, key_catcher);
+  lv_group_focus_obj(key_catcher);
+  lv_group_focus_obj(key_catcher);
+  lv_obj_set_user_data(y_off, key_catcher);
+  lv_obj_add_event_cb(key_catcher, ui_screen_reader_fields_event_cb,
+                      LV_EVENT_KEY, reader_screen);
+
+  return 0;
+}
+
+void ui_screen_reader_set_y_off_destroy(ui_screen_t screen) {
+  puts(__func__);
+  ui_screen_reader_t reader_screen = screen->screen_data;
+  lv_obj_t *y_off = lv_obj_get_user_data(reader_screen->hor_num);
+  lv_obj_del(y_off);
+  ui_wx_reader_set_hor_num_destroy(reader_screen->hor_num);
 }

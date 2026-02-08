@@ -315,8 +315,8 @@ int *ui_wx_reader_settings_field_get_id(ui_wx_reader_settings_field_t field) {
 }
 
 ui_wx_reader_set_hor_num_t ui_wx_reader_set_hor_num_create(double hor_num) {
-  const int setting_x = 800;
-  const int setting_y = 480;
+  const int setting_x = 600;
+  const int setting_y = 300;
 
   lv_obj_t *set_hor_num = ui_wx_obj_create(lv_screen_active());
   lv_gridnav_add(set_hor_num, LV_GRIDNAV_CTRL_NONE);

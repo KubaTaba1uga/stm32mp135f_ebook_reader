@@ -229,64 +229,22 @@ void ui_reader_set_x_off_destroy(ui_t ui) {
 
 
 
-/* void ui_reader_book_event_cb______(lv_event_t *e) { */
-/*   book_t book = lv_event_get_user_data(e); */
-/*   lv_key_t key = lv_event_get_key(e); */
+err_t ui_reader_set_y_off_init(ui_t ui, book_t book) {
+  err_o = ui_screen_reader_set_y_off_init(
+      &ui->screen, book, ui_display_get_input_group(&ui->display));
+  ERR_TRY(err_o);
 
-/*   log_debug("Ui received key: %d'", key); */
+  return 0;
 
-/*   if (key == '\r' || key == '\n') { */
-/*     key = LV_KEY_ENTER; */
-/*   } */
+error_out:
+  return err_o;
+  
+  }
 
-/*   static int x_offset = 0; */
-/*   static int y_offset = 0; */
-/*   static double scale = 1; */
+void ui_reader_set_y_off_destroy(ui_t ui) {
+  ui_screen_reader_set_y_off_destroy(&ui->screen);
+  
+}
 
-/*   if (key == 17) { */
-/*     y_offset -= 25; */
-/*     book_set_y_offset(book, y_offset); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
 
-/*   if (key == 18) { */
-/*     y_offset += 25; */
-/*     book_set_y_offset(book, y_offset); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
 
-/*   if (key == 19) { */
-/*     x_offset += 25; */
-/*     book_set_x_offset(book, x_offset); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
-
-/*   if (key == 20) { */
-/*     x_offset -= 25; */
-/*     book_set_x_offset(book, x_offset); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
-
-/*   if (key == 43) { */
-/*     scale += 0.1; */
-/*     book_set_scale(book, scale); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
-/*   if (key == 45) { */
-/*     scale -= 0.1; */
-/*     book_set_scale(book, scale); */
-/*     ui_screen_destroy(&gui->screen); */
-/*     ui_screen_reader_init(&gui->screen, gui, book, LV_EVENT_ALL, */
-/*                           ui_reader_book_event_cb, group); */
-/*   } */
-/* } */

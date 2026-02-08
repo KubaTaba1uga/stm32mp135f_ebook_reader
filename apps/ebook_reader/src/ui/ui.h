@@ -42,6 +42,8 @@ err_t ui_reader_set_scale_init(ui_t ui, book_t book);
 void ui_reader_set_scale_destroy(ui_t ui);
 err_t ui_reader_set_x_off_init(ui_t ui, book_t book);
 void ui_reader_set_x_off_destroy(ui_t ui);
+err_t ui_reader_set_y_off_init(ui_t ui, book_t book);
+void ui_reader_set_y_off_destroy(ui_t ui);
 
 
 
