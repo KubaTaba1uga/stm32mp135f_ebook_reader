@@ -1,20 +1,14 @@
 #include <lvgl.h>
 #include <stdio.h>
 
-#include "core/lv_obj.h"
-#include "core/lv_obj_event.h"
-#include "core/lv_obj_pos.h"
-#include "core/lv_obj_style_gen.h"
-#include "font/lv_font.h"
-#include "layouts/flex/lv_flex.h"
-#include "lv_api_map_v8.h"
-#include "misc/lv_color.h"
-#include "misc/lv_style.h"
-#include "misc/lv_types.h"
 #include "ui/widgets.h"
+#include "core/lv_obj.h"
+#include "core/lv_obj_style_gen.h"
+#include "font/lv_symbol_def.h"
+#include "layouts/flex/lv_flex.h"
+#include "misc/lv_style.h"
 #include "utils/mem.h"
 #include "utils/time.h"
-#include "widgets/button/lv_button.h"
 
 /* #define EBK_DEBUG_LVGL 1 */
 
@@ -260,7 +254,10 @@ ui_wx_reader_settings_t ui_wx_reader_settings_create(void) {
 }
 
 void ui_wx_reader_settings_destroy(ui_wx_reader_settings_t reader_settings) {
+  lv_style_t *style = lv_obj_get_user_data(reader_settings);
   lv_obj_del(reader_settings);
+  lv_style_reset(style);
+  mem_free(style);
 }
 
 ui_wx_reader_settings_field_t
@@ -302,7 +299,8 @@ ui_wx_reader_settings_add_field(ui_wx_reader_settings_t reader_settings,
 void ui_wx_reader_settings_field_destroy(ui_wx_reader_settings_field_t field) {
   struct UiReaderFieldWidget *field_data = lv_obj_get_user_data(field);
   lv_obj_del(field_data->label);
-  lv_obj_del(field);
+  lv_obj_del(field_data->field);
+  mem_free(field_data);
 };
 
 void *
@@ -379,4 +377,66 @@ ui_wx_reader_set_hor_num_t ui_wx_reader_set_hor_num_create(double hor_num) {
 
 void ui_wx_reader_set_hor_num_destroy(ui_wx_reader_set_hor_num_t hor_num) {
   lv_obj_del(hor_num);
+  
+};
+
+ui_wx_reader_set_ver_num_t ui_wx_reader_set_ver_num_create(double ver_num) {
+  const int ver_num_x = 600;
+  const int ver_num_y = 300;
+
+  lv_obj_t *set_ver_num = ui_wx_obj_create(lv_screen_active());
+  lv_gridnav_add(set_ver_num, LV_GRIDNAV_CTRL_NONE);
+
+  lv_obj_set_pos(set_ver_num,
+                 (lv_display_get_horizontal_resolution(NULL) - ver_num_x) / 2,
+                 (lv_display_get_vertical_resolution(NULL) - ver_num_y) / 2);
+  lv_obj_set_size(set_ver_num, ver_num_x, ver_num_y);
+
+  lv_obj_t *left_btn = lv_button_create(set_ver_num);
+  lv_obj_t *left_label = lv_label_create(left_btn);
+  lv_label_set_text(left_label, LV_SYMBOL_LEFT);
+
+  char buf[8] = {0};
+  snprintf(buf, sizeof(buf), "%5.5d", (int)ver_num);
+  puts(buf);  
+  lv_obj_t *ver_num_label_cont = lv_obj_create(set_ver_num);
+  lv_obj_t *ver_num_label = lv_label_create(ver_num_label_cont);
+  lv_label_set_text(ver_num_label, buf);
+  lv_obj_align(ver_num_label, LV_ALIGN_CENTER, 0, 0);
+  
+  lv_obj_t *right_btn = lv_button_create(set_ver_num);
+  lv_obj_t *right_label = lv_label_create(right_btn);
+  lv_label_set_text(right_label, LV_SYMBOL_RIGHT);
+
+  lv_obj_set_layout(set_ver_num, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(set_ver_num, LV_FLEX_FLOW_ROW);
+
+  lv_obj_set_flex_align(
+      set_ver_num,
+      LV_FLEX_ALIGN_CENTER,  
+      LV_FLEX_ALIGN_CENTER,  
+      LV_FLEX_ALIGN_CENTER); 
+
+  lv_obj_set_size(left_btn, lv_pct(25), 90);
+  lv_obj_set_size(right_btn, lv_pct(25), 90);
+  lv_obj_set_size(ver_num_label_cont, lv_pct(25), 90);  
+
+  lv_obj_center(left_label);
+  lv_obj_center(right_label);
+  lv_obj_center(ver_num_label_cont);  
+
+  lv_obj_set_style_text_font(ver_num_label, &lv_font_montserrat_30, 0);
+  lv_obj_set_style_text_font(left_label, &lv_font_montserrat_30, 0);
+  lv_obj_set_style_text_font(right_label, &lv_font_montserrat_30, 0);
+
+  lv_obj_set_style_border_width(ver_num_label_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(left_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(right_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(set_ver_num, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  return set_ver_num;
+}
+
+void ui_wx_reader_set_ver_num_destroy(ui_wx_reader_set_ver_num_t ver_num) {
+  lv_obj_del(ver_num);
 };

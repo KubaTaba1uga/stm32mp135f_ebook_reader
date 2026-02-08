@@ -8,14 +8,16 @@
 #include "utils/err.h"
 #include "utils/mem.h"
 #include <stdio.h>
+#include <string.h>
 
 typedef struct UiScreenReader *ui_screen_reader_t;
 
 struct UiScreenReader {
   void (*event_cb)(lv_event_t *e, void *book, ui_t ui);
   ui_wx_reader_settings_field_t *fields;
-  ui_wx_reader_settings_t settings;
   ui_wx_reader_set_hor_num_t hor_num;
+  ui_wx_reader_set_ver_num_t ver_num;
+  ui_wx_reader_settings_t settings;
   ui_wx_reader_t reader;
   lv_group_t *group;
   int fields_len;
@@ -113,26 +115,28 @@ err_t ui_screen_reader_settings_init(ui_screen_t screen, const char **fields,
                                      int fields_len, lv_group_t *group) {
   puts(__func__);
   ui_wx_reader_settings_t settings = ui_wx_reader_settings_create();
-  ui_screen_reader_t reader_screen = screen->screen_data;
-  reader_screen->settings = settings;
-  assert(reader_screen != NULL);
-  assert(reader_screen->reader != NULL);
+  ui_screen_reader_t reader = screen->screen_data;
+  reader->settings = settings;
+  assert(reader != NULL);
+  assert(reader->reader != NULL);
 
-  ui_screen_reader_cleanup(reader_screen);
+  ui_screen_reader_cleanup(reader);
 
   uint32_t n = lv_group_get_obj_count(group);
   printf("group members: %u\n", (unsigned)n);
 
   lv_group_add_obj(group, settings);
 
-  reader_screen->fields =
+  reader->fields =
       mem_malloc(sizeof(ui_wx_reader_settings_field_t) * fields_len);
-  for (int i = 0; i < fields_len; i++) {
+  reader->fields_len = fields_len;
+  
+  for (int i = 0; i < reader->fields_len; i++) {
     ui_wx_reader_settings_field_t f =
-        ui_wx_reader_settings_add_field(settings, fields[i], i, reader_screen);
+        ui_wx_reader_settings_add_field(settings, fields[i], i, reader);
     lv_obj_add_event_cb(f, ui_screen_reader_settings_event_cb,
-                        reader_screen->event, f);
-    reader_screen->fields[i] = f;
+                        reader->event, f);
+    reader->fields[i] = f;
   }
 
   return 0;
@@ -148,10 +152,10 @@ static void ui_screen_reader_cleanup(ui_screen_reader_t reader) {
 
 void ui_screen_reader_settings_destroy(ui_screen_t screen) {
   ui_screen_reader_t reader = screen->screen_data;
-  ui_wx_reader_settings_destroy(reader->settings);
   for (int i = 0; i < reader->fields_len; i++) {
     ui_wx_reader_settings_field_destroy(reader->fields[i]);
   }
+  ui_wx_reader_settings_destroy(reader->settings);  
   mem_free(reader->fields);
 }
 
@@ -165,7 +169,8 @@ err_t ui_screen_reader_set_scale_init(ui_screen_t screen, book_t book,
                                       lv_group_t *group) {
   puts(__func__);
   double scale_value = book_get_scale(book);
-  ui_wx_reader_set_hor_num_t scale = ui_wx_reader_set_hor_num_create(scale_value);
+  ui_wx_reader_set_hor_num_t scale =
+      ui_wx_reader_set_hor_num_create(scale_value);
   ui_screen_reader_t reader_screen = screen->screen_data;
   reader_screen->hor_num = scale;
 
@@ -193,10 +198,11 @@ void ui_screen_reader_set_scale_destroy(ui_screen_t screen) {
 err_t ui_screen_reader_set_x_off_init(ui_screen_t screen, book_t book,
                                       lv_group_t *group) {
   puts(__func__);
-  double x_off_value = book_get_x_off(book);  
-  ui_wx_reader_set_hor_num_t x_off = ui_wx_reader_set_hor_num_create(x_off_value);
+  double x_off_value = book_get_x_off(book);
+  ui_wx_reader_set_ver_num_t x_off =
+      ui_wx_reader_set_ver_num_create(x_off_value);
   ui_screen_reader_t reader_screen = screen->screen_data;
-  reader_screen->hor_num = x_off;
+  reader_screen->ver_num = x_off;
 
   lv_obj_t *key_catcher = lv_obj_create(x_off);
   lv_obj_set_size(key_catcher, 1, 1);
@@ -207,14 +213,13 @@ err_t ui_screen_reader_set_x_off_init(ui_screen_t screen, book_t book,
   lv_obj_add_event_cb(key_catcher, ui_screen_reader_scale_event_cb,
                       LV_EVENT_KEY, reader_screen);
 
-  
   return 0;
 }
 
 void ui_screen_reader_set_x_off_destroy(ui_screen_t screen) {
   puts(__func__);
   ui_screen_reader_t reader_screen = screen->screen_data;
-  lv_obj_t *x_off = lv_obj_get_user_data(reader_screen->hor_num);
+  lv_obj_t *x_off = lv_obj_get_user_data(reader_screen->ver_num);
   lv_obj_del(x_off);
-  ui_wx_reader_set_hor_num_destroy(reader_screen->hor_num);
+  ui_wx_reader_set_ver_num_destroy(reader_screen->ver_num);
 }
