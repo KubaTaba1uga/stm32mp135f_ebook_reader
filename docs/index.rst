@@ -1,22 +1,19 @@
 STM32MP135F eBook Reader Documentation
 ======================================
 
-.. TODO: Add a picture of the device here (recommended: a front view + open enclosure)
+.. TODO: Add a picture of the device here
 
 What is this?
 -------------
 
-This is an open-source eBook reader based on the **STM32MP135F**.
+This is an open source eBook reader based on the **STM32MP135F**.
 
-I created this project to improve my Linux-based device development skills and to better understand the ARM architecture.
+I created this project because ebook readers are awesome and to better understand the ARM architecture.
 
 Why should I care?
 ------------------
 
-If you are curious how an eBook reader works internally, this documentation provides a practical overview of how such a device **can** be designed and implemented.
-
-I also run a company that provides end-to-end Linux device development and builds products like this for customers.
-If you are interested in working with us, this documentation can help you understand our approach and decide whether we are a good fit for your project.
+If you are curious how an eBook reader works internally, this documentation provides a practical overview of how such a device can be designed and implemented.
 
 How do I start?
 ---------------
@@ -28,8 +25,8 @@ If you do not have one but want to acquire it, contact me at: **TODO: add email 
 The device consists of:
 
 - an **STM32MP135F** single board computer,
-- an **e-paper display**,
-- a **battery**,
+- an Waveshare e-paper display https://www.waveshare.com/product/displays/e-paper/7.8inch-e-paper.htm,
+- an **battery**,
 - a **sd card**,
 - and a **3D-printed enclosure**.
 
@@ -44,11 +41,4 @@ Each part is described in the sections below, but start with **Getting Started**
    :caption: Contents:
 
    getting_started
-   buildroot   
-   mpu
-   display
-   battery
-   enclosure
-   dummy_app
-
    

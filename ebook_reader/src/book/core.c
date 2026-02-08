@@ -114,6 +114,8 @@ books_list_t book_api_find_books(book_api_t api) {
         .extension = book_ext,
         .file_path = file_path,
         .owner = api,
+        .scale = 1,
+        .page_number = 1,
     };
 
     zlist_append(&list->books, &book->next);
@@ -191,12 +193,56 @@ static int book_get_extension(book_api_t api, const char *path) {
   return -1;
 }
 
-const char *book_get_title(book_t book) {
-  return book->owner->modules[book->extension].book_get_title(book);
-}
+const char *book_get_title(book_t book) { return book->title; }
 
 const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
   return book->owner->modules[book->extension].book_get_thumbnail(book, x, y);
 }
 
 int books_list_len(books_list_t list) { return list->books.len; }
+
+book_t books_list_pop(books_list_t list, int idx) {
+  zlist_node_t book_node = zlist_pop(&list->books, idx);
+  assert(book_node != NULL);
+  book_t book = CAST_BOOK_PRIV(book_node);
+  assert(book != NULL);
+  return book;
+}
+
+const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
+  puts(__func__);
+  return book->owner->modules[book->extension].book_get_page(book, x, y,
+                                                             buf_len);
+}
+
+void book_set_x_offset(book_t book, int value) { book->x_off = value; }
+
+void book_set_y_offset(book_t book, int value) { book->y_off = value; }
+
+void book_set_scale(book_t book, double value) { book->scale = value; }
+
+void book_destroy(book_t *book) {
+  if (!book || !*book) {
+    return;
+  }
+
+  (*book)->owner->modules[(*book)->extension].book_destroy(*book);
+  mem_free((void *)(*book)->file_path);
+  mem_free(*book);
+  *book = NULL;
+};
+
+int book_get_max_page_no(book_t book) { return book->max_page_number; }
+
+int book_get_page_no(book_t book) { return book->page_number; }
+
+void book_set_page_no(book_t book, int page_no) {
+  book->page_number =
+      page_no < book->max_page_number ? page_no : book->max_page_number;
+}
+
+double book_get_scale(book_t book) { return book->scale; }
+
+int book_get_x_off(book_t book) { return book->x_off; }
+
+int book_get_y_off(book_t book) { return book->y_off; }

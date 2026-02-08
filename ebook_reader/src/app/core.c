@@ -6,11 +6,12 @@
 #include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/time.h"
+#include "utils/zlist.h"
 
 struct App {
   struct AppModule modules[AppStateEnum_MAX];
   enum AppStateEnum current_state;
-  struct AppEventData ev_data;
+  struct ZList ev_queue;
   struct AppCtx ctx;
   bool is_running;
 };
@@ -23,8 +24,10 @@ struct AppFsmTransition {
      Action does not return error, because once app is running all errors should
      be reported via app_error_raise.
    */
-  void (*action)(app_module_t, app_ctx_t, void *);
+  void (*action)(app_module_t, app_ctx_t, enum AppEventEnum, void *);
 };
+
+static void do_nothing(app_module_t, app_ctx_t, enum AppEventEnum, void *);
 
 static const struct AppFsmTransition
     fsm_table[AppStateEnum_MAX][AppEventEnum_MAX] = {
@@ -46,12 +49,15 @@ static const struct AppFsmTransition
                         .next_state = AppStateEnum_MENU,
                         .action = app_module_menu_select_book,
                     },
-
                 [AppEventEnum_BOOK_SELECTED] =
                     {
                         .next_state = AppStateEnum_READER,
                     },
-
+                [AppEventEnum_BTN_MENU] =
+                    {
+                        .next_state = AppStateEnum_MENU,
+                        .action = do_nothing,
+                    },
                 [AppEventEnum_ERROR_RAISED] =
                     {
                         .next_state = AppStateEnum_ERROR,
@@ -59,16 +65,42 @@ static const struct AppFsmTransition
             },
         [AppStateEnum_READER] =
             {
+                [AppEventEnum_BTN_ENTER] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_BTN_UP] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_BTN_DOWN] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
                 [AppEventEnum_BTN_LEFT] =
                     {
                         .next_state = AppStateEnum_READER,
-                        /* .action = ebk_corem_reader_prev_page, */
                     },
                 [AppEventEnum_BTN_RIGTH] =
                     {
                         .next_state = AppStateEnum_READER,
-                        /* .action = ebk_corem_reader_next_page, */
                     },
+                [AppEventEnum_BOOK_SELECTED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_ZOOM_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_X_OFF_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },
+                [AppEventEnum_READER_Y_OFF_OPENED] =
+                    {
+                        .next_state = AppStateEnum_READER,
+                    },		
                 [AppEventEnum_BTN_MENU] =
                     {
                         .next_state = AppStateEnum_MENU,
@@ -84,6 +116,8 @@ static void app_input_callback(enum UiInputEventEnum event, void *data,
                                void *arg);
 static const char *app_state_dump(enum AppStateEnum);
 static void app_step(app_t);
+static void app_ev_queue_push(app_t, app_event_t);
+static app_event_t app_ev_queue_pull(app_t);
 
 err_t app_init(app_t *out) {
   app_t app = *out = mem_malloc(sizeof(struct App));
@@ -107,7 +141,7 @@ err_t app_init(app_t *out) {
   app_event_post(app, AppEventEnum_BOOT_DONE, NULL);
 
   return 0;
-  
+
 error_modules_cleanup:
   app_modules_destroy((*out)->modules, inits_status);
   book_api_destroy(&app->ctx.book_api);
@@ -138,12 +172,65 @@ void app_destroy(app_t *out) {
     return;
   }
 
+  app_module_close(&(*out)->modules[(*out)->current_state]);
   app_modules_destroy((*out)->modules, AppStateEnum_MAX);
   book_api_destroy(&(*out)->ctx.book_api);
   ui_destroy(&(*out)->ctx.ui);
   mem_free(*out);
   *out = NULL;
 };
+
+void app_event_post(app_t app, enum AppEventEnum event, void *data) {
+  app_event_t ev = mem_malloc(sizeof(struct AppEventData));
+  *ev = (struct AppEventData){
+      .event = event,
+      .data = data,
+  };
+
+  app_ev_queue_push(app, ev);
+}
+
+/**
+   @brief Move app to next state according to fsm_table.
+   @note We clean app->ev_data before performing step action,
+         so every step start with clean event and event data.
+*/
+static void app_step(app_t app) {
+  struct AppFsmTransition trans;
+  app_module_t current_module;
+  app_module_t next_module;
+  app_event_t event;
+
+  while (app->ev_queue.len != 0) {
+    event = app_ev_queue_pull(app);
+    trans = fsm_table[app->current_state][event->event];
+
+    log_debug("%s -> %s, event=%s", app_state_dump(app->current_state),
+              app_state_dump(trans.next_state), app_event_dump(event->event));
+
+    next_module = &app->modules[trans.next_state];
+    current_module = &app->modules[app->current_state];
+
+    if (app->current_state != trans.next_state) {
+      app_module_close(current_module);
+    }
+
+    if (!trans.action) {
+      trans.action = app_module_open;
+    }
+
+    trans.action(next_module, &app->ctx, event->event, event->data);
+    app->current_state = trans.next_state;
+
+    mem_free(event);
+  }
+}
+
+void app_raise_error(app_t app, err_t error) {
+  app_event_post(app, AppEventEnum_ERROR_RAISED, error);
+}
+
+void app_panic(app_t app) { ui_panic(app->ctx.ui); }
 
 const char *app_event_dump(enum AppEventEnum event) {
   static const char *event_str_map[] = {
@@ -167,36 +254,6 @@ const char *app_event_dump(enum AppEventEnum event) {
   return event_str_map[event];
 };
 
-void app_event_post(app_t app, enum AppEventEnum event, void *data) {
-
-  if (!fsm_table[app->current_state][event].next_state) {
-    log_warn("Requested unsupported transition: %s:%s -> STATE_NONE",
-             app_state_dump(app->current_state), app_event_dump(event));
-    goto out;
-  }
-
-  // Error cannot be overwritten
-  if (app->ev_data.event == AppEventEnum_ERROR_RAISED) {
-    goto out;
-  }
-
-  // Every other event can but we should try to do not allow
-  // for such situations because they can lead to missing events.
-  // If there will be a need for multiple events better to do
-  // some list for events than to overwrite them, but idk if this
-  // issue will arise. Will see when the code wiull be used for
-  // some time.
-  if (app->ev_data.event) {
-    log_warn("Overwriting existing event %s with event %s",
-             app_state_dump(app->current_state), app_event_dump(event));
-  }
-
-  app->ev_data.event = event;
-  app->ev_data.data = data;
-
-out:;
-}
-
 static const char *app_state_dump(enum AppStateEnum state) {
   static char *dumps[] = {
       [AppStateEnum_MENU] = "state_menu",
@@ -213,49 +270,6 @@ static const char *app_state_dump(enum AppStateEnum state) {
   return dumps[state];
 };
 
-/**
-   @brief Move app to next state according to fsm_table.
-   @note We clean app->ev_data before performing step action,
-         so every step start with clean event and event data.
-*/
-static void app_step(app_t app) {
-  if (!app->ev_data.event) {
-    goto out;
-  }
-
-  struct AppEventData ev_data = app->ev_data;
-  memset(&app->ev_data, 0, sizeof(struct AppEventData));
-
-  struct AppFsmTransition trans = fsm_table[app->current_state][ev_data.event];
-  app_module_t next_module = &app->modules[trans.next_state];
-  app_module_t current_module = &app->modules[app->current_state];
-
-  log_debug("%s -> %s", app_state_dump(app->current_state),
-            app_state_dump(trans.next_state));
-
-  assert(trans.next_state != 0); // We should never transition to boot.
-
-  if (!trans.action) {
-    trans.action = app_module_open;
-  }
-
-  trans.action(next_module, &app->ctx, ev_data.data);
-
-  if (app->current_state != trans.next_state) {
-    app_module_close(current_module);
-  }
-
-  app->current_state = trans.next_state;
-
-out:;
-}
-
-void app_raise_error(app_t app, err_t error) {
-  app_event_post(app, AppEventEnum_ERROR_RAISED, error);
-}
-
-void app_panic(app_t app) { ui_panic(app->ctx.ui); }
-
 static void app_input_callback(enum UiInputEventEnum event, void *data,
                                void *arg) {
   static enum AppEventEnum gui_input_ev_table[] = {
@@ -271,3 +285,19 @@ static void app_input_callback(enum UiInputEventEnum event, void *data,
 
   app_event_post(app, gui_input_ev_table[event], arg);
 }
+
+static void app_ev_queue_push(app_t app, app_event_t event) {
+  zlist_append(&app->ev_queue, &event->next);
+}
+
+static app_event_t app_ev_queue_pull(app_t app) {
+  zlist_node_t node = zlist_pop(&app->ev_queue, 0);
+  if (!node) {
+    return NULL;
+  }
+
+  return mem_container_of(node, struct AppEventData, next);
+};
+
+static void do_nothing(app_module_t __, app_ctx_t ___, enum AppEventEnum ____,
+                       void *_____) {}

@@ -2,6 +2,7 @@
 #include <string.h>
 
 void ui_screen_destroy(ui_screen_t out) {
+  puts(__func__);
   if (!out) {
     return;
   }

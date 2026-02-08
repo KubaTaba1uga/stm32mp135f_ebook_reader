@@ -1,3 +1,3 @@
-## Missing .so
+## Open source ebook reader
 
-sudo cp build/buildroot/target/usr/lib/libpoppler-glib.so* /srv/nfs/lib/
+Ebooks reader are awesome, so I created one. 
