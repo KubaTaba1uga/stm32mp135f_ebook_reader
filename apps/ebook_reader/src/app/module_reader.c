@@ -259,9 +259,6 @@ static void app_module_reader_close(void *module) {
   app_module_reader_t reader = module;
 
   switch (reader->state) {
-  case AppReaderStateEnum_PAGE:
-    app_module_reader_page_closed(reader);
-    break;
   case AppReaderStateEnum_SETTINGS:
     app_module_reader_settings_close(reader);
     break;
@@ -271,15 +268,14 @@ static void app_module_reader_close(void *module) {
   case AppReaderStateEnum_SET_X_OFF:
     ui_reader_set_x_off_destroy(reader->ui);
     break;
-    /* case AppReaderStateEnum_SET_ZOOM: */
-    /* ui_reader_set_y_off_destroy(reader->ui); */
-    /* break; */
-
+  case AppReaderStateEnum_SET_Y_OFF:
+    ui_reader_set_y_off_destroy(reader->ui);
+    break;
   default:;
   }
 
   reader->state = AppReaderStateEnum_NONE;
-  ui_reader_destroy(reader->ui);
+  app_module_reader_page_closed(reader);
 };
 
 static void app_module_reader_destroy(void *module) { mem_free(module); };

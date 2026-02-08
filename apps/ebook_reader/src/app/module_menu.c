@@ -81,6 +81,7 @@ static void app_module_menu_close(void *module) {
 };
 
 static void app_module_menu_destroy(void *module) {
+  puts(__func__);  
   app_module_menu_close(module);
   mem_free(module);
 };
@@ -93,4 +94,5 @@ void app_module_menu_select_book(app_module_t module, app_ctx_t __, enum AppEven
   mem_free(current_book_i);
 }
 
-                        /* .action = ebk_corem_reader_prev_page, */
+
+
