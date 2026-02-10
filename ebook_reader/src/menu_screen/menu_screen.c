@@ -64,7 +64,7 @@ err_t menu_screen_init(menu_screen_t *out, display_t display) {
       .display = display,
   };
 
-  event_bus_register(BusEnum_MENU_SCREEN, post_menu_screen_event, mscreen);
+  event_bus_register(EndpointEnum_MENU_SCREEN, post_menu_screen_event, mscreen);
 
   return 0;
 };
@@ -74,7 +74,7 @@ void menu_screen_destroy(menu_screen_t *out) {
     return;
   }
 
-  event_bus_unregister(BusEnum_MENU_SCREEN, post_menu_screen_event, *out);
+  event_bus_unregister(EndpointEnum_MENU_SCREEN, post_menu_screen_event, *out);
 
   mem_free(*out);
   *out = NULL;
@@ -152,7 +152,6 @@ static void menu_screen_deactivate(struct Event event, void *data) {
   puts(__func__);
   menu_screen_t mscreen = data;
 
-
   if (mscreen->ctx.books) {
     for (int i = mscreen->ctx.books_len - 1; i >= 0; i--) {
       if (mscreen->ctx.books[i]) {
@@ -170,7 +169,7 @@ static void menu_screen_deactivate(struct Event event, void *data) {
   if (mscreen->ctx.bar) {
     wx_bar_destroy(mscreen->ctx.bar);
     mscreen->ctx.bar = NULL;
-  }  
+  }
 }
 
 static const char *menu_screen_state_dump(enum MenuScreenState state) {
@@ -195,21 +194,26 @@ static void menu_screen_event_cb(lv_event_t *e) {
 
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
     event_bus_post_event(
-        BusEnum_USER, (struct Event){.event = EventEnum_BTN_ENTER, .data = id});
+        BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_ENTER, .data = id});
   } else if (key == LV_KEY_LEFT) {
     event_bus_post_event(
-        BusEnum_USER, (struct Event){.event = EventEnum_BTN_LEFT, .data = id});
+        BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_LEFT, .data = id});
   } else if (key == LV_KEY_RIGHT) {
     event_bus_post_event(
-        BusEnum_USER, (struct Event){.event = EventEnum_BTN_RIGHT, .data = id});
+        BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_RIGHT, .data = id});
   } else if (key == LV_KEY_UP) {
-    event_bus_post_event(BusEnum_USER,
+    event_bus_post_event(BusEnum_MENU_SCREEN,
                          (struct Event){.event = EventEnum_BTN_UP, .data = id});
   } else if (key == LV_KEY_DOWN) {
     event_bus_post_event(
-        BusEnum_USER, (struct Event){.event = EventEnum_BTN_DOWN, .data = id});
+        BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_DOWN, .data = id});
   } else if (key == LV_KEY_ESC) {
     event_bus_post_event(
-        BusEnum_USER, (struct Event){.event = EventEnum_BTN_MENU, .data = id});
+        BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_MENU, .data = id});
   }
 }

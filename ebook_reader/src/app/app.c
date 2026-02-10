@@ -37,7 +37,7 @@ err_t app_init(app_t *out) {
   err_o = menu_screen_init(&app->menu_screen, app->display);
   ERR_TRY(err_o);
 
-  event_bus_post_event(BusEnum_USER, (struct Event){
+  event_bus_post_event(BusEnum_ALL, (struct Event){
                                          .event = EventEnum_BOOT_COMPLETED,
                                      });
 

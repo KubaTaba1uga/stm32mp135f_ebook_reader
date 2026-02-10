@@ -6,10 +6,18 @@
  *******************************************************/
 enum BusEnum {
   BusEnum_NONE = 0,
-  BusEnum_USER,
+  BusEnum_ALL,  
   BusEnum_MENU,
   BusEnum_MENU_SCREEN,
   BusEnum_MAX,
+};
+
+enum EndpointEnum {
+  EndpointEnum_NONE = 0,
+  EndpointEnum_MENU,
+  EndpointEnum_MENU_SCREEN,
+  EndpointEnum_READER,
+  EndpointEnum_MAX,
 };
 
 enum EventEnum {
@@ -23,7 +31,7 @@ enum EventEnum {
   EventEnum_BTN_MENU,
   EventEnum_MENU_ACTIVATED,
   EventEnum_MENU_DEACTIVATED,
-  EventEnum_BOOK_OPENED,  
+  EventEnum_BOOK_OPENED,
   EventEnum_MAX,
 };
 
@@ -37,9 +45,12 @@ typedef void (*post_event_t)(struct Event, void *);
 void event_bus_init(void);
 void event_bus_step(void);
 void event_bus_post_event(enum BusEnum bus, struct Event event);
-void event_bus_register(enum BusEnum bus, post_event_t post_func, void *data);
-void event_bus_unregister(enum BusEnum bus, post_event_t post_func, void *data);
+void event_bus_register(enum EndpointEnum ep, post_event_t post_func,
+                        void *data);
+void event_bus_unregister(enum EndpointEnum ep, post_event_t post_func,
+                          void *data);
 const char *event_dump(enum EventEnum event);
 const char *bus_dump(enum BusEnum event);
+const char *endpoint_dump(enum EndpointEnum ep);
 
 #endif // EBOOK_READER_EVENT_BUS_H
