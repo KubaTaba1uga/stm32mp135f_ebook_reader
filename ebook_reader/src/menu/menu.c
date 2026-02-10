@@ -1,9 +1,12 @@
-#include "menu/menu.h"
-#include "display/display.h"
+#include <assert.h>
+#include <stdio.h>
+
+#include "book/book.h"
 #include "event_bus/event_bus.h"
+#include "library/library.h"
+#include "menu/menu.h"
 #include "utils/log.h"
 #include "utils/mem.h"
-#include <stdio.h>
 
 enum MenuState {
   MenuState_NONE,
@@ -13,7 +16,8 @@ enum MenuState {
 
 struct Menu {
   enum MenuState current_state;
-  display_t display;
+  books_list_t books;
+  library_t library;
 };
 
 struct MenuTransition {
@@ -24,7 +28,7 @@ struct MenuTransition {
 static void post_menu_event(struct Event event, void *data);
 static void menu_activate(struct Event event, void *data);
 static void menu_select_book(struct Event event, void *data);
-static void menu_deactivate(menu_t menu);
+/* static void menu_deactivate(menu_t menu); */
 static const char *menu_state_dump(enum MenuState state);
 
 static struct MenuTransition fsm_table[MenuState_MAX][EventEnum_MAX] = {
@@ -46,9 +50,11 @@ static struct MenuTransition fsm_table[MenuState_MAX][EventEnum_MAX] = {
         },
 };
 
-err_t menu_init(menu_t *out) {
+err_t menu_init(menu_t *out, library_t lib) {
   menu_t menu = *out = mem_malloc(sizeof(struct Menu));
-  *menu = (struct Menu){0};
+  *menu = (struct Menu){
+      .library = lib,
+  };
 
   event_bus_register(BusEnum_MENU, post_menu_event, menu);
 
@@ -67,6 +73,7 @@ void menu_destroy(menu_t *out) {
 };
 
 static void post_menu_event(struct Event event, void *data) {
+  puts(__func__);
   struct MenuTransition action;
   menu_t menu = data;
 
@@ -84,9 +91,22 @@ static void post_menu_event(struct Event event, void *data) {
   menu->current_state = action.next_state;
 }
 
-static void menu_activate(struct Event event, void *data) { puts(__func__); }
+static void menu_activate(struct Event event, void *data) {
+  puts(__func__);
+  menu_t menu = data;
 
-static void menu_deactivate(menu_t menu) { puts(__func__); }
+  menu->books = library_list_books(menu->library);
+  if (!menu->books) {
+    puts("NO BOOKS");
+  }
+
+  event_bus_post_event(BusEnum_MENU, (struct Event){
+                                         .event = EventEnum_MENU_ACTIVATED,
+                                         .data = menu->books,
+                                     });
+}
+
+/* static void menu_deactivate(menu_t menu) { puts(__func__); } */
 
 static const char *menu_state_dump(enum MenuState state) {
   static char *dumps[] = {
@@ -101,4 +121,23 @@ static const char *menu_state_dump(enum MenuState state) {
   return dumps[state];
 };
 
-static void menu_select_book(struct Event event, void *data){}
+static void menu_select_book(struct Event event, void *data) {
+  int *current_book_i = event.data;
+  menu_t menu = data;
+  
+  assert(current_book_i != NULL);
+  assert(menu != NULL);
+
+  event_bus_post_event(BusEnum_MENU,
+                       (struct Event){
+                           .event = EventEnum_BOOK_OPENED,
+                           .data = books_list_pop(menu->books, *current_book_i),
+                       });
+  
+  event_bus_post_event(BusEnum_MENU,
+                       (struct Event){
+                           .event = EventEnum_MENU_DEACTIVATED,
+                           .data = NULL,
+                       });
+  
+}

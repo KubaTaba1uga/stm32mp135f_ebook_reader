@@ -14,14 +14,16 @@ enum BusEnum {
 
 enum EventEnum {
   EventEnum_NONE = 0,
-  EventEnum_BOOT_COMPLETED,  
+  EventEnum_BOOT_COMPLETED,
   EventEnum_BTN_ENTER,
   EventEnum_BTN_UP,
   EventEnum_BTN_DOWN,
   EventEnum_BTN_LEFT,
   EventEnum_BTN_RIGHT,
+  EventEnum_BTN_MENU,
   EventEnum_MENU_ACTIVATED,
   EventEnum_MENU_DEACTIVATED,
+  EventEnum_BOOK_OPENED,  
   EventEnum_MAX,
 };
 
@@ -33,6 +35,7 @@ struct Event {
 typedef void (*post_event_t)(struct Event, void *);
 
 void event_bus_init(void);
+void event_bus_step(void);
 void event_bus_post_event(enum BusEnum bus, struct Event event);
 void event_bus_register(enum BusEnum bus, post_event_t post_func, void *data);
 void event_bus_unregister(enum BusEnum bus, post_event_t post_func, void *data);
