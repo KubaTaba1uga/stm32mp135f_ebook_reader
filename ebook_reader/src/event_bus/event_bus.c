@@ -3,42 +3,47 @@
 #include "utils/mem.h"
 
 // @note: Propably we should minimize size of this struct.
-static enum BusEnum
-    event_bus_route_table[BusEnum_MAX][EventEnum_MAX][BusEnum_MAX] = {
-        [BusEnum_USER] =
+static enum EndpointEnum
+    event_bus_route_table[BusEnum_MAX][EventEnum_MAX][EndpointEnum_MAX] = {
+        [BusEnum_ALL] =
             {
-                [EventEnum_BOOT_COMPLETED] = {BusEnum_MENU, 0},
-                [EventEnum_BTN_ENTER] = {BusEnum_MENU, 0},
-                [EventEnum_BTN_UP] = {BusEnum_MENU, 0},
-                [EventEnum_BTN_DOWN] = {BusEnum_MENU, 0},
-                [EventEnum_BTN_LEFT] = {BusEnum_MENU, 0},
-                [EventEnum_BTN_RIGHT] = {BusEnum_MENU, 0},
+                [EventEnum_BOOT_COMPLETED] = {EndpointEnum_MENU, 0},
             },
         [BusEnum_MENU] =
             {
-                [EventEnum_MENU_ACTIVATED] = {BusEnum_MENU_SCREEN, 0},
-                [EventEnum_MENU_DEACTIVATED] = {BusEnum_MENU_SCREEN, 0},
+                [EventEnum_MENU_ACTIVATED] = {EndpointEnum_MENU_SCREEN, 0},
+                [EventEnum_MENU_DEACTIVATED] = {EndpointEnum_MENU_SCREEN, 0},
+                [EventEnum_BOOK_OPENED] = {EndpointEnum_READER, 0},
+            },
+        [BusEnum_MENU_SCREEN] =
+            {
+                [EventEnum_BTN_ENTER] = {EndpointEnum_MENU, 0},
+                [EventEnum_BTN_UP] = {EndpointEnum_MENU, 0},
+                [EventEnum_BTN_DOWN] = {EndpointEnum_MENU, 0},
+                [EventEnum_BTN_LEFT] = {EndpointEnum_MENU, 0},
+                [EventEnum_BTN_RIGHT] = {EndpointEnum_MENU, 0},
             },
 };
-static post_event_t event_bus_func_table[EventEnum_MAX] = {0};
-static void *event_bus_data_table[EventEnum_MAX] = {0};
+static post_event_t event_bus_func_table[EndpointEnum_MAX] = {0};
+static void *event_bus_data_table[EndpointEnum_MAX] = {0};
 struct EventQueue event_queue = {0};
 
 static void event_bus_route_event(enum BusEnum bus, struct Event event);
 
 void event_bus_init(void) { event_queue_init(&event_queue); }
 
-void event_bus_register(enum BusEnum bus, post_event_t post_func, void *data) {
-  event_bus_func_table[bus] = post_func;
-  event_bus_data_table[bus] = data;
+void event_bus_register(enum EndpointEnum ep, post_event_t post_func,
+                        void *data) {
+  event_bus_func_table[ep] = post_func;
+  event_bus_data_table[ep] = data;
 }
 
-void event_bus_unregister(enum BusEnum bus, post_event_t post_func,
+void event_bus_unregister(enum EndpointEnum ep, post_event_t post_func,
                           void *data) {
-  if (event_bus_func_table[bus] == post_func &&
-      event_bus_data_table[bus] == data) {
-    event_bus_func_table[bus] = 0;
-    event_bus_data_table[bus] = 0;
+  if (event_bus_func_table[ep] == post_func &&
+      event_bus_data_table[ep] == data) {
+    event_bus_func_table[ep] = 0;
+    event_bus_data_table[ep] = 0;
   }
 }
 
@@ -52,7 +57,7 @@ void event_bus_step(void) {
   struct EventQueueNode *node;
   while ((node = event_queue_pull(&event_queue)) != NULL) {
     event_bus_route_event(node->bus, node->event);
-    
+
     mem_free(node);
   }
 }
@@ -62,11 +67,11 @@ static void event_bus_route_event(enum BusEnum bus, struct Event event) {
   void *dst_data;
   int i = 0;
 
-  for (enum BusEnum dst_bus = event_bus_route_table[bus][event.event][i];
-       dst_bus != BusEnum_NONE;
-       dst_bus = event_bus_route_table[bus][event.event][++i]) {
-    dst_func = event_bus_func_table[dst_bus];
-    dst_data = event_bus_data_table[dst_bus];
+  for (enum EndpointEnum dst = event_bus_route_table[bus][event.event][i];
+       dst != EndpointEnum_NONE;
+       dst = event_bus_route_table[bus][event.event][++i]) {
+    dst_func = event_bus_func_table[dst];
+    dst_data = event_bus_data_table[dst];
     if (!dst_func) {
       continue;
     }
@@ -78,7 +83,6 @@ static void event_bus_route_event(enum BusEnum bus, struct Event event) {
 const char *bus_dump(enum BusEnum bus) {
   static const char *map[] = {
       [BusEnum_NONE] = "bus_none",
-      [BusEnum_USER] = "bus_user",
       [BusEnum_MENU] = "bus_menu",
       [BusEnum_MENU_SCREEN] = "bus_menu_screen",
   };

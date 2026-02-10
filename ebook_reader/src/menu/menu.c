@@ -56,7 +56,7 @@ err_t menu_init(menu_t *out, library_t lib) {
       .library = lib,
   };
 
-  event_bus_register(BusEnum_MENU, post_menu_event, menu);
+  event_bus_register(EndpointEnum_MENU, post_menu_event, menu);
 
   return 0;
 };
@@ -66,7 +66,7 @@ void menu_destroy(menu_t *out) {
     return;
   }
 
-  event_bus_unregister(BusEnum_MENU, post_menu_event, *out);
+  event_bus_unregister(EndpointEnum_MENU, post_menu_event, *out);
 
   mem_free(*out);
   *out = NULL;
@@ -106,8 +106,6 @@ static void menu_activate(struct Event event, void *data) {
                                      });
 }
 
-/* static void menu_deactivate(menu_t menu) { puts(__func__); } */
-
 static const char *menu_state_dump(enum MenuState state) {
   static char *dumps[] = {
       [MenuState_NONE] = "menu_none",
@@ -124,20 +122,18 @@ static const char *menu_state_dump(enum MenuState state) {
 static void menu_select_book(struct Event event, void *data) {
   int *current_book_i = event.data;
   menu_t menu = data;
-  
+
   assert(current_book_i != NULL);
   assert(menu != NULL);
+
+  event_bus_post_event(BusEnum_MENU, (struct Event){
+                                         .event = EventEnum_MENU_DEACTIVATED,
+                                         .data = NULL,
+                                     });
 
   event_bus_post_event(BusEnum_MENU,
                        (struct Event){
                            .event = EventEnum_BOOK_OPENED,
                            .data = books_list_pop(menu->books, *current_book_i),
                        });
-  
-  event_bus_post_event(BusEnum_MENU,
-                       (struct Event){
-                           .event = EventEnum_MENU_DEACTIVATED,
-                           .data = NULL,
-                       });
-  
 }
