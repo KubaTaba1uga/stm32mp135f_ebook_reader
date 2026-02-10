@@ -1,9 +1,14 @@
-#include "menu_screen/menu_screen.h"
+#include <assert.h>
+#include <stdio.h>
+
+#include "book/book.h"
 #include "display/display.h"
 #include "event_bus/event_bus.h"
-#include "utils/mem.h"
+#include "menu_screen/core.h"
+#include "menu_screen/menu_screen.h"
+#include "misc/lv_event.h"
 #include "utils/log.h"
-#include <stdio.h>
+#include "utils/mem.h"
 
 enum MenuScreenState {
   MenuScreenState_NONE,
@@ -14,6 +19,12 @@ enum MenuScreenState {
 struct MenuScreen {
   enum MenuScreenState current_state;
   display_t display;
+  struct {
+    wx_bar_t bar;
+    wx_menu_t menu;
+    wx_menu_book_t *books;
+    int books_len;
+  } ctx;
 };
 
 struct MenuScreenTransition {
@@ -25,6 +36,7 @@ static void post_menu_screen_event(struct Event event, void *data);
 static void menu_screen_activate(struct Event event, void *data);
 static void menu_screen_deactivate(struct Event event, void *data);
 static const char *menu_screen_state_dump(enum MenuScreenState state);
+static void menu_screen_event_cb(lv_event_t *e);
 
 static struct MenuScreenTransition
     fsm_table[MenuScreenState_MAX][EventEnum_MAX] = {
@@ -76,7 +88,7 @@ static void post_menu_screen_event(struct Event event, void *data) {
   if (!action.action) {
     return;
   }
-  
+
   if (mscreen->current_state != action.next_state) {
     log_info("%s -> %s", menu_screen_state_dump(mscreen->current_state),
              menu_screen_state_dump(action.next_state));
@@ -88,9 +100,77 @@ static void post_menu_screen_event(struct Event event, void *data) {
 
 static void menu_screen_activate(struct Event event, void *data) {
   puts(__func__);
+  assert(event.event == EventEnum_MENU_ACTIVATED);
+  books_list_t books = event.data;
+  menu_screen_t mscreen = data;
+
+  wx_bar_t bar = wx_bar_create();
+  if (!bar) {
+    err_o = err_errnos(EINVAL, "Cannot create bar widget");
+    goto error_out;
+  }
+
+  wx_menu_t menu = wx_menu_create();
+  if (!menu) {
+    err_o = err_errnos(EINVAL, "Cannot create menu widget");
+    goto error_bar_cleanup;
+  }
+
+  if (!books) {
+    goto out;
+  }
+
+  lv_obj_t **lv_books = mem_malloc(sizeof(lv_obj_t *) * books_list_len(books));
+  lv_obj_t *lv_book = NULL;
+  int i = 0;
+
+  for (book_t book = books_list_get(books); book != NULL;
+       book = books_list_get(books)) {
+    lv_book = wx_menu_book_create(
+        menu, book_get_title(book), lv_book == NULL,
+        book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
+        i);
+    lv_obj_add_event_cb(lv_book, menu_screen_event_cb, LV_EVENT_KEY, lv_book);
+    lv_books[i++] = lv_book;
+  }
+
+  mscreen->ctx.bar = bar;
+  mscreen->ctx.menu = menu;
+  mscreen->ctx.books = lv_books;
+  mscreen->ctx.books_len = books_list_len(books);
+
+out:
+  display_add_to_ingroup(mscreen->display, menu);
+  return;
+
+error_bar_cleanup:
+  wx_bar_destroy(bar);
+error_out:;
+  // @todo: post error
 }
 static void menu_screen_deactivate(struct Event event, void *data) {
   puts(__func__);
+  menu_screen_t mscreen = data;
+
+
+  if (mscreen->ctx.books) {
+    for (int i = mscreen->ctx.books_len - 1; i >= 0; i--) {
+      if (mscreen->ctx.books[i]) {
+        wx_menu_book_destroy(mscreen->ctx.books[i]);
+      }
+    }
+    mscreen->ctx.books = NULL;
+  }
+
+  if (mscreen->ctx.menu) {
+    wx_menu_destroy(mscreen->ctx.menu);
+    mscreen->ctx.menu = NULL;
+  }
+
+  if (mscreen->ctx.bar) {
+    wx_bar_destroy(mscreen->ctx.bar);
+    mscreen->ctx.bar = NULL;
+  }  
 }
 
 static const char *menu_screen_state_dump(enum MenuScreenState state) {
@@ -99,9 +179,37 @@ static const char *menu_screen_state_dump(enum MenuScreenState state) {
       [MenuScreenState_ACTIVE] = "menu_screen_activated",
   };
 
-  if (state < MenuScreenState_NONE || state >= MenuScreenState_MAX || !dumps[state]) {
+  if (state < MenuScreenState_NONE || state >= MenuScreenState_MAX ||
+      !dumps[state]) {
     return "Unknown";
   }
 
   return dumps[state];
 };
+
+static void menu_screen_event_cb(lv_event_t *e) {
+  wx_menu_book_t book = lv_event_get_user_data(e);
+  lv_key_t key = lv_event_get_key(e);
+  int *id = mem_malloc(sizeof(int));
+  *id = wx_menu_book_get_id(book);
+
+  if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
+    event_bus_post_event(
+        BusEnum_USER, (struct Event){.event = EventEnum_BTN_ENTER, .data = id});
+  } else if (key == LV_KEY_LEFT) {
+    event_bus_post_event(
+        BusEnum_USER, (struct Event){.event = EventEnum_BTN_LEFT, .data = id});
+  } else if (key == LV_KEY_RIGHT) {
+    event_bus_post_event(
+        BusEnum_USER, (struct Event){.event = EventEnum_BTN_RIGHT, .data = id});
+  } else if (key == LV_KEY_UP) {
+    event_bus_post_event(BusEnum_USER,
+                         (struct Event){.event = EventEnum_BTN_UP, .data = id});
+  } else if (key == LV_KEY_DOWN) {
+    event_bus_post_event(
+        BusEnum_USER, (struct Event){.event = EventEnum_BTN_DOWN, .data = id});
+  } else if (key == LV_KEY_ESC) {
+    event_bus_post_event(
+        BusEnum_USER, (struct Event){.event = EventEnum_BTN_MENU, .data = id});
+  }
+}

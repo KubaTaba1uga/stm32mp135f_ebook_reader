@@ -1,0 +1,192 @@
+#include <lvgl.h>
+#include <stdio.h>
+
+#include "menu_screen/core.h"
+#include "utils/mem.h"
+#include "utils/time.h"
+
+/* #define EBK_DEBUG_LVGL 1 */
+
+struct MenuBookWidget {
+  lv_img_dsc_t img;
+  int id;
+};
+
+const int bar_y = 48;
+const int menu_x_off = 48;
+const int menu_y_off = 64;
+const int menu_book_x = 296;
+const int menu_book_text_y = 80;
+const int menu_book_y = 392 + menu_book_text_y;
+const int bar_clock_x = 336;
+
+lv_obj_t *wx_obj_create(void *parent) {
+
+  lv_obj_t *obj = lv_obj_create(parent);
+
+#ifdef EBK_DEBUG_LVGL
+  static int color = 6000;
+  color += 2000;
+  lv_obj_set_style_bg_color(obj, lv_color_hex(color), 0);
+#endif
+
+  return obj;
+}
+
+wx_bar_t wx_bar_create(void) {
+  lv_obj_t *bar = wx_obj_create(lv_screen_active());
+  lv_obj_set_size(bar, lv_display_get_horizontal_resolution(NULL), bar_y);
+  lv_obj_set_pos(bar, 0, 0);
+
+  lv_style_t *bar_style = mem_malloc(sizeof(lv_style_t));
+  lv_style_init(bar_style);
+  lv_style_set_border_color(bar_style, lv_color_black());
+  lv_style_set_border_width(bar_style, 2);
+  lv_style_set_border_opa(bar_style, LV_OPA_100);
+  lv_style_set_border_side(bar_style,
+                           (lv_border_side_t)(LV_BORDER_SIDE_BOTTOM));
+  lv_style_set_pad_all(bar_style, 0);
+  lv_obj_add_style(bar, bar_style, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  const int bar_clock_y = bar_y - 2;
+  lv_obj_t *clock = wx_obj_create(bar);
+  lv_obj_set_style_border_width(clock, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_pos(clock,
+                 lv_display_get_horizontal_resolution(NULL) - bar_clock_x, 0);
+  lv_obj_set_size(clock, bar_clock_x, bar_clock_y);
+  lv_obj_set_user_data(bar, clock);
+
+  lv_obj_t *clock_text = lv_label_create(clock);
+  lv_obj_set_style_border_width(clock_text, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(clock_text, &lv_font_montserrat_30, 0);
+  static char buf[100];
+  char *res = time_now_dump(buf, sizeof(buf));
+  assert(res != NULL);
+  lv_label_set_text(clock_text, time_now_dump(buf, sizeof(buf)));
+  lv_obj_set_user_data(clock, clock_text);
+  lv_obj_set_user_data(clock_text, bar_style);
+
+  lv_label_set_long_mode(clock_text, LV_LABEL_LONG_MODE_CLIP);
+  lv_obj_clear_flag(clock_text, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_clear_flag(clock, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_clear_flag(bar, LV_OBJ_FLAG_SCROLLABLE);
+
+  return bar;
+}
+
+void wx_bar_destroy(wx_bar_t bar) {
+  lv_obj_t *clock = lv_obj_get_user_data(bar);
+  lv_obj_t *clock_text = lv_obj_get_user_data(clock);
+  lv_style_t *bar_style = lv_obj_get_user_data(clock_text);
+  lv_obj_del(clock_text);
+  lv_obj_del(clock);
+  lv_style_reset(bar_style);
+  mem_free(bar_style);
+  lv_obj_del(bar);
+}
+
+wx_menu_t wx_menu_create(void) {
+  lv_obj_t *menu_container = wx_obj_create(lv_screen_active());
+  lv_gridnav_add(menu_container, LV_GRIDNAV_CTRL_NONE);
+
+  int menu_x = lv_display_get_horizontal_resolution(NULL) - menu_x_off * 2;
+  int menu_y = lv_display_get_vertical_resolution(NULL) - bar_y - menu_y_off;
+
+  lv_obj_set_pos(menu_container, menu_x_off / 2, bar_y + menu_y_off / 2);
+  lv_obj_set_size(menu_container, menu_x, menu_y);
+  lv_obj_set_style_pad_ver(menu_container, menu_y_off / 2,
+                           LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_pad_hor(menu_container, menu_x_off / 2,
+                           LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(menu_container, 0,
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  lv_style_t *style = mem_malloc(sizeof(lv_style_t));
+  lv_style_init(style);
+  lv_style_set_flex_flow(style, LV_FLEX_FLOW_ROW_WRAP);
+  lv_style_set_flex_main_place(style, LV_FLEX_ALIGN_SPACE_EVENLY);
+  lv_style_set_layout(style, LV_LAYOUT_FLEX);
+  lv_style_set_pad_column(style, 96);
+  lv_style_set_pad_row(style, 48);
+  lv_style_set_bg_color(style, lv_color_white());
+  lv_obj_add_style(menu_container, style, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_user_data(menu_container, style);
+
+  return menu_container;
+}
+
+void wx_menu_destroy(wx_menu_t menu) {
+  lv_style_t *style = lv_obj_get_user_data(menu);
+  lv_style_reset(style);
+  lv_obj_del(menu);
+  mem_free(style);
+}
+
+wx_menu_book_t wx_menu_book_create(wx_menu_t menu,
+                                         const char *book_title,
+                                         bool is_focused,
+                                         const uint8_t *thumbnail, int id
+                                         ) {
+  lv_obj_t *book_card = wx_obj_create(menu);
+  lv_obj_set_size(book_card, menu_book_x + 16, menu_book_y + 16);
+
+  // Configure data required to display book
+  struct MenuBookWidget *book_data =
+      mem_malloc(sizeof(struct MenuBookWidget));
+  *book_data = (struct MenuBookWidget){0};
+  book_data->id = id;
+  lv_obj_set_user_data(book_card, book_data);
+
+  if (thumbnail) {
+    lv_obj_t *book_img = lv_image_create(book_card);
+    lv_img_dsc_t *dsc = &book_data->img;
+    *dsc = (lv_img_dsc_t){0};
+    dsc->header.cf = LV_COLOR_FORMAT_ARGB8888_PREMULTIPLIED;
+    dsc->header.w = menu_book_x;
+    dsc->header.h = (menu_book_y - menu_book_text_y);
+    dsc->data_size = dsc->header.w * dsc->header.h * 4;
+    dsc->data = thumbnail;
+    lv_image_set_src(book_img, dsc);
+    lv_obj_set_style_border_width(book_img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_clear_flag(book_img, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  }
+
+  // Configure book label
+  lv_obj_t *book_label = lv_label_create(book_card);
+  lv_obj_set_pos(book_label, 0, menu_book_y - (menu_book_text_y * 0.75));
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
+                              LV_PART_MAIN);
+  lv_obj_set_style_text_font(book_label, &lv_font_montserrat_24, 0);
+  lv_label_set_text(book_label, book_title);
+
+  // Configure not focused border
+  lv_obj_set_style_border_width(book_card, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  // Configure focused border
+  lv_obj_set_style_outline_width(book_card, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_pad(book_card, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+  lv_obj_set_style_outline_color(book_card, lv_color_hex(0x00A0FF),
+                                 LV_PART_MAIN | LV_STATE_FOCUSED);
+
+  // Disable scrolling inside a card
+  lv_label_set_long_mode(book_label, LV_LABEL_LONG_MODE_CLIP);
+  lv_obj_clear_flag(book_label, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  lv_obj_clear_flag(book_label, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(book_card, LV_OBJ_FLAG_CLICK_FOCUSABLE);
+  lv_obj_clear_flag(book_card, LV_OBJ_FLAG_SCROLLABLE);
+
+  return book_card;
+}
+
+void wx_menu_book_destroy(wx_menu_book_t book) {
+  struct MenuBookWidget *book_data = lv_obj_get_user_data(book);
+  mem_free(book_data);
+  lv_obj_del(book);
+};
+
+
+int wx_menu_book_get_id(wx_menu_book_t book) {
+  struct MenuBookWidget *book_data = lv_obj_get_user_data(book);  
+  return book_data->id;  
+}
+

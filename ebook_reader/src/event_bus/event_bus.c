@@ -2,11 +2,12 @@
 #include "event_bus/core.h"
 #include "utils/mem.h"
 
-// @note: Propably we should minimize size of this struct?
+// @note: Propably we should minimize size of this struct.
 static enum BusEnum
     event_bus_route_table[BusEnum_MAX][EventEnum_MAX][BusEnum_MAX] = {
         [BusEnum_USER] =
             {
+                [EventEnum_BOOT_COMPLETED] = {BusEnum_MENU, 0},
                 [EventEnum_BTN_ENTER] = {BusEnum_MENU, 0},
                 [EventEnum_BTN_UP] = {BusEnum_MENU, 0},
                 [EventEnum_BTN_DOWN] = {BusEnum_MENU, 0},
@@ -48,9 +49,11 @@ void event_bus_post_event(enum BusEnum bus, struct Event event) {
 }
 
 void event_bus_step(void) {
-  struct EventQueueNode *eq_node;
-  while ((eq_node = event_queue_pull(&event_queue)) != NULL) {
-    event_bus_route_event(eq_node->bus, eq_node->event);
+  struct EventQueueNode *node;
+  while ((node = event_queue_pull(&event_queue)) != NULL) {
+    event_bus_route_event(node->bus, node->event);
+    
+    mem_free(node);
   }
 }
 
@@ -102,6 +105,6 @@ const char *event_dump(enum EventEnum ev) {
   if (ev < EventEnum_NONE || ev >= EventEnum_MAX || !map[ev]) {
     return "Unknown";
   }
-  
+
   return map[ev];
 }

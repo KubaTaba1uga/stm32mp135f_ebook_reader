@@ -6,7 +6,6 @@
 #include <unistd.h>
 
 #include "app/app.h"
-#include "event_bus/event_bus.h"
 #include "utils/err.h"
 #include "utils/log.h"
 
@@ -21,8 +20,6 @@ int main(void) {
   if (main_setup() != 0) {
     goto error_out;
   }
-
-  event_bus_init();
 
   err_o = app_init(&app);
   ERR_TRY(err_o);

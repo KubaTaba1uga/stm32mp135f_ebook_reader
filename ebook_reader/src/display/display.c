@@ -1,6 +1,7 @@
 #include <lvgl.h>
 
 #include "display/display.h"
+#include "core/lv_group.h"
 #include "utils/mem.h"
 
 struct Display {
@@ -46,4 +47,8 @@ void display_destroy(display_t *out) {
 
   mem_free(*out);
   *out = NULL;
+}
+
+void display_add_to_ingroup(display_t display, void *wx){
+  lv_group_add_obj(display->lv_ingroup, wx);
 }
