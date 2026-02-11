@@ -153,11 +153,14 @@ static void reader_screen_activate(struct Event event, void *data) {
   display_add_to_ingroup(rscreen->display, reader);
   lv_obj_add_event_cb(reader, reader_screen_event_cb, LV_EVENT_KEY, rscreen);
 
-  rscreen->ctx = (struct ReaderScreenCtx){.reader = reader,
-                                          .scale = book_get_scale(book),
-                                          .x_off = book_get_x_off(book),
-                                          .y_off = book_get_y_off(book),
-                                          .page = book_get_page_no(book)};
+  rscreen->ctx = (struct ReaderScreenCtx){
+      .reader = reader,
+      .scale = book_get_scale(book),
+      .x_off = book_get_x_off(book),
+      .y_off = book_get_y_off(book),
+      .page = book_get_page_no(book),
+      .book = book,
+  };
 
   return;
 
@@ -165,6 +168,7 @@ error_out:;
   reader_screen_deactivate(event, data);
   // @todo: post error
 }
+
 static void reader_screen_deactivate(struct Event event, void *data) {
   puts(__func__);
   reader_screen_t rscreen = data;
@@ -229,7 +233,7 @@ static void reader_screen_refresh(struct Event event, void *data) {
   book_t book = lv_obj_get_user_data(rscreen->ctx.reader);
 
   mem_ref(book);
-  
+
   struct ReaderScreenCtx new_ctx = {.reader = rscreen->ctx.reader,
                                     .scale = book_get_scale(book),
                                     .x_off = book_get_x_off(book),
@@ -237,11 +241,8 @@ static void reader_screen_refresh(struct Event event, void *data) {
                                     .page = book_get_page_no(book),
                                     .book = book};
   if (memcmp(&rscreen->ctx, &new_ctx, sizeof(struct ReaderScreenCtx)) != 0) {
-    puts("HIT");
     reader_screen_deactivate(event, data);
     reader_screen_activate(event, data);
-    new_ctx.reader = rscreen->ctx.reader;
-    memcpy(&rscreen->ctx, &new_ctx, sizeof(struct ReaderScreenCtx));
   }
 
   mem_deref(book);
