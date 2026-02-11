@@ -20,8 +20,9 @@
   a word in dictionary, create a note, save bookmark etc. Using bus and events
   we can easilly decouple modules responsible for each action from the rest of
   the app. Before we used FSM table which described all transitions in global
-  state of the app but we soon discovered that it lead to big few modules in
-  app which does everything.
+  state of the app but we soon discovered that it led to big few modules in
+  app which does everything. The more features we add the buggers these few
+  modules get.
 */
 // @note: Propably we should minimize size of this struct.
 static enum BusConnectorEnum
