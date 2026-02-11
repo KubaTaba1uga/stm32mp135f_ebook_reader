@@ -52,3 +52,7 @@ void display_destroy(display_t *out) {
 void display_add_to_ingroup(display_t display, void *wx){
   lv_group_add_obj(display->lv_ingroup, wx);
 }
+
+void display_del_from_ingroup(display_t _, void *wx) {
+  lv_group_remove_obj(wx)  ;
+}

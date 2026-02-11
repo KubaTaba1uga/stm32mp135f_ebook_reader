@@ -29,6 +29,8 @@ static void reader_activate(struct Event event, void *data);
 static void reader_deactivate(struct Event event, void *data);
 static void reader_prev_page(struct Event event, void *data);
 static void reader_next_page(struct Event event, void *data);
+static void reader_put_on_hold(struct Event event, void *data);
+static void reader_resume(struct Event event, void *data);
 static const char *reader_state_dump(enum ReaderState state);
 
 static struct ReaderTransition fsm_table[ReaderState_MAX][EventEnum_MAX] = {
@@ -56,6 +58,16 @@ static struct ReaderTransition fsm_table[ReaderState_MAX][EventEnum_MAX] = {
                 {
                     .action = reader_deactivate,
                     .next_state = ReaderState_NONE,
+                },
+            [EventEnum_BOOK_SETTINGS_ACTIVATED] =
+                {
+                    .action = reader_put_on_hold,
+                    .next_state = ReaderState_ACTIVE,
+                },
+            [EventEnum_BOOK_SETTINGS_DEACTIVATED] =
+                {
+                    .action = reader_resume,
+                    .next_state = ReaderState_ACTIVE,
                 },
         },
 };
@@ -140,7 +152,7 @@ static void reader_prev_page(struct Event event, void *data) {
                        (struct Event){
                            .event = EventEnum_BOOK_UPDATED,
                            .data = reader->book,
-                       });  
+                       });
 }
 
 static void reader_next_page(struct Event event, void *data) {
@@ -154,5 +166,8 @@ static void reader_next_page(struct Event event, void *data) {
                        (struct Event){
                            .event = EventEnum_BOOK_UPDATED,
                            .data = reader->book,
-                       });  
+                       });
 }
+
+static void reader_put_on_hold(struct Event event, void *data) {}
+static void reader_resume(struct Event event, void *data) {}

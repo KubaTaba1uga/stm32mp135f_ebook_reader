@@ -71,6 +71,7 @@ ebook_reader_inc = include_directories(['src'])
 
 ebook_reader_src = [files('src/main.c',
                           'src/app/app.c',
+                          'src/book_settings/book_settings.c',			  
                           'src/display/display.c',			  
                           'src/event_bus/event_bus.c',
                           'src/event_bus/event_queue.c',			  
