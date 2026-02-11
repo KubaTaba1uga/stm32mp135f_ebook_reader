@@ -19,6 +19,7 @@ struct Book {
   struct ZListNode next;
   const char *file_path;
   int max_page_number;
+  struct RefCount ref;  
   const char *title;    
   book_api_t owner;
   int page_number;

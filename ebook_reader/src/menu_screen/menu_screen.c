@@ -19,6 +19,7 @@ enum MenuScreenState {
 struct MenuScreen {
   enum MenuScreenState current_state;
   display_t display;
+  bus_t bus;  
   struct {
     wx_bar_t bar;
     wx_menu_t menu;
@@ -58,13 +59,14 @@ static struct MenuScreenTransition
             },
 };
 
-err_t menu_screen_init(menu_screen_t *out, display_t display) {
+err_t menu_screen_init(menu_screen_t *out, display_t display, bus_t bus) {
   menu_screen_t mscreen = *out = mem_malloc(sizeof(struct MenuScreen));
   *mscreen = (struct MenuScreen){
-      .display = display,
+    .display = display,
+    .bus = bus, 
   };
 
-  event_bus_register(EndpointEnum_MENU_SCREEN, post_menu_screen_event, mscreen);
+  event_bus_register(bus, BusConnectorEnum_MENU_SCREEN, post_menu_screen_event, mscreen);
 
   return 0;
 };
@@ -74,7 +76,15 @@ void menu_screen_destroy(menu_screen_t *out) {
     return;
   }
 
-  event_bus_unregister(EndpointEnum_MENU_SCREEN, post_menu_screen_event, *out);
+  switch ((*out)->current_state) {
+  case MenuScreenState_ACTIVE:
+    menu_screen_deactivate((struct Event){0}, *out);
+    break;
+    
+  default:;
+  }
+
+  event_bus_unregister((*out)->bus, BusConnectorEnum_MENU_SCREEN, post_menu_screen_event, *out);
 
   mem_free(*out);
   *out = NULL;
@@ -100,7 +110,6 @@ static void post_menu_screen_event(struct Event event, void *data) {
 
 static void menu_screen_activate(struct Event event, void *data) {
   puts(__func__);
-  assert(event.event == EventEnum_MENU_ACTIVATED);
   books_list_t books = event.data;
   menu_screen_t mscreen = data;
 
@@ -130,7 +139,8 @@ static void menu_screen_activate(struct Event event, void *data) {
         menu, book_get_title(book), lv_book == NULL,
         book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
         i);
-    lv_obj_add_event_cb(lv_book, menu_screen_event_cb, LV_EVENT_KEY, lv_book);
+    lv_obj_add_event_cb(lv_book, menu_screen_event_cb, LV_EVENT_KEY, mscreen);
+    
     lv_books[i++] = lv_book;
   }
 
@@ -158,6 +168,7 @@ static void menu_screen_deactivate(struct Event event, void *data) {
         wx_menu_book_destroy(mscreen->ctx.books[i]);
       }
     }
+    mem_free(mscreen->ctx.books);
     mscreen->ctx.books = NULL;
   }
 
@@ -187,32 +198,33 @@ static const char *menu_screen_state_dump(enum MenuScreenState state) {
 };
 
 static void menu_screen_event_cb(lv_event_t *e) {
-  wx_menu_book_t book = lv_event_get_user_data(e);
+  wx_menu_book_t book = lv_event_get_current_target(e);
+  menu_screen_t mscreen = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
   int *id = mem_malloc(sizeof(int));
   *id = wx_menu_book_get_id(book);
 
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
-    event_bus_post_event(
+    event_bus_post_event(mscreen->bus,
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_ENTER, .data = id});
   } else if (key == LV_KEY_LEFT) {
-    event_bus_post_event(
+    event_bus_post_event(mscreen->bus,
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_LEFT, .data = id});
   } else if (key == LV_KEY_RIGHT) {
-    event_bus_post_event(
+    event_bus_post_event(mscreen->bus,
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_RIGHT, .data = id});
   } else if (key == LV_KEY_UP) {
-    event_bus_post_event(BusEnum_MENU_SCREEN,
+    event_bus_post_event(mscreen->bus,BusEnum_MENU_SCREEN,
                          (struct Event){.event = EventEnum_BTN_UP, .data = id});
   } else if (key == LV_KEY_DOWN) {
-    event_bus_post_event(
+    event_bus_post_event(mscreen->bus,
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_DOWN, .data = id});
   } else if (key == LV_KEY_ESC) {
-    event_bus_post_event(
+    event_bus_post_event(mscreen->bus,
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_MENU, .data = id});
   }

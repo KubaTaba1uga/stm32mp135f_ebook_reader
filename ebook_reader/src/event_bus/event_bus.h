@@ -1,9 +1,11 @@
 #ifndef EBOOK_READER_EVENT_BUS_H
 #define EBOOK_READER_EVENT_BUS_H
 
-/*******************************************************
-                           BUS
- *******************************************************/
+#include "utils/mem.h"
+struct Event;
+typedef void (*post_event_t)(struct Event, void *);
+typedef struct Bus *bus_t;
+
 enum BusEnum {
   BusEnum_NONE = 0,
   BusEnum_ALL,  
@@ -12,12 +14,12 @@ enum BusEnum {
   BusEnum_MAX,
 };
 
-enum EndpointEnum {
-  EndpointEnum_NONE = 0,
-  EndpointEnum_MENU,
-  EndpointEnum_MENU_SCREEN,
-  EndpointEnum_READER,
-  EndpointEnum_MAX,
+enum BusConnectorEnum {
+  BusConnectorEnum_NONE = 0,
+  BusConnectorEnum_MENU,
+  BusConnectorEnum_MENU_SCREEN,
+  BusConnectorEnum_READER,
+  BusConnectorEnum_MAX,
 };
 
 enum EventEnum {
@@ -37,20 +39,18 @@ enum EventEnum {
 
 struct Event {
   enum EventEnum event;
-  void *data;
+  ref_t data;
 };
 
-typedef void (*post_event_t)(struct Event, void *);
-
-void event_bus_init(void);
-void event_bus_step(void);
-void event_bus_post_event(enum BusEnum bus, struct Event event);
-void event_bus_register(enum EndpointEnum ep, post_event_t post_func,
-                        void *data);
-void event_bus_unregister(enum EndpointEnum ep, post_event_t post_func,
-                          void *data);
-const char *event_dump(enum EventEnum event);
-const char *bus_dump(enum BusEnum event);
-const char *endpoint_dump(enum EndpointEnum ep);
+void event_bus_init(bus_t *out);
+void event_bus_destroy(bus_t *out);
+void event_bus_register(bus_t bus, enum BusConnectorEnum ep,
+                        post_event_t post_func, void *data);
+void event_bus_unregister(bus_t bus, enum BusConnectorEnum ep,
+                          post_event_t post_func, void *data);
+void event_bus_post_event(bus_t bus, enum BusEnum dst, struct Event event);
+void event_bus_step(bus_t bus);
+const char *bus_dump(enum BusEnum bus);
+const char *event_dump(enum EventEnum ev);
 
 #endif // EBOOK_READER_EVENT_BUS_H
