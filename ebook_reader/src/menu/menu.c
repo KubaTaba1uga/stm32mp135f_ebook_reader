@@ -91,7 +91,7 @@ static void menu_activate(struct Event event, void *data) {
   event_bus_post_event(menu->bus, BusEnum_MENU,
                        (struct Event){
                            .event = EventEnum_MENU_ACTIVATED,
-                           .data = mem_ref(menu->books),
+                           .data = menu->books,
                        });
 }
 
@@ -109,14 +109,15 @@ static void menu_select_book(struct Event event, void *data) {
                            .data = NULL,
                        });
 
+  book_t book = books_list_pop(menu->books, *current_book_i);
   event_bus_post_event(menu->bus, BusEnum_MENU,
                        (struct Event){
                            .event = EventEnum_BOOK_OPENED,
-                           .data = books_list_pop(menu->books, *current_book_i),
+                           .data = book,
                        });
 
-  mem_free(current_book_i);
   mem_deref(menu->books);
+  mem_deref(book);  
   menu->books = NULL;
 }
 

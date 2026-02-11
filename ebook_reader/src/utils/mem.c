@@ -29,7 +29,7 @@ ref_t mem_refalloc(size_t size, void (*destroy)(ref_t)) {
   ref = mem_malloc(sizeof(struct Reference) + size);
   ref->ref_count = 1;
   ref->destroy = destroy;
-  
+
   return ref->bytes;
 };
 
@@ -51,8 +51,9 @@ ref_t mem_deref(ref_t data) {
 
   struct Reference *ref = mem_container_of(data, struct Reference, bytes);
   if (--ref->ref_count == 0) {
-    puts("FREEEEE");
-    ref->destroy(data);
+    if (ref->destroy) {
+      ref->destroy(data);
+    }
     mem_free(ref);
     return NULL;
   };

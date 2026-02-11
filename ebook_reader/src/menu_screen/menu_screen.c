@@ -4,6 +4,7 @@
 #include "book/book.h"
 #include "display/display.h"
 #include "event_bus/event_bus.h"
+#include "library/library.h"
 #include "menu_screen/core.h"
 #include "menu_screen/menu_screen.h"
 #include "misc/lv_event.h"
@@ -18,6 +19,7 @@ enum MenuScreenState {
 
 struct MenuScreen {
   enum MenuScreenState current_state;
+  books_list_t books;
   display_t display;
   bus_t bus;  
   struct {
@@ -148,7 +150,8 @@ static void menu_screen_activate(struct Event event, void *data) {
   mscreen->ctx.menu = menu;
   mscreen->ctx.books = lv_books;
   mscreen->ctx.books_len = books_list_len(books);
-
+  /* mscreen->books = mem_ref(books); */
+  
 out:
   display_add_to_ingroup(mscreen->display, menu);
   return;
@@ -201,7 +204,7 @@ static void menu_screen_event_cb(lv_event_t *e) {
   wx_menu_book_t book = lv_event_get_current_target(e);
   menu_screen_t mscreen = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
-  int *id = mem_malloc(sizeof(int));
+  int *id = mem_refalloc(sizeof(int), NULL);
   *id = wx_menu_book_get_id(book);
 
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
@@ -228,4 +231,6 @@ static void menu_screen_event_cb(lv_event_t *e) {
         BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_MENU, .data = id});
   }
+
+  mem_deref(id);
 }

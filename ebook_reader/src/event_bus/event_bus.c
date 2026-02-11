@@ -62,6 +62,7 @@ void event_bus_init(bus_t *out) {
 }
 
 void event_bus_destroy(bus_t *out) {
+  puts(__func__);
   if (!out || !*out) {
     return;
   }
@@ -69,6 +70,7 @@ void event_bus_destroy(bus_t *out) {
   struct EventQueueNode *node;
   for (node = event_queue_pull(&(*out)->event_queue); node != NULL;
        node = event_queue_pull(&(*out)->event_queue)) {
+    mem_deref(node->event.data);
     mem_free(node);
   }
 
@@ -93,6 +95,7 @@ void event_bus_unregister(bus_t bus, enum BusConnectorEnum ep,
 void event_bus_post_event(bus_t bus, enum BusEnum dst, struct Event event) {
   struct EventQueueNode *node = mem_malloc(sizeof(struct EventQueueNode));
   *node = (struct EventQueueNode){.event = event, .bus = dst};
+  node->event.data = mem_ref(node->event.data);
 
   log_debug("Received: (%s)->(%s)", bus_dump(dst), event_dump(event.event));
 
@@ -102,6 +105,8 @@ void event_bus_post_event(bus_t bus, enum BusEnum dst, struct Event event) {
 void event_bus_step(bus_t bus) {
   struct EventQueueNode *node;
   while ((node = event_queue_pull(&bus->event_queue)) != NULL) {
+    log_debug("Handling: (%s)->(%s)", bus_dump(node->bus),
+              event_dump(node->event.event));
     event_bus_route_event(bus, node->bus, node->event);
 
     mem_deref(node->event.data);
@@ -142,7 +147,7 @@ const char *bus_dump(enum BusEnum bus) {
 }
 
 const char *event_dump(enum EventEnum ev) {
-  static const char *map[] = {
+  static const char *map[EventEnum_MAX] = {
       [EventEnum_NONE] = "ev_none",
       [EventEnum_BOOT_COMPLETED] = "ev_boot_completed",
       [EventEnum_BTN_ENTER] = "ev_btn_enter",
@@ -152,6 +157,7 @@ const char *event_dump(enum EventEnum ev) {
       [EventEnum_BTN_RIGHT] = "ev_btn_right",
       [EventEnum_MENU_ACTIVATED] = "ev_menu_activated",
       [EventEnum_MENU_DEACTIVATED] = "ev_menu_deactivated",
+      [EventEnum_BOOK_OPENED] = "ev_book_opened",
   };
 
   if (ev < EventEnum_NONE || ev >= EventEnum_MAX || !map[ev]) {
