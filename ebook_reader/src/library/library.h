@@ -13,7 +13,6 @@ books_list_t library_list_books(library_t lib);
 book_t books_list_get(books_list_t);
 int books_list_len(books_list_t);
 void books_list_reset(books_list_t);
-void books_list_destroy(books_list_t);
 book_t books_list_pop(books_list_t, int);
 
 #endif // EBOOK_READER_LIBRARY_H

@@ -16,6 +16,7 @@ struct App {
   library_t library;
   display_t display;
   menu_t menu;
+  bus_t bus;
 };
 
 err_t app_init(app_t *out) {
@@ -23,7 +24,7 @@ err_t app_init(app_t *out) {
   *app = (struct App){0};
 
   lv_init();
-  event_bus_init();
+  event_bus_init(&app->bus);
 
   err_o = display_init(&app->display);
   ERR_TRY(err_o);
@@ -31,15 +32,16 @@ err_t app_init(app_t *out) {
   err_o = library_init(&app->library);
   ERR_TRY(err_o);
 
-  err_o = menu_init(&app->menu, app->library);
+  err_o = menu_init(&app->menu, app->library, app->bus);
   ERR_TRY(err_o);
 
-  err_o = menu_screen_init(&app->menu_screen, app->display);
+  err_o = menu_screen_init(&app->menu_screen, app->display, app->bus);
   ERR_TRY(err_o);
 
-  event_bus_post_event(BusEnum_ALL, (struct Event){
-                                         .event = EventEnum_BOOT_COMPLETED,
-                                     });
+  event_bus_post_event(app->bus, BusEnum_ALL,
+                       (struct Event){
+                           .event = EventEnum_BOOT_COMPLETED,
+                       });
 
   return 0;
 
@@ -71,6 +73,10 @@ void app_destroy(app_t *out) {
     display_destroy(&app->display);
   }
 
+  if (app->bus) {
+    event_bus_destroy(&app->bus);
+  }
+
   mem_free(*out);
   *out = NULL;
 };
@@ -78,7 +84,7 @@ void app_destroy(app_t *out) {
 err_t app_main(app_t app) {
   int sleep_ms = 0;
   while (1) {
-    event_bus_step();
+    event_bus_step(app->bus);
 
     sleep_ms = lv_timer_handler();
     time_sleep_ms(sleep_ms);

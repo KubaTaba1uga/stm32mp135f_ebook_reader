@@ -108,7 +108,7 @@ books_list_t book_api_find_books(book_api_t api) {
 
     log_debug("Creating book: %s", file_path);
 
-    book = mem_malloc(sizeof(struct Book));
+    book = mem_refalloc(sizeof(struct Book), book_destroy);
 
     *book = (struct Book){
         .extension = book_ext,
@@ -221,11 +221,13 @@ void book_set_y_offset(book_t book, int value) { book->y_off = value; }
 
 void book_set_scale(book_t book, double value) { book->scale = value; }
 
-void book_destroy(book_t *book) {
+
+static void book_destroy(void * data) {
+  book_t *book = data;  
   if (!book || !*book) {
     return;
   }
-
+  
   (*book)->owner->modules[(*book)->extension].book_destroy(*book);
   mem_free((void *)(*book)->file_path);
   mem_free(*book);

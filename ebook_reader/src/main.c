@@ -31,6 +31,7 @@ int main(void) {
 
   app_destroy(&app);
 
+  puts("DONE");
   return 0;
 
 error_out:
@@ -47,6 +48,7 @@ error_out:
          not equal to 0.
 */
 static void exit_handler(void) {
+  puts("EXIT");    
   if (app) {
     app_destroy(&app);
     FcFini(); // Font config leave some rubbish, we are cleaning it
@@ -56,6 +58,7 @@ static void exit_handler(void) {
 }
 
 static void signal_handler(int signum) {
+  puts("SIGNAL");  
   if (app) {
     app_panic(app);
   }

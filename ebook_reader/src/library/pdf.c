@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "book/book.h"
-#include "book/core.h"
+#include "library/core.h"
 #include "cairo.h"
 #include "utils/err.h"
 #include "utils/mem.h"
@@ -16,7 +15,7 @@ typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
 
 struct Pdf {
-  book_api_t owner;
+  library_t owner;
 };
 
 struct PdfBook {
@@ -33,9 +32,9 @@ static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
-err_t book_module_pdf_init(book_module_t module, book_api_t api) {
+err_t book_module_pdf_init(book_module_t module, library_t lib) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
-  pdf->owner = api;
+  pdf->owner = lib;
   module->book_init = book_module_pdf_book_init;
   module->book_destroy = book_module_pdf_book_destroy;
   module->book_get_thumbnail = book_module_pdf_book_get_thumbnail;
@@ -170,6 +169,7 @@ static bool book_module_pdf_is_extension(const char *file_path) {
 }
 
 static void book_module_pdf_book_destroy(book_t book) {
+  puts(__func__);
   if (!book->private) {
     return;
   }

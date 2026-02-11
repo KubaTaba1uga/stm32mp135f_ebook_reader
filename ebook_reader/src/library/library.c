@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "library/library.h"
 #include "library/core.h"
+#include "library/library.h"
 #include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
@@ -23,6 +23,8 @@ struct BooksList {
 };
 
 static int book_get_extension(library_t lib, const char *path);
+static void books_list_destroy(void *data);
+static void book_destroy(void *data);
 
 err_t library_init(library_t *out) {
   library_t lib = *out = mem_malloc(sizeof(struct Library));
@@ -57,6 +59,7 @@ error_out:
 };
 
 void library_destroy(library_t *out) {
+  puts(__func__);
   if (!out || !*out) {
     return;
   }
@@ -80,7 +83,8 @@ books_list_t library_list_books(library_t lib) {
   int book_ext;
   book_t book;
 
-  books_list_t list = mem_malloc(sizeof(struct BooksList));
+  books_list_t list =
+      mem_refalloc(sizeof(struct BooksList), books_list_destroy);
   *list = (struct BooksList){
       .owner = lib,
   };
@@ -108,7 +112,7 @@ books_list_t library_list_books(library_t lib) {
 
     log_debug("Creating book: %s", file_path);
 
-    book = mem_malloc(sizeof(struct Book));
+    book = mem_refalloc(sizeof(struct Book), book_destroy);
 
     *book = (struct Book){
         .extension = book_ext,
@@ -142,25 +146,19 @@ error_out:
   return NULL;
 };
 
-void books_list_destroy(books_list_t blist) {
+static void books_list_destroy(void *data) {
+  puts(__func__);
+  
+  books_list_t blist = data;
   if (!blist) {
     return;
   }
 
-  library_t lib = blist->owner;
   for (zlist_node_t node = blist->books.head; node != NULL;) {
     book_t book = CAST_BOOK_PRIV(node);
-
-    if (lib->modules[book->extension].book_destroy) {
-      lib->modules[book->extension].book_destroy(book);
-    }
-
     node = node->next;
-    mem_free((void *)book->file_path);
-    mem_free(book);
+    mem_deref(book);
   }
-
-  mem_free(blist);
 };
 
 book_t books_list_get(books_list_t list) {
@@ -210,3 +208,15 @@ book_t books_list_pop(books_list_t list, int idx) {
   return book;
 }
 
+static void book_destroy(void *data) {
+  puts(__func__);
+  book_t book = data;
+
+  if (!book) {
+    puts("NO BOOKE");
+    return;
+  }
+
+  book->owner->modules[book->extension].book_destroy(book);
+  mem_free((void *)book->file_path);
+};

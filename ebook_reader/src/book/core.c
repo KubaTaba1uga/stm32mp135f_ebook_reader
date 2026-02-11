@@ -118,6 +118,8 @@ books_list_t book_api_find_books(book_api_t api) {
         .page_number = 1,
     };
 
+    mem_ref(&book->ref);    
+    
     zlist_append(&list->books, &book->next);
 
     if (!list->current_book) {
