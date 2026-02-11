@@ -109,7 +109,7 @@ static void menu_select_book(struct Event event, void *data) {
                            .data = NULL,
                        });
 
-  books_list_remove(menu->books, book);
+
   event_bus_post_event(menu->bus, BusEnum_MENU,
                        (struct Event){
                            .event = EventEnum_BOOK_OPENED,
@@ -117,7 +117,6 @@ static void menu_select_book(struct Event event, void *data) {
                        });
 
   mem_deref(menu->books);
-  mem_deref(book);  
   menu->books = NULL;
 }
 

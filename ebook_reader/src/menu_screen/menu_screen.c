@@ -215,25 +215,5 @@ static void menu_screen_event_cb(lv_event_t *e) {
     event_bus_post_event(
         mscreen->bus, BusEnum_MENU_SCREEN,
         (struct Event){.event = EventEnum_BTN_ENTER, .data = book});
-  } else if (key == LV_KEY_LEFT) {
-    event_bus_post_event(
-        mscreen->bus, BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_LEFT, .data = book});
-  } else if (key == LV_KEY_RIGHT) {
-    event_bus_post_event(
-        mscreen->bus, BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_RIGHT, .data = book});
-  } else if (key == LV_KEY_UP) {
-    event_bus_post_event(
-        mscreen->bus, BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_UP, .data = book});
-  } else if (key == LV_KEY_DOWN) {
-    event_bus_post_event(
-        mscreen->bus, BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_DOWN, .data = book});
-  } else if (key == LV_KEY_ESC) {
-    event_bus_post_event(
-        mscreen->bus, BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_MENU, .data = book});
   }
 }

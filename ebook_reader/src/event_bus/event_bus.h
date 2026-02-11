@@ -8,9 +8,11 @@ typedef struct Bus *bus_t;
 
 enum BusEnum {
   BusEnum_NONE = 0,
-  BusEnum_ALL,  
+  BusEnum_ALL,
   BusEnum_MENU,
   BusEnum_MENU_SCREEN,
+  BusEnum_READER,    
+  BusEnum_READER_SCREEN,  
   BusEnum_MAX,
 };
 
@@ -19,6 +21,7 @@ enum BusConnectorEnum {
   BusConnectorEnum_MENU,
   BusConnectorEnum_MENU_SCREEN,
   BusConnectorEnum_READER,
+  BusConnectorEnum_READER_SCREEN,  
   BusConnectorEnum_MAX,
 };
 
@@ -34,6 +37,7 @@ enum EventEnum {
   EventEnum_MENU_ACTIVATED,
   EventEnum_MENU_DEACTIVATED,
   EventEnum_BOOK_OPENED,
+  EventEnum_BOOK_CLOSED,  
   EventEnum_MAX,
 };
 

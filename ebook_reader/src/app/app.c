@@ -6,15 +6,19 @@
 #include "library/library.h"
 #include "menu/menu.h"
 #include "menu_screen/menu_screen.h"
+#include "reader/reader.h"
+#include "reader_screen/reader_screen.h"
 #include "misc/lv_timer.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
 
 struct App {
+  reader_screen_t reader_screen;
   menu_screen_t menu_screen;
   library_t library;
   display_t display;
+  reader_t reader;
   menu_t menu;
   bus_t bus;
 };
@@ -38,6 +42,12 @@ err_t app_init(app_t *out) {
   err_o = menu_screen_init(&app->menu_screen, app->display, app->bus);
   ERR_TRY(err_o);
 
+  err_o = reader_init(&app->reader, app->bus);
+  ERR_TRY(err_o);
+
+  err_o = reader_screen_init(&app->reader_screen, app->display, app->bus);
+  ERR_TRY(err_o);
+
   event_bus_post_event(app->bus, BusEnum_ALL,
                        (struct Event){
                            .event = EventEnum_BOOT_COMPLETED,
@@ -57,6 +67,15 @@ void app_destroy(app_t *out) {
 
   app_t app = *out;
 
+  if (app->reader_screen) {
+    reader_screen_destroy(&app->reader_screen);
+  }
+
+  if (app->reader) {
+    reader_destroy(&app->reader);
+  }
+
+  
   if (app->menu_screen) {
     menu_screen_destroy(&app->menu_screen);
   }

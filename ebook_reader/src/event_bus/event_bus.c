@@ -35,7 +35,8 @@ static enum BusConnectorEnum
                 [EventEnum_MENU_ACTIVATED] = {BusConnectorEnum_MENU_SCREEN, 0},
                 [EventEnum_MENU_DEACTIVATED] = {BusConnectorEnum_MENU_SCREEN,
                                                 0},
-                [EventEnum_BOOK_OPENED] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BOOK_OPENED] = {BusConnectorEnum_READER,
+                                           BusConnectorEnum_READER_SCREEN, 0},
             },
         [BusEnum_MENU_SCREEN] =
             {
@@ -45,6 +46,10 @@ static enum BusConnectorEnum
                 [EventEnum_BTN_LEFT] = {BusConnectorEnum_MENU, 0},
                 [EventEnum_BTN_RIGHT] = {BusConnectorEnum_MENU, 0},
             },
+        [BusEnum_READER] = {
+            [EventEnum_BOOK_CLOSED] = {BusConnectorEnum_READER_SCREEN, 0},
+	}            
+        
 };
 
 struct Bus {
