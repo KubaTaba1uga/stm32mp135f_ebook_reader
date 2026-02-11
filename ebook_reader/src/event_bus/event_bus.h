@@ -37,7 +37,8 @@ enum EventEnum {
   EventEnum_MENU_ACTIVATED,
   EventEnum_MENU_DEACTIVATED,
   EventEnum_BOOK_OPENED,
-  EventEnum_BOOK_CLOSED,  
+  EventEnum_BOOK_CLOSED,
+  EventEnum_BOOK_UPDATED,  
   EventEnum_MAX,
 };
 

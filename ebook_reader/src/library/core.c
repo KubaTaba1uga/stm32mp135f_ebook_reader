@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "book/book.h"
-#include "book/core.h"
+
+#include "library/library.h"
+#include "library/core.h"
 #include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
@@ -221,7 +222,6 @@ void book_set_y_offset(book_t book, int value) { book->y_off = value; }
 
 void book_set_scale(book_t book, double value) { book->scale = value; }
 
-
 static void book_destroy(void * data) {
   book_t *book = data;  
   if (!book || !*book) {
@@ -248,3 +248,4 @@ double book_get_scale(book_t book) { return book->scale; }
 int book_get_x_off(book_t book) { return book->x_off; }
 
 int book_get_y_off(book_t book) { return book->y_off; }
+
