@@ -11,8 +11,9 @@ enum BusEnum {
   BusEnum_ALL,
   BusEnum_MENU,
   BusEnum_MENU_SCREEN,
-  BusEnum_READER,    
-  BusEnum_READER_SCREEN,  
+  BusEnum_READER,
+  BusEnum_READER_SCREEN,
+  BusEnum_BOOK_SETTINGS,
   BusEnum_MAX,
 };
 
@@ -21,7 +22,8 @@ enum BusConnectorEnum {
   BusConnectorEnum_MENU,
   BusConnectorEnum_MENU_SCREEN,
   BusConnectorEnum_READER,
-  BusConnectorEnum_READER_SCREEN,  
+  BusConnectorEnum_READER_SCREEN,
+  BusConnectorEnum_BOOK_SETTINGS,
   BusConnectorEnum_MAX,
 };
 
@@ -38,7 +40,9 @@ enum EventEnum {
   EventEnum_MENU_DEACTIVATED,
   EventEnum_BOOK_OPENED,
   EventEnum_BOOK_CLOSED,
-  EventEnum_BOOK_UPDATED,  
+  EventEnum_BOOK_UPDATED,
+  EventEnum_BOOK_SETTINGS_ACTIVATED,
+  EventEnum_BOOK_SETTINGS_DEACTIVATED,
   EventEnum_MAX,
 };
 

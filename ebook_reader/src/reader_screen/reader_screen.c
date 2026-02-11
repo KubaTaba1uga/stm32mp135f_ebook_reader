@@ -4,7 +4,9 @@
 #include <string.h>
 
 #include "book/book.h"
+#include "core/lv_group.h"
 #include "core/lv_obj.h"
+#include "core/lv_obj_event.h"
 #include "display/display.h"
 #include "event_bus/event_bus.h"
 #include "library/library.h"
@@ -18,6 +20,7 @@
 enum ReaderScreenState {
   ReaderScreenState_NONE,
   ReaderScreenState_ACTIVE,
+  ReaderScreenState_ON_HOLD,
   ReaderScreenState_MAX,
 };
 
@@ -48,6 +51,8 @@ static void reader_screen_deactivate(struct Event event, void *data);
 static void reader_screen_refresh(struct Event event, void *data);
 static const char *reader_screen_state_dump(enum ReaderScreenState state);
 static void reader_screen_event_cb(lv_event_t *e);
+static void reader_screen_put_on_hold(struct Event event, void *data);
+static void reader_screen_resume(struct Event event, void *data);
 
 static struct ReaderScreenTransition
     fsm_table[ReaderScreenState_MAX][EventEnum_MAX] = {
@@ -59,18 +64,32 @@ static struct ReaderScreenTransition
                         .next_state = ReaderScreenState_ACTIVE,
                     },
             },
-        [ReaderScreenState_ACTIVE] =
-            {
-                [EventEnum_BOOK_UPDATED] =
-                    {
-                        .action = reader_screen_refresh,
-                        .next_state = ReaderScreenState_ACTIVE,
-                    },
-                [EventEnum_BOOK_CLOSED] =
-                    {
-                        .action = reader_screen_deactivate,
-                        .next_state = ReaderScreenState_NONE,
-                    },
+        [ReaderScreenState_ACTIVE] = {
+            [EventEnum_BOOK_UPDATED] =
+                {
+                    .action = reader_screen_refresh,
+                    .next_state = ReaderScreenState_ACTIVE,
+                },
+            [EventEnum_BOOK_CLOSED] =
+                {
+                    .action = reader_screen_deactivate,
+                    .next_state = ReaderScreenState_NONE,
+                },
+            [EventEnum_BOOK_SETTINGS_ACTIVATED] =
+                {
+                    .action = reader_screen_put_on_hold,
+                    .next_state = ReaderScreenState_ON_HOLD,
+                },
+            [EventEnum_BOOK_SETTINGS_DEACTIVATED] =
+                {
+                    .action = reader_screen_resume,
+                    .next_state = ReaderScreenState_ACTIVE,
+                },
+            [EventEnum_BTN_MENU] =
+                {
+                    .action = reader_screen_deactivate,
+                    .next_state = ReaderScreenState_NONE,
+                },            
             },
 };
 
@@ -174,6 +193,7 @@ static void reader_screen_deactivate(struct Event event, void *data) {
   reader_screen_t rscreen = data;
   if (rscreen->ctx.reader) {
     book_t book = lv_obj_get_user_data(rscreen->ctx.reader);
+    reader_screen_put_on_hold(event, data);
     mem_deref(book);
     wx_reader_destroy(rscreen->ctx.reader);
     memset(&rscreen->ctx, 0, sizeof(struct ReaderScreenCtx));
@@ -222,7 +242,7 @@ static void reader_screen_event_cb(lv_event_t *e) {
         (struct Event){.event = EventEnum_BTN_DOWN, .data = NULL});
   } else if (key == LV_KEY_ESC) {
     event_bus_post_event(
-        rscreen->bus, BusEnum_READER_SCREEN,
+        rscreen->bus, BusEnum_ALL,
         (struct Event){.event = EventEnum_BTN_MENU, .data = NULL});
   }
 }
@@ -246,4 +266,18 @@ static void reader_screen_refresh(struct Event event, void *data) {
   }
 
   mem_deref(book);
+}
+
+static void reader_screen_put_on_hold(struct Event event, void *data) {
+  reader_screen_t rscreen = data;
+  display_del_from_ingroup(rscreen->display, rscreen->ctx.reader);
+  lv_obj_remove_event_cb_with_user_data(rscreen->ctx.reader,
+                                        reader_screen_event_cb, rscreen);
+}
+
+static void reader_screen_resume(struct Event event, void *data) {
+  reader_screen_t rscreen = data;
+  display_add_to_ingroup(rscreen->display, rscreen->ctx.reader);
+  lv_obj_add_event_cb(rscreen->ctx.reader, reader_screen_event_cb, LV_EVENT_KEY,
+                      rscreen);
 }

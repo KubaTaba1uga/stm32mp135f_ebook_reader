@@ -40,6 +40,11 @@ static struct MenuTransition fsm_table[MenuState_MAX][EventEnum_MAX] = {
                     .action = menu_activate,
                     .next_state = MenuState_ACTIVE,
                 },
+            [EventEnum_BTN_MENU] =
+                {
+                    .action = menu_activate,
+                    .next_state = MenuState_ACTIVE,
+                },
         },
     [MenuState_ACTIVE] =
         {

@@ -30,6 +30,9 @@ static enum BusConnectorEnum
         [BusEnum_ALL] =
             {
                 [EventEnum_BOOT_COMPLETED] = {BusConnectorEnum_MENU, 0},
+                [EventEnum_BTN_MENU] = {BusConnectorEnum_READER,
+                                        BusConnectorEnum_READER_SCREEN,
+                                        BusConnectorEnum_MENU, 0},
             },
         [BusEnum_MENU] =
             {
@@ -47,18 +50,29 @@ static enum BusConnectorEnum
                 [EventEnum_BTN_LEFT] = {BusConnectorEnum_MENU, 0},
                 [EventEnum_BTN_RIGHT] = {BusConnectorEnum_MENU, 0},
             },
-        [BusEnum_READER] = {
-                [EventEnum_BOOK_UPDATED] = {BusConnectorEnum_READER_SCREEN, 0},            
+        [BusEnum_READER] =
+            {
+                [EventEnum_BOOK_UPDATED] = {BusConnectorEnum_READER_SCREEN, 0},
                 [EventEnum_BOOK_CLOSED] = {BusConnectorEnum_READER_SCREEN, 0},
             },
         [BusEnum_READER_SCREEN] =
             {
-                [EventEnum_BTN_ENTER] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BTN_ENTER] = {BusConnectorEnum_BOOK_SETTINGS, 0},
                 [EventEnum_BTN_UP] = {BusConnectorEnum_READER, 0},
                 [EventEnum_BTN_DOWN] = {BusConnectorEnum_READER, 0},
                 [EventEnum_BTN_LEFT] = {BusConnectorEnum_READER, 0},
                 [EventEnum_BTN_RIGHT] = {BusConnectorEnum_READER, 0},
             },
+        [BusEnum_BOOK_SETTINGS] =
+            {
+                [EventEnum_BOOK_SETTINGS_ACTIVATED] =
+                    {BusConnectorEnum_READER, BusConnectorEnum_READER_SCREEN,
+                     0},
+                [EventEnum_BOOK_SETTINGS_DEACTIVATED] =
+                    {BusConnectorEnum_READER, BusConnectorEnum_READER_SCREEN,
+                     0},
+            },
+
 };
 
 struct Bus {
@@ -112,16 +126,22 @@ void event_bus_post_event(bus_t bus, enum BusEnum dst, struct Event event) {
   *node = (struct EventQueueNode){.event = event, .bus = dst};
   node->event.data = mem_ref(node->event.data);
 
-  log_debug("Received: (%s)->(%s)", bus_dump(dst), event_dump(event.event));
+  /* log_debug("Received: (%s)->(%s)", bus_dump(dst), event_dump(event.event));
+   */
 
   event_queue_push(&bus->event_queue, node);
 }
 
+/**
+   @todo: Detect BTN menu and route it to all Endpoints instead of normal
+   routing.
+*/
 void event_bus_step(bus_t bus) {
   struct EventQueueNode *node;
   while ((node = event_queue_pull(&bus->event_queue)) != NULL) {
     log_debug("Handling: (%s)->(%s)", bus_dump(node->bus),
               event_dump(node->event.event));
+
     event_bus_route_event(bus, node->bus, node->event);
 
     mem_deref(node->event.data);
@@ -135,6 +155,15 @@ static void event_bus_route_event(bus_t bus, enum BusEnum dst,
   void *conn_data;
   int i = 0;
 
+  if (event.event == EventEnum_BTN_MENU) {
+    for (int i = BusConnectorEnum_NONE + 1; i < BusConnectorEnum_MAX; i++) {
+      if (bus->func_table[i]) {
+        bus->func_table[i](event, bus->data_table[i]);
+      }
+    }
+    return;
+  }
+  
   for (enum BusConnectorEnum conn = route_table[dst][event.event][i];
        conn != BusConnectorEnum_NONE;
        conn = route_table[dst][event.event][++i]) {
@@ -166,18 +195,19 @@ const char *bus_dump(enum BusEnum bus) {
 
 const char *event_dump(enum EventEnum ev) {
   static const char *map[EventEnum_MAX] = {
-    [EventEnum_NONE] = "ev_none",
-    [EventEnum_BOOT_COMPLETED] = "ev_boot_completed",
-    [EventEnum_BTN_ENTER] = "ev_btn_enter",
-    [EventEnum_BTN_UP] = "ev_btn_up",
-    [EventEnum_BTN_DOWN] = "ev_btn_down",
-    [EventEnum_BTN_LEFT] = "ev_btn_left",
-    [EventEnum_BTN_RIGHT] = "ev_btn_right",
-    [EventEnum_MENU_ACTIVATED] = "ev_menu_activated",
-    [EventEnum_MENU_DEACTIVATED] = "ev_menu_deactivated",
-    [EventEnum_BOOK_OPENED] = "ev_book_opened",
-    [EventEnum_BOOK_CLOSED] = "ev_book_closed",
-      [EventEnum_BOOK_UPDATED] = "ev_book_updated",    
+      [EventEnum_NONE] = "ev_none",
+      [EventEnum_BOOT_COMPLETED] = "ev_boot_completed",
+      [EventEnum_BTN_ENTER] = "ev_btn_enter",
+      [EventEnum_BTN_UP] = "ev_btn_up",
+      [EventEnum_BTN_DOWN] = "ev_btn_down",
+      [EventEnum_BTN_LEFT] = "ev_btn_left",
+      [EventEnum_BTN_RIGHT] = "ev_btn_right",
+      [EventEnum_BTN_MENU] = "ev_btn_menu",
+      [EventEnum_MENU_ACTIVATED] = "ev_menu_activated",
+      [EventEnum_MENU_DEACTIVATED] = "ev_menu_deactivated",
+      [EventEnum_BOOK_OPENED] = "ev_book_opened",
+      [EventEnum_BOOK_CLOSED] = "ev_book_closed",
+      [EventEnum_BOOK_UPDATED] = "ev_book_updated",
   };
 
   if (ev < EventEnum_NONE || ev >= EventEnum_MAX || !map[ev]) {
