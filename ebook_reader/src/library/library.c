@@ -237,10 +237,16 @@ const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
 int book_get_page_no(book_t book) { return book->page_number; }
 
 void book_set_page_no(book_t book, int page_no) {
-  book->page_number =
-      page_no < book->max_page_number ? page_no : book->max_page_number;
-}
+  if (page_no >= book->max_page_number) {
+    page_no = book->max_page_number;
+  }
 
+  if (page_no < 1) {
+    page_no = 1;
+  }
+
+  book->page_number = page_no;
+}
 
 void book_set_scale(book_t book, double value) { book->scale = value; }
 
@@ -255,4 +261,3 @@ int book_get_y_off(book_t book) { return book->y_off; }
 void book_set_x_off(book_t book, int value) { book->x_off = value; }
 
 void book_set_y_off(book_t book, int value) { book->y_off = value; }
-
