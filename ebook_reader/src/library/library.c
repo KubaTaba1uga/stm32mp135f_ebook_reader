@@ -148,7 +148,7 @@ error_out:
 
 static void books_list_destroy(void *data) {
   puts(__func__);
-  
+
   books_list_t blist = data;
   if (!blist) {
     return;
@@ -200,7 +200,7 @@ const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
 int books_list_len(books_list_t list) { return list->books.len; }
 
 book_t books_list_pop(books_list_t list, int idx) {
-  assert(list != NULL);  
+  assert(list != NULL);
   zlist_node_t book_node = zlist_pop(&list->books, idx);
   assert(book_node != NULL);
   book_t book = CAST_BOOK_PRIV(book_node);
@@ -218,3 +218,12 @@ static void book_destroy(void *data) {
   book->owner->modules[book->extension].book_destroy(book);
   mem_free((void *)book->file_path);
 };
+
+void books_list_remove(books_list_t list, book_t book) {
+  int i = 0;
+  for (zlist_node_t node = list->books.head; node != NULL; node = node->next) {
+    i++;
+  }
+
+  (void)books_list_pop(list, i);
+}

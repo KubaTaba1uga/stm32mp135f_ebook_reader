@@ -21,7 +21,7 @@ struct MenuScreen {
   enum MenuScreenState current_state;
   books_list_t books;
   display_t display;
-  bus_t bus;  
+  bus_t bus;
   struct {
     wx_bar_t bar;
     wx_menu_t menu;
@@ -64,11 +64,12 @@ static struct MenuScreenTransition
 err_t menu_screen_init(menu_screen_t *out, display_t display, bus_t bus) {
   menu_screen_t mscreen = *out = mem_malloc(sizeof(struct MenuScreen));
   *mscreen = (struct MenuScreen){
-    .display = display,
-    .bus = bus, 
+      .display = display,
+      .bus = bus,
   };
 
-  event_bus_register(bus, BusConnectorEnum_MENU_SCREEN, post_menu_screen_event, mscreen);
+  event_bus_register(bus, BusConnectorEnum_MENU_SCREEN, post_menu_screen_event,
+                     mscreen);
 
   return 0;
 };
@@ -82,11 +83,12 @@ void menu_screen_destroy(menu_screen_t *out) {
   case MenuScreenState_ACTIVE:
     menu_screen_deactivate((struct Event){0}, *out);
     break;
-    
+
   default:;
   }
 
-  event_bus_unregister((*out)->bus, BusConnectorEnum_MENU_SCREEN, post_menu_screen_event, *out);
+  event_bus_unregister((*out)->bus, BusConnectorEnum_MENU_SCREEN,
+                       post_menu_screen_event, *out);
 
   mem_free(*out);
   *out = NULL;
@@ -140,9 +142,9 @@ static void menu_screen_activate(struct Event event, void *data) {
     lv_book = wx_menu_book_create(
         menu, book_get_title(book), lv_book == NULL,
         book_get_thumbnail(book, menu_book_x, menu_book_y - menu_book_text_y),
-        i);
+        mem_ref(book));
     lv_obj_add_event_cb(lv_book, menu_screen_event_cb, LV_EVENT_KEY, mscreen);
-    
+
     lv_books[i++] = lv_book;
   }
 
@@ -151,7 +153,7 @@ static void menu_screen_activate(struct Event event, void *data) {
   mscreen->ctx.books = lv_books;
   mscreen->ctx.books_len = books_list_len(books);
   /* mscreen->books = mem_ref(books); */
-  
+
 out:
   display_add_to_ingroup(mscreen->display, menu);
   return;
@@ -159,6 +161,7 @@ out:
 error_bar_cleanup:
   wx_bar_destroy(bar);
 error_out:;
+  menu_screen_deactivate(event, data);
   // @todo: post error
 }
 static void menu_screen_deactivate(struct Event event, void *data) {
@@ -168,6 +171,8 @@ static void menu_screen_deactivate(struct Event event, void *data) {
   if (mscreen->ctx.books) {
     for (int i = mscreen->ctx.books_len - 1; i >= 0; i--) {
       if (mscreen->ctx.books[i]) {
+        book_t book = wx_menu_book_get_data(mscreen->ctx.books[i]);
+        mem_deref(book);
         wx_menu_book_destroy(mscreen->ctx.books[i]);
       }
     }
@@ -201,36 +206,34 @@ static const char *menu_screen_state_dump(enum MenuScreenState state) {
 };
 
 static void menu_screen_event_cb(lv_event_t *e) {
-  wx_menu_book_t book = lv_event_get_current_target(e);
+  wx_menu_book_t wx = lv_event_get_current_target(e);
   menu_screen_t mscreen = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
-  int *id = mem_refalloc(sizeof(int), NULL);
-  *id = wx_menu_book_get_id(book);
+  book_t book = wx_menu_book_get_data(wx);
 
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
-    event_bus_post_event(mscreen->bus,
-        BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_ENTER, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_ENTER, .data = book});
   } else if (key == LV_KEY_LEFT) {
-    event_bus_post_event(mscreen->bus,
-        BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_LEFT, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_LEFT, .data = book});
   } else if (key == LV_KEY_RIGHT) {
-    event_bus_post_event(mscreen->bus,
-        BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_RIGHT, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_RIGHT, .data = book});
   } else if (key == LV_KEY_UP) {
-    event_bus_post_event(mscreen->bus,BusEnum_MENU_SCREEN,
-                         (struct Event){.event = EventEnum_BTN_UP, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_UP, .data = book});
   } else if (key == LV_KEY_DOWN) {
-    event_bus_post_event(mscreen->bus,
-        BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_DOWN, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_DOWN, .data = book});
   } else if (key == LV_KEY_ESC) {
-    event_bus_post_event(mscreen->bus,
-        BusEnum_MENU_SCREEN,
-        (struct Event){.event = EventEnum_BTN_MENU, .data = id});
+    event_bus_post_event(
+        mscreen->bus, BusEnum_MENU_SCREEN,
+        (struct Event){.event = EventEnum_BTN_MENU, .data = book});
   }
-
-  mem_deref(id);
 }

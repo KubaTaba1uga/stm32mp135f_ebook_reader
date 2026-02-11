@@ -9,7 +9,7 @@
 
 struct MenuBookWidget {
   lv_img_dsc_t img;
-  int id;
+  void *data;
 };
 
 const int bar_y = 48;
@@ -122,19 +122,16 @@ void wx_menu_destroy(wx_menu_t menu) {
   mem_free(style);
 }
 
-wx_menu_book_t wx_menu_book_create(wx_menu_t menu,
-                                         const char *book_title,
-                                         bool is_focused,
-                                         const uint8_t *thumbnail, int id
-                                         ) {
+wx_menu_book_t wx_menu_book_create(wx_menu_t menu, const char *book_title,
+                                   bool is_focused, const uint8_t *thumbnail,
+                                   void *data) {
   lv_obj_t *book_card = wx_obj_create(menu);
   lv_obj_set_size(book_card, menu_book_x + 16, menu_book_y + 16);
 
   // Configure data required to display book
-  struct MenuBookWidget *book_data =
-      mem_malloc(sizeof(struct MenuBookWidget));
+  struct MenuBookWidget *book_data = mem_malloc(sizeof(struct MenuBookWidget));
   *book_data = (struct MenuBookWidget){0};
-  book_data->id = id;
+  book_data->data = data;
   lv_obj_set_user_data(book_card, book_data);
 
   if (thumbnail) {
@@ -184,9 +181,7 @@ void wx_menu_book_destroy(wx_menu_book_t book) {
   lv_obj_del(book);
 };
 
-
-int wx_menu_book_get_id(wx_menu_book_t book) {
-  struct MenuBookWidget *book_data = lv_obj_get_user_data(book);  
-  return book_data->id;  
+void *wx_menu_book_get_data(wx_menu_book_t book) {
+  struct MenuBookWidget *book_data = lv_obj_get_user_data(book);
+  return book_data->data;
 }
-
