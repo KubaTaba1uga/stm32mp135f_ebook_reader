@@ -41,9 +41,8 @@ typedef lv_obj_t *wx_menu_book_t;
 wx_menu_book_t wx_menu_book_create(wx_menu_t menu,
                                          const char *book_title,
                                          bool is_focused,
-                                         const uint8_t *thumbnail, int id
-                                         );
-int wx_menu_book_get_id(wx_menu_book_t);
+                                         const uint8_t *thumbnail, void *data);
+void *wx_menu_book_get_data(wx_menu_book_t);
 ui_t wx_menu_book_get_ui(wx_menu_book_t);
 void wx_menu_book_destroy(wx_menu_book_t);
 

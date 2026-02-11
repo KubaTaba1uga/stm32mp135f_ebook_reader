@@ -97,10 +97,10 @@ static void menu_activate(struct Event event, void *data) {
 
 
 static void menu_select_book(struct Event event, void *data) {
-  int *current_book_i = event.data;
+  book_t book = event.data;
   menu_t menu = data;
 
-  assert(current_book_i != NULL);
+  assert(book != NULL);
   assert(menu != NULL);
 
   event_bus_post_event(menu->bus, BusEnum_MENU,
@@ -109,7 +109,7 @@ static void menu_select_book(struct Event event, void *data) {
                            .data = NULL,
                        });
 
-  book_t book = books_list_pop(menu->books, *current_book_i);
+  books_list_remove(menu->books, book);
   event_bus_post_event(menu->bus, BusEnum_MENU,
                        (struct Event){
                            .event = EventEnum_BOOK_OPENED,
