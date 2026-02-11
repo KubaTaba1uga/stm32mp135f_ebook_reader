@@ -27,6 +27,8 @@ struct ReaderTransition {
 static void post_reader_event(struct Event event, void *data);
 static void reader_activate(struct Event event, void *data);
 static void reader_deactivate(struct Event event, void *data);
+static void reader_prev_page(struct Event event, void *data);
+static void reader_next_page(struct Event event, void *data);
 static const char *reader_state_dump(enum ReaderState state);
 
 static struct ReaderTransition fsm_table[ReaderState_MAX][EventEnum_MAX] = {
@@ -40,6 +42,16 @@ static struct ReaderTransition fsm_table[ReaderState_MAX][EventEnum_MAX] = {
         },
     [ReaderState_ACTIVE] =
         {
+            [EventEnum_BTN_LEFT] =
+                {
+                    .action = reader_prev_page,
+                    .next_state = ReaderState_ACTIVE,
+                },
+            [EventEnum_BTN_RIGHT] =
+                {
+                    .action = reader_next_page,
+                    .next_state = ReaderState_ACTIVE,
+                },
             [EventEnum_BTN_MENU] =
                 {
                     .action = reader_deactivate,
@@ -114,5 +126,33 @@ static void reader_activate(struct Event event, void *data) {
 static void reader_deactivate(struct Event event, void *data) {
   reader_t reader = data;
   mem_deref(reader->book);
-  reader->book = NULL;  
+  reader->book = NULL;
 };
+
+static void reader_prev_page(struct Event event, void *data) {
+  reader_t reader = data;
+
+  int page_no = book_get_page_no(reader->book);
+  page_no--;
+  book_set_page_no(reader->book, page_no);
+
+  event_bus_post_event(reader->bus, BusEnum_READER,
+                       (struct Event){
+                           .event = EventEnum_BOOK_UPDATED,
+                           .data = reader->book,
+                       });  
+}
+
+static void reader_next_page(struct Event event, void *data) {
+  reader_t reader = data;
+
+  int page_no = book_get_page_no(reader->book);
+  page_no++;
+  book_set_page_no(reader->book, page_no);
+
+  event_bus_post_event(reader->bus, BusEnum_READER,
+                       (struct Event){
+                           .event = EventEnum_BOOK_UPDATED,
+                           .data = reader->book,
+                       });  
+}

@@ -2,7 +2,6 @@
 #define EBOOK_READER_EVENT_BUS_CORE_H
 
 #include "event_bus/event_bus.h"
-#include "utils/err.h"
 #include "utils/zlist.h"
 
 struct EventQueue {

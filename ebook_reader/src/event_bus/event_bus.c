@@ -47,9 +47,17 @@ static enum BusConnectorEnum
                 [EventEnum_BTN_RIGHT] = {BusConnectorEnum_MENU, 0},
             },
         [BusEnum_READER] = {
-            [EventEnum_BOOK_CLOSED] = {BusConnectorEnum_READER_SCREEN, 0},
-	}            
-        
+                [EventEnum_BOOK_UPDATED] = {BusConnectorEnum_READER_SCREEN, 0},            
+                [EventEnum_BOOK_CLOSED] = {BusConnectorEnum_READER_SCREEN, 0},
+            },
+        [BusEnum_READER_SCREEN] =
+            {
+                [EventEnum_BTN_ENTER] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BTN_UP] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BTN_DOWN] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BTN_LEFT] = {BusConnectorEnum_READER, 0},
+                [EventEnum_BTN_RIGHT] = {BusConnectorEnum_READER, 0},
+            },
 };
 
 struct Bus {
@@ -62,6 +70,7 @@ static void event_bus_route_event(bus_t bus, enum BusEnum dst,
                                   struct Event event);
 
 void event_bus_init(bus_t *out) {
+  printf("Size=%lu\n", sizeof(route_table));
   bus_t bus = *out = mem_malloc(sizeof(struct Bus));
   *bus = (struct Bus){0};
 }
@@ -139,10 +148,13 @@ static void event_bus_route_event(bus_t bus, enum BusEnum dst,
 }
 
 const char *bus_dump(enum BusEnum bus) {
-  static const char *map[] = {
+  static const char *map[BusEnum_MAX] = {
       [BusEnum_NONE] = "bus_none",
       [BusEnum_MENU] = "bus_menu",
       [BusEnum_MENU_SCREEN] = "bus_menu_screen",
+      [BusEnum_READER] = "bus_reader",
+      [BusEnum_READER_SCREEN] = "bus_reader_screen",
+
   };
 
   if (bus < BusEnum_NONE || bus >= BusEnum_MAX || !map[bus]) {
@@ -153,16 +165,18 @@ const char *bus_dump(enum BusEnum bus) {
 
 const char *event_dump(enum EventEnum ev) {
   static const char *map[EventEnum_MAX] = {
-      [EventEnum_NONE] = "ev_none",
-      [EventEnum_BOOT_COMPLETED] = "ev_boot_completed",
-      [EventEnum_BTN_ENTER] = "ev_btn_enter",
-      [EventEnum_BTN_UP] = "ev_btn_up",
-      [EventEnum_BTN_DOWN] = "ev_btn_down",
-      [EventEnum_BTN_LEFT] = "ev_btn_left",
-      [EventEnum_BTN_RIGHT] = "ev_btn_right",
-      [EventEnum_MENU_ACTIVATED] = "ev_menu_activated",
-      [EventEnum_MENU_DEACTIVATED] = "ev_menu_deactivated",
-      [EventEnum_BOOK_OPENED] = "ev_book_opened",
+    [EventEnum_NONE] = "ev_none",
+    [EventEnum_BOOT_COMPLETED] = "ev_boot_completed",
+    [EventEnum_BTN_ENTER] = "ev_btn_enter",
+    [EventEnum_BTN_UP] = "ev_btn_up",
+    [EventEnum_BTN_DOWN] = "ev_btn_down",
+    [EventEnum_BTN_LEFT] = "ev_btn_left",
+    [EventEnum_BTN_RIGHT] = "ev_btn_right",
+    [EventEnum_MENU_ACTIVATED] = "ev_menu_activated",
+    [EventEnum_MENU_DEACTIVATED] = "ev_menu_deactivated",
+    [EventEnum_BOOK_OPENED] = "ev_book_opened",
+    [EventEnum_BOOK_CLOSED] = "ev_book_closed",
+      [EventEnum_BOOK_UPDATED] = "ev_book_updated",    
   };
 
   if (ev < EventEnum_NONE || ev >= EventEnum_MAX || !map[ev]) {

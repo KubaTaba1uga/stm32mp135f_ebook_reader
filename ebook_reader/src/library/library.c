@@ -227,3 +227,32 @@ void books_list_remove(books_list_t list, book_t book) {
 
   (void)books_list_pop(list, i);
 }
+
+const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
+  puts(__func__);
+  return book->owner->modules[book->extension].book_get_page(book, x, y,
+                                                             buf_len);
+}
+
+int book_get_page_no(book_t book) { return book->page_number; }
+
+void book_set_page_no(book_t book, int page_no) {
+  book->page_number =
+      page_no < book->max_page_number ? page_no : book->max_page_number;
+}
+
+
+void book_set_scale(book_t book, double value) { book->scale = value; }
+
+int book_get_max_page_no(book_t book) { return book->max_page_number; }
+
+double book_get_scale(book_t book) { return book->scale; }
+
+int book_get_x_off(book_t book) { return book->x_off; }
+
+int book_get_y_off(book_t book) { return book->y_off; }
+
+void book_set_x_off(book_t book, int value) { book->x_off = value; }
+
+void book_set_y_off(book_t book, int value) { book->y_off = value; }
+

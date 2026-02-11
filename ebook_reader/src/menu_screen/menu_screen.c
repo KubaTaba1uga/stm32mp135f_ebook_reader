@@ -19,7 +19,6 @@ enum MenuScreenState {
 
 struct MenuScreen {
   enum MenuScreenState current_state;
-  books_list_t books;
   display_t display;
   bus_t bus;
   struct {
@@ -152,7 +151,6 @@ static void menu_screen_activate(struct Event event, void *data) {
   mscreen->ctx.menu = menu;
   mscreen->ctx.books = lv_books;
   mscreen->ctx.books_len = books_list_len(books);
-  /* mscreen->books = mem_ref(books); */
 
 out:
   display_add_to_ingroup(mscreen->display, menu);
