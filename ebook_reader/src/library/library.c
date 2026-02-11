@@ -200,7 +200,7 @@ const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
 int books_list_len(books_list_t list) { return list->books.len; }
 
 book_t books_list_pop(books_list_t list, int idx) {
-  printf("idx=%d\n", idx);
+  assert(list != NULL);  
   zlist_node_t book_node = zlist_pop(&list->books, idx);
   assert(book_node != NULL);
   book_t book = CAST_BOOK_PRIV(book_node);
@@ -209,11 +209,9 @@ book_t books_list_pop(books_list_t list, int idx) {
 }
 
 static void book_destroy(void *data) {
-  puts(__func__);
   book_t book = data;
 
   if (!book) {
-    puts("NO BOOKE");
     return;
   }
 
