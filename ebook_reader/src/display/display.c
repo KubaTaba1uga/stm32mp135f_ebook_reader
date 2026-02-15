@@ -1,7 +1,7 @@
 #include <lvgl.h>
 
-#include "display/display.h"
 #include "core/lv_group.h"
+#include "display/display.h"
 #include "utils/mem.h"
 
 struct Display {
@@ -49,10 +49,17 @@ void display_destroy(display_t *out) {
   *out = NULL;
 }
 
-void display_add_to_ingroup(display_t display, void *wx){
+void display_add_to_ingroup(display_t display, void *wx) {
   lv_group_add_obj(display->lv_ingroup, wx);
 }
 
 void display_del_from_ingroup(display_t _, void *wx) {
-  lv_group_remove_obj(wx)  ;
+  lv_group_remove_obj(wx);
+}
+
+int display_get_x(display_t display) {
+  return lv_display_get_horizontal_resolution(NULL);
+};
+int display_get_y(display_t display) {
+  return lv_display_get_vertical_resolution(NULL);
 }

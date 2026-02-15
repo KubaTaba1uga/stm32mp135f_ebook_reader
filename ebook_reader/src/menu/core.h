@@ -12,6 +12,7 @@ typedef lvgl_obj_t wdgt_books_t;
 struct MenuView {
   wdgt_bar_t bar;
   wdgt_books_t books;
+  books_list_t books_data;
 };
 
 err_t menu_view_init(struct MenuView *view, books_list_t books,
