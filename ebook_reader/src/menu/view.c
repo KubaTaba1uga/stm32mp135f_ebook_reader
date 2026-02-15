@@ -26,4 +26,4 @@ error_out:
 void menu_view_destroy(struct MenuView *view) {
   wdgt_bar_destroy(&view->bar);
   wdgt_books_destroy(&view->books);
-  }
+}
