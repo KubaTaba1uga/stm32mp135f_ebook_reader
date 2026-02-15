@@ -28,7 +28,7 @@ int main(void) {
 
   err_o = app_main(app);
   ERR_TRY(err_o);
-
+  
   app_destroy(&app);
 
   puts("DONE");
@@ -59,9 +59,9 @@ static void exit_handler(void) {
 
 static void signal_handler(int signum) {
   puts("SIGNAL");  
-  if (app) {
-    app_panic(app);
-  }
+  /* if (app) { */
+    /* app_panic(app); */
+  /* } */
   _exit(1);
 };
 
@@ -90,6 +90,6 @@ static int main_setup(void) {
 
 void __asan_on_error(void) {
   if (app) {
-    app_panic(app);
+    /* app_panic(app); */
   }
 }
