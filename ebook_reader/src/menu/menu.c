@@ -28,12 +28,13 @@ struct MenuTransition {
   post_event_func_t action;
 };
 
-static void menu_activate(enum Events event, ref_t event_data, void *sub_data);
-static void select_book_cb(book_t, void *);
-static void menu_deactivate(enum Events event, ref_t event_data, void *sub_data);
+
+static void menu_activate(enum Events __, ref_t ___, void *sub_data);
+static void menu_deactivate(enum Events __, ref_t ___, void *sub_data);
 static void menu_post_event(enum Events event, ref_t event_data,
                             void *sub_data);
 static const char *menu_state_dump(enum MenuStates state);
+static void select_book_cb(book_t, void *);
 
 struct MenuTransition menu_fsm_table[MenuStates_MAX][Events_MAX] = {
     [MenuStates_NONE] =
@@ -74,11 +75,20 @@ void menu_destroy(menu_t *out) {
     return;
   }
 
+  menu_t menu = *out;
+
+  switch (menu->current_state) {
+  case MenuStates_ACTIVE:
+    menu_deactivate(Events_NONE, NULL, menu);
+    break;
+  default:;
+  }
+
   mem_free(*out);
   *out = NULL;
 }
 
-static void menu_activate(enum Events event, ref_t event_data, void *sub_data) {
+static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
   puts(__func__);
   menu_t menu = sub_data;
 
@@ -103,7 +113,7 @@ static void select_book_cb(book_t book, void *sub_data) {
   event_queue_push(menu->evqueue, Events_BOOK_OPENED, book);
 };
 
-static void menu_deactivate(enum Events event, ref_t event_data, void *sub_data) {
+static void menu_deactivate(enum Events __, ref_t ___, void *sub_data) {
   puts(__func__);
   menu_t menu = sub_data;
 
@@ -144,4 +154,3 @@ static const char *menu_state_dump(enum MenuStates state) {
 
   return dumps[state];
 };
-

@@ -44,8 +44,13 @@ void event_queue_destroy(event_queue_t *out) {
   if (mem_is_null_ptr(out)) {
     return;
   }
-
-  mem_free(*out);
+  event_queue_t queue= *out;  
+  event_t event;
+  while ((event = event_queue_pull(queue)) != NULL) {
+    mem_deref(event->data);
+    mem_free(event);
+  }
+  mem_free(queue);
   *out = NULL;
 }
 
@@ -59,7 +64,6 @@ void event_queue_push(event_queue_t queue, enum Events event,
 }
 
 void event_queue_step(event_queue_t queue) {
-
   event_t event;
   while ((event = event_queue_pull(queue)) != NULL) {
     /* log_debug("Handling: (%s)->(%s)", bus_dump(node->bus), */
