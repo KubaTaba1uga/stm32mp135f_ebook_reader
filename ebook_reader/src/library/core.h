@@ -26,7 +26,6 @@ struct Book {
   double scale;
   int x_off;
   int y_off;
-
 };
 
 struct BookModule {
