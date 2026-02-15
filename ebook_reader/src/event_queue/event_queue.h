@@ -1,19 +1,20 @@
 #ifndef EBOOK_READER_EVENT_QUEUE_H
 #define EBOOK_READER_EVENT_QUEUE_H
 
-#include "utils/err.h"
 #include "utils/mem.h"
 
 enum Events {
   Events_NONE,
   Events_BOOT_DONE,
-  Events_BOOK_OPENED,  
+  Events_BOOK_OPENED,
+  Events_BOOK_CLOSED,    
   Events_MAX,
 };
 
 enum EventSubscribers {
   EventSubscribers_NONE,
   EventSubscribers_MENU,
+  EventSubscribers_READER,  
   EventSubscribers_MAX,
 };
 
@@ -28,5 +29,6 @@ void event_queue_step(event_queue_t queue);
 void event_queue_register(event_queue_t queue, enum EventSubscribers subscriber,
                           post_event_func_t subscriber_func,
                           void *subscriber_data);
+void event_queue_deregister(event_queue_t queue, enum EventSubscribers subscriber);
 
 #endif // EBOOK_READER_EVENT_QUEUE_H

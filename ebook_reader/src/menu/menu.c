@@ -17,9 +17,8 @@ enum MenuStates {
 struct Menu {
   enum MenuStates current_state;
   event_queue_t evqueue;
-  books_list_t books;
   display_t display;
-  library_t library;
+  library_t library;  
   struct MenuView view;
 };
 
@@ -27,7 +26,6 @@ struct MenuTransition {
   enum MenuStates next_state;
   post_event_func_t action;
 };
-
 
 static void menu_activate(enum Events __, ref_t ___, void *sub_data);
 static void menu_deactivate(enum Events __, ref_t ___, void *sub_data);
@@ -84,6 +82,7 @@ void menu_destroy(menu_t *out) {
   default:;
   }
 
+  event_queue_deregister(menu->evqueue, EventSubscribers_MENU);
   mem_free(*out);
   *out = NULL;
 }
@@ -92,17 +91,16 @@ static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
   puts(__func__);
   menu_t menu = sub_data;
 
-  menu->books = library_list_books(menu->library);
-
-  err_o = menu_view_init(&menu->view, menu->books, select_book_cb, menu);
+  books_list_t books = library_list_books(menu->library);      
+  err_o = menu_view_init(&menu->view, books, select_book_cb, menu);
   ERR_TRY(err_o);
-
+  
   display_add_to_ingroup(menu->display, menu->view.books);
 
   return;
 
 error_out:
-  mem_deref(menu->books);
+  mem_deref(books);
   // @todo post error event
 };
 
@@ -117,7 +115,6 @@ static void menu_deactivate(enum Events __, ref_t ___, void *sub_data) {
   puts(__func__);
   menu_t menu = sub_data;
 
-  mem_deref(menu->books);
   display_del_from_ingroup(menu->display, menu->view.books);
   menu_view_destroy(&menu->view);
 };

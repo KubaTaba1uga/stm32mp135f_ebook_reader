@@ -29,7 +29,8 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
     [Events_BOOK_OPENED] =
         {
             EventSubscribers_MENU,
-        },
+            EventSubscribers_READER,
+        },    
 };
 
 static void event_bus_route_event(event_queue_t queue, event_t event);
@@ -44,7 +45,7 @@ void event_queue_destroy(event_queue_t *out) {
   if (mem_is_null_ptr(out)) {
     return;
   }
-  event_queue_t queue= *out;  
+  event_queue_t queue = *out;
   event_t event;
   while ((event = event_queue_pull(queue)) != NULL) {
     mem_deref(event->data);
@@ -106,4 +107,9 @@ void event_queue_register(event_queue_t queue, enum EventSubscribers subscriber,
       .func = subscriber_func,
       .data = subscriber_data,
   };
+}
+
+void event_queue_deregister(event_queue_t queue,
+                            enum EventSubscribers subscriber) {
+  queue->subscribers[subscriber] = (struct Subscriber){0};
 }

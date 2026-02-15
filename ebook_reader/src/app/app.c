@@ -5,7 +5,7 @@
 #include "event_queue/event_queue.h"
 #include "library/library.h"
 #include "menu/menu.h"
-#include "misc/lv_timer.h"
+#include "reader/reader.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/time.h"
@@ -14,6 +14,7 @@ struct App {
   event_queue_t event_queue;
   display_t display;
   library_t library;
+  reader_t reader;  
   menu_t menu;
 };
 
@@ -33,6 +34,10 @@ err_t app_init(app_t *out) {
   err_o = menu_init(&app->menu, app->display, app->event_queue, app->library);
   ERR_TRY(err_o);
 
+  err_o =
+      reader_init(&app->reader, app->display, app->event_queue, app->library);
+  ERR_TRY(err_o);
+
   event_queue_push(app->event_queue, Events_BOOT_DONE, NULL);
 
   return 0;
@@ -48,6 +53,10 @@ void app_destroy(app_t *out) {
   }
 
   app_t app = *out;
+
+  if (app->reader) {
+    reader_destroy(&app->reader);
+  }
 
   if (app->menu) {
     menu_destroy(&app->menu);
@@ -68,8 +77,6 @@ void app_destroy(app_t *out) {
   mem_free(app);
   *out = NULL;
 };
-
-
 
 err_t app_main(app_t app) {
   while (1) {

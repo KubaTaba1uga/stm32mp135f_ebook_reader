@@ -1,12 +1,13 @@
 #include "library/library.h"
 #include "menu/core.h"
 #include "utils/err.h"
+#include "utils/mem.h"
 
 err_t menu_view_init(struct MenuView *view, books_list_t books,
                      void (*book_cb)(book_t, void *), void *data) {
   err_o = wdgt_bar_init(&view->bar);
   ERR_TRY(err_o);
-
+  
   if (!books) {
     goto out;
   }
@@ -15,6 +16,7 @@ err_t menu_view_init(struct MenuView *view, books_list_t books,
   ERR_TRY_CATCH(err_o, error_bar_cleanup);
 
 out:
+  view->books_data = books;
   return 0;
 
 error_bar_cleanup:
@@ -26,4 +28,5 @@ error_out:
 void menu_view_destroy(struct MenuView *view) {
   wdgt_bar_destroy(&view->bar);
   wdgt_books_destroy(&view->books);
+  mem_deref(view->books_data);
 }
