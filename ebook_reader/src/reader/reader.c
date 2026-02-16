@@ -123,31 +123,6 @@ void reader_destroy(reader_t *out) {
   *out = NULL;
 }
 
-static void reader_activate(enum Events __, ref_t arg, void *sub_data) {
-  puts(__func__);
-  reader_t reader = sub_data;
-  book_t book = arg;
-
-  err_o = reader_view_init(&reader->view, book, next_page_cb, prev_page_cb,
-                           menu_cb, book_settings_cb, reader);
-  ERR_TRY(err_o);
-
-  display_add_to_ingroup(reader->display, reader->view.page);
-
-  return;
-
-error_out:;
-  // @todo post error event
-};
-
-static void reader_deactivate(enum Events __, ref_t ___, void *sub_data) {
-  puts(__func__);
-  reader_t reader = sub_data;
-
-  display_del_from_ingroup(reader->display, reader->view.page);
-  reader_view_destroy(&reader->view);
-};
-
 static void reader_post_event(enum Events event, ref_t event_data,
                               void *sub_data) {
   puts(__func__);
@@ -172,6 +147,7 @@ static const char *reader_state_dump(enum ReaderStates state) {
   static char *dumps[ReaderStates_MAX] = {
       [ReaderStates_NONE] = "reader_none",
       [ReaderStates_ACTIVE] = "reader_activated",
+      [ReaderStates_BACKGROUND] = "reader_background",
   };
 
   if (state < ReaderStates_NONE || state >= ReaderStates_MAX || !dumps[state]) {
@@ -179,6 +155,31 @@ static const char *reader_state_dump(enum ReaderStates state) {
   }
 
   return dumps[state];
+};
+
+static void reader_activate(enum Events __, ref_t arg, void *sub_data) {
+  puts(__func__);
+  reader_t reader = sub_data;
+  book_t book = arg;
+
+  err_o = reader_view_init(&reader->view, book, next_page_cb, prev_page_cb,
+                           menu_cb, book_settings_cb, reader);
+  ERR_TRY(err_o);
+
+  display_add_to_ingroup(reader->display, reader->view.page);
+
+  return;
+
+error_out:;
+  // @todo post error event
+};
+
+static void reader_deactivate(enum Events __, ref_t ___, void *sub_data) {
+  puts(__func__);
+  reader_t reader = sub_data;
+
+  display_del_from_ingroup(reader->display, reader->view.page);
+  reader_view_destroy(&reader->view);
 };
 
 static void next_page_cb(void *out) {
