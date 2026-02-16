@@ -11,14 +11,19 @@ enum Events {
   Events_BOOK_UPDATED,
   Events_BTN_NEXT_PAGE_CLICKED,
   Events_BTN_PREV_PAGE_CLICKED,
-  Events_BTN_MENU_CLICKED,            
+  Events_BTN_MENU_CLICKED,
+  Events_BOOK_SETTINGS_OPENED,
+  Events_BOOK_SETTINGS_CLOSED,  
+  // Add more events here
   Events_MAX,
 };
 
 enum EventSubscribers {
   EventSubscribers_NONE,
   EventSubscribers_MENU,
-  EventSubscribers_READER,  
+  EventSubscribers_READER,
+  EventSubscribers_BOOK_SETTINGS,
+  // Add more subscribers here
   EventSubscribers_MAX,
 };
 
