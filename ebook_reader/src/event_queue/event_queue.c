@@ -30,7 +30,24 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
         {
             EventSubscribers_MENU,
             EventSubscribers_READER,
-        },    
+        },
+    [Events_BTN_NEXT_PAGE_CLICKED] =
+        {
+            EventSubscribers_READER,
+        },
+    [Events_BTN_PREV_PAGE_CLICKED] =
+        {
+            EventSubscribers_READER,
+        },
+    [Events_BOOK_UPDATED] =
+        {
+            EventSubscribers_READER,
+        },
+    [Events_BTN_MENU_CLICKED] = {
+        EventSubscribers_READER,
+            EventSubscribers_MENU,        
+        
+        },
 };
 
 static void event_bus_route_event(event_queue_t queue, event_t event);

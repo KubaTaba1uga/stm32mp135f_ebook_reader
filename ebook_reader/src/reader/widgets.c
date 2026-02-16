@@ -1,17 +1,18 @@
 #include <lvgl.h>
 
-#include "core/lv_obj.h"
-#include "lv_api_map_v8.h"
 #include "reader/core.h"
 #include "utils/err.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"
 
-err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
-                     int page_size) {
 
+err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
+                     int page_size, void (*event_cb)(lvgl_event_t),
+                     void *event_data) {
   puts(__func__);
+
   wdgt_page_t page = *out = lvgl_img_create(lv_screen_active());
+
 
   lv_img_dsc_t *dsc = mem_malloc(sizeof(lv_img_dsc_t));
   *dsc = (lv_img_dsc_t){0};
@@ -22,6 +23,8 @@ err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
   dsc->data = page_data;
   lv_image_set_src(page, dsc);
   lv_obj_set_user_data(page, dsc);
+  
+  lv_obj_add_event_cb(page, event_cb, LV_EVENT_KEY, event_data);
 
   return 0;
 }
@@ -31,8 +34,9 @@ void wdgt_page_destroy(wdgt_page_t *out) {
     return;
   }
 
-  lv_obj_del(*out);
   lv_img_dsc_t *dsc = lv_obj_get_user_data(*out);
-  mem_free(dsc);  
+  mem_free(dsc);
+  lv_obj_del(*out);
   *out = NULL;
 }
+

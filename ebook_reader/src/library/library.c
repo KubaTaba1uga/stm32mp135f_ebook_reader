@@ -239,9 +239,7 @@ int book_get_page_no(book_t book) { return book->page_number; }
 void book_set_page_no(book_t book, int page_no) {
   if (page_no >= book->max_page_number) {
     page_no = book->max_page_number;
-  }
-
-  if (page_no < 1) {
+  } else if (page_no < 1) {
     page_no = 1;
   }
 
