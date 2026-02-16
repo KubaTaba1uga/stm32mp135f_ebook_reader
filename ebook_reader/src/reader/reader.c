@@ -11,6 +11,7 @@
 enum ReaderStates {
   ReaderStates_NONE,
   ReaderStates_ACTIVE,
+  ReaderStates_BACKGROUND,
   ReaderStates_MAX,
 };
 
@@ -31,6 +32,7 @@ static void reader_activate(enum Events __, ref_t book, void *sub_data);
 static void reader_deactivate(enum Events __, ref_t ___, void *sub_data);
 static void reader_next_page(enum Events __, ref_t ___, void *sub_data);
 static void reader_prev_page(enum Events __, ref_t ___, void *sub_data);
+static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data);
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data);
 static void reader_post_event(enum Events event, ref_t event_data,
                               void *sub_data);
@@ -38,6 +40,7 @@ static const char *reader_state_dump(enum ReaderStates state);
 static void next_page_cb(void *);
 static void prev_page_cb(void *);
 static void menu_cb(void *);
+static void book_settings_cb(void *);
 
 struct ReaderTransition reader_fsm_table[ReaderStates_MAX][Events_MAX] = {
     [ReaderStates_NONE] =
@@ -74,6 +77,11 @@ struct ReaderTransition reader_fsm_table[ReaderStates_MAX][Events_MAX] = {
                 {
                     .next_state = ReaderStates_NONE,
                     .action = reader_deactivate,
+                },
+            [Events_BOOK_SETTINGS_OPENED] =
+                {
+                    .next_state = ReaderStates_BACKGROUND,
+                    .action = reader_put_in_bg,
                 },
         },
 
@@ -120,8 +128,8 @@ static void reader_activate(enum Events __, ref_t arg, void *sub_data) {
   reader_t reader = sub_data;
   book_t book = arg;
 
-  err_o =
-    reader_view_init(&reader->view, book, next_page_cb, prev_page_cb,menu_cb, reader);
+  err_o = reader_view_init(&reader->view, book, next_page_cb, prev_page_cb,
+                           menu_cb, book_settings_cb, reader);
   ERR_TRY(err_o);
 
   display_add_to_ingroup(reader->display, reader->view.page);
@@ -190,6 +198,12 @@ static void menu_cb(void *out) {
   event_queue_push(reader->evqueue, Events_BTN_MENU_CLICKED, NULL);
 }
 
+static void book_settings_cb(void *out) {
+  reader_t reader = out;
+
+  event_queue_push(reader->evqueue, Events_BOOK_SETTINGS_OPENED,
+                   reader->view.book);
+}
 
 static void reader_next_page(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
@@ -213,8 +227,13 @@ static void reader_prev_page(enum Events __, ref_t ___, void *sub_data) {
 
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
-  bool is_refresh_done;
   display_del_from_ingroup(reader->display, reader->view.page);
-  reader_view_refresh(&reader->view, &is_refresh_done);
+  reader_view_refresh(&reader->view);
   display_add_to_ingroup(reader->display, reader->view.page);
+}
+
+static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {
+  reader_t reader = sub_data;
+
+  display_del_from_ingroup(reader->display, reader->view.page);
 }

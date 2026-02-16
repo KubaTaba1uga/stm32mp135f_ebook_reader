@@ -21,6 +21,7 @@ struct ReaderView {
   struct ReaderViewBook last_book;
   void (*next_page_cb)(void *);
   void (*prev_page_cb)(void *);
+  void (*book_settings_cb)(void *);
   void (*menu_cb)(void *);
   void *cb_data;
 };
@@ -28,9 +29,9 @@ struct ReaderView {
 err_t reader_view_init(struct ReaderView *view, book_t book,
                        void (*next_page_cb)(void *),
                        void (*prev_page_cb)(void *), void (*menu_cb)(void *),
-                       void *data);
+                       void (*book_settings_cb)(void *), void *data);
 void reader_view_destroy(struct ReaderView *view);
-err_t reader_view_refresh(struct ReaderView *view, bool *is_refresh_done);
+err_t reader_view_refresh(struct ReaderView *view);
 
 err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
                      int page_size, void (*cb)(lvgl_event_t), void *data);
