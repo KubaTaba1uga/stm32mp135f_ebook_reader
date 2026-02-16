@@ -1,4 +1,5 @@
 #include "event_queue/event_queue.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 #include "utils/zlist.h"
 
@@ -53,7 +54,7 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
         {
             EventSubscribers_READER,
             EventSubscribers_BOOK_SETTINGS,
-        },    
+        },
 };
 
 static void event_bus_route_event(event_queue_t queue, event_t event);
@@ -90,9 +91,6 @@ void event_queue_push(event_queue_t queue, enum Events event,
 void event_queue_step(event_queue_t queue) {
   event_t event;
   while ((event = event_queue_pull(queue)) != NULL) {
-    /* log_debug("Handling: (%s)->(%s)", bus_dump(node->bus), */
-    /*           event_dump(node->event.event)); */
-
     event_bus_route_event(queue, event);
 
     mem_deref(event->data);
@@ -110,8 +108,11 @@ static void event_bus_route_event(event_queue_t queue, event_t event) {
       continue;
     }
 
+    log_info("Sending: %s->%s", events_dump(event->event),
+             event_subscriber_dump(dst));
+
     sub->func(event->event, event->data, sub->data);
-  }
+  }  
 }
 
 static event_t event_queue_pull(event_queue_t queue) {
@@ -135,4 +136,39 @@ void event_queue_register(event_queue_t queue, enum EventSubscribers subscriber,
 void event_queue_deregister(event_queue_t queue,
                             enum EventSubscribers subscriber) {
   queue->subscribers[subscriber] = (struct Subscriber){0};
+}
+
+const char *events_dump(enum Events event) {
+  static const char *const dumps[Events_MAX] = {
+      [Events_NONE] = "Events_NONE",
+      [Events_BOOT_DONE] = "Events_BOOT_DONE",
+      [Events_BOOK_OPENED] = "Events_BOOK_OPENED",
+      [Events_BOOK_CLOSED] = "Events_BOOK_CLOSED",
+      [Events_BOOK_UPDATED] = "Events_BOOK_UPDATED",
+      [Events_BTN_NEXT_PAGE_CLICKED] = "Events_BTN_NEXT_PAGE_CLICKED",
+      [Events_BTN_PREV_PAGE_CLICKED] = "Events_BTN_PREV_PAGE_CLICKED",
+      [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
+      [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
+      [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
+  };
+
+  if (event < Events_NONE || event >= Events_MAX || !dumps[event]) {
+    return "Unknown";
+  }
+  return dumps[event];
+}
+
+const char *event_subscriber_dump(enum EventSubscribers sub) {
+  static const char *const dumps[EventSubscribers_MAX] = {
+      [EventSubscribers_NONE] = "EventSubscribers_NONE",
+      [EventSubscribers_MENU] = "EventSubscribers_MENU",
+      [EventSubscribers_READER] = "EventSubscribers_READER",
+      [EventSubscribers_BOOK_SETTINGS] = "EventSubscribers_BOOK_SETTINGS",
+  };
+
+  if (sub < EventSubscribers_NONE || sub >= EventSubscribers_MAX ||
+      !dumps[sub]) {
+    return "Unknown";
+  }
+  return dumps[sub];
 }

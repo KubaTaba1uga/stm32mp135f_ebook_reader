@@ -39,5 +39,7 @@ void event_queue_register(event_queue_t queue, enum EventSubscribers subscriber,
                           post_event_func_t subscriber_func,
                           void *subscriber_data);
 void event_queue_deregister(event_queue_t queue, enum EventSubscribers subscriber);
+const char *events_dump(enum Events state);
+const char *event_subscriber_dump(enum EventSubscribers sub);
 
 #endif // EBOOK_READER_EVENT_QUEUE_H
