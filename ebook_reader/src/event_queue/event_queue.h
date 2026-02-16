@@ -7,7 +7,11 @@ enum Events {
   Events_NONE,
   Events_BOOT_DONE,
   Events_BOOK_OPENED,
-  Events_BOOK_CLOSED,    
+  Events_BOOK_CLOSED,
+  Events_BOOK_UPDATED,
+  Events_BTN_NEXT_PAGE_CLICKED,
+  Events_BTN_PREV_PAGE_CLICKED,
+  Events_BTN_MENU_CLICKED,            
   Events_MAX,
 };
 

@@ -18,7 +18,7 @@ struct Menu {
   enum MenuStates current_state;
   event_queue_t evqueue;
   display_t display;
-  library_t library;  
+  library_t library;
   struct MenuView view;
 };
 
@@ -38,6 +38,11 @@ struct MenuTransition menu_fsm_table[MenuStates_MAX][Events_MAX] = {
     [MenuStates_NONE] =
         {
             [Events_BOOT_DONE] =
+                {
+                    .next_state = MenuStates_ACTIVE,
+                    .action = menu_activate,
+                },
+            [Events_BTN_MENU_CLICKED] =
                 {
                     .next_state = MenuStates_ACTIVE,
                     .action = menu_activate,
@@ -91,10 +96,10 @@ static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
   puts(__func__);
   menu_t menu = sub_data;
 
-  books_list_t books = library_list_books(menu->library);      
+  books_list_t books = library_list_books(menu->library);
   err_o = menu_view_init(&menu->view, books, select_book_cb, menu);
   ERR_TRY(err_o);
-  
+
   display_add_to_ingroup(menu->display, menu->view.books);
 
   return;

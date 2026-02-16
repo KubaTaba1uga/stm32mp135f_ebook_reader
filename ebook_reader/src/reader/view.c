@@ -1,14 +1,31 @@
 #include <lvgl.h>
+#include <string.h>
 
+#include "library/library.h"
+#include "misc/lv_event.h"
 #include "reader/core.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
+static void reader_page_event_cb(lv_event_t *e);
+
 err_t reader_view_init(struct ReaderView *view, book_t book,
-                       void (*next_page_cb)(book_t, void *),
-                       void (*prev_page_cb)(book_t, void *), void *data) {
+                       void (*next_page_cb)(void *),
+                       void (*prev_page_cb)(void *), void (*menu_cb)(void *),
+                       void *data) {
   *view = (struct ReaderView){
-    .book_data = mem_ref(book),
+      .book = mem_ref(book),
+      .last_book =
+          {
+              .scale = book_get_scale(book),
+              .x_off = book_get_x_off(book),
+              .y_off = book_get_y_off(book),
+              .page = book_get_page_no(book),
+          },
+      .next_page_cb = next_page_cb,
+      .prev_page_cb = prev_page_cb,
+      .menu_cb = menu_cb,
+      .cb_data = data,
   };
 
   const unsigned char *page_data;
@@ -19,7 +36,8 @@ err_t reader_view_init(struct ReaderView *view, book_t book,
                     lv_display_get_vertical_resolution(NULL), &page_size);
   ERR_TRY(err_o);
 
-  err_o = wdgt_page_init(&view->page, page_data, page_size);
+  err_o = wdgt_page_init(&view->page, page_data, page_size,
+                         reader_page_event_cb, view);
   ERR_TRY(err_o);
 
   return 0;
@@ -30,5 +48,63 @@ error_out:
 };
 
 void reader_view_destroy(struct ReaderView *view) {
-  mem_deref(view->book_data);
+  if (view->page) {
+    wdgt_page_destroy(&view->page);
+  }
+
+  if (view->book) {
+    mem_deref(view->book);
+  }
+
+  *view = (struct ReaderView){0};
 }
+
+err_t reader_view_refresh(struct ReaderView *view, bool *refresh_done) {
+  struct ReaderViewBook book_new = {
+      .scale = book_get_scale(view->book),
+      .x_off = book_get_x_off(view->book),
+      .y_off = book_get_y_off(view->book),
+      .page = book_get_page_no(view->book),
+  };
+
+  if (memcmp(&view->last_book, &book_new, sizeof(struct ReaderViewBook)) == 0) {
+    *refresh_done = false;
+    goto out;
+  };
+
+  *refresh_done = true;
+  mem_ref(view->book);
+  struct ReaderView view_cp = *view;
+
+  reader_view_destroy(view);
+  err_o = reader_view_init(view, view_cp.book, view_cp.next_page_cb,
+                           view_cp.prev_page_cb, view_cp.menu_cb, view_cp.cb_data);
+  ERR_TRY(err_o);
+
+  mem_deref(view->book);
+
+out:
+  return 0;
+
+error_out:
+  mem_deref(view->book);
+  return err_o;
+}
+
+static void reader_page_event_cb(lv_event_t *e) {
+  struct ReaderView *view = lv_event_get_user_data(e);
+  lv_key_t key = lv_event_get_key(e);
+
+  switch (key) {
+  case LV_KEY_LEFT:
+    view->prev_page_cb(view->cb_data);
+    break;
+  case LV_KEY_RIGHT:
+    view->next_page_cb(view->cb_data);
+    break;
+  default:;
+  case LV_KEY_ESC:
+    view->menu_cb(view->cb_data);
+    break;
+  }
+};
