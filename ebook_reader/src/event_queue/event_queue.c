@@ -48,13 +48,24 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
         {
             EventSubscribers_READER,
             EventSubscribers_MENU,
-
         },
     [Events_BOOK_SETTINGS_OPENED] =
         {
             EventSubscribers_READER,
             EventSubscribers_BOOK_SETTINGS,
         },
+    [Events_BTN_SET_SCALE_CLICKED] =
+        {
+            EventSubscribers_BOOK_SETTINGS,
+        },
+    [Events_BTN_INC_SCALE_CLICKED] =
+        {
+            EventSubscribers_BOOK_SETTINGS,
+        },
+    [Events_BTN_DEC_SCALE_CLICKED] = {
+            EventSubscribers_BOOK_SETTINGS,
+    },
+    
 };
 
 static void event_bus_route_event(event_queue_t queue, event_t event);
@@ -82,7 +93,7 @@ void event_queue_destroy(event_queue_t *out) {
 void event_queue_push(event_queue_t queue, enum Events event,
                       ref_t event_data) {
   event_t ev = mem_malloc(sizeof(struct Event));
-  *ev = (struct Event){.data = event_data == NULL ? NULL : mem_ref(event_data),
+  *ev = (struct Event){.data = mem_ref(event_data),
                        .event = event};
 
   zlist_append(&queue->queue, &ev->next);
@@ -112,7 +123,7 @@ static void event_bus_route_event(event_queue_t queue, event_t event) {
              event_subscriber_dump(dst));
 
     sub->func(event->event, event->data, sub->data);
-  }  
+  }
 }
 
 static event_t event_queue_pull(event_queue_t queue) {

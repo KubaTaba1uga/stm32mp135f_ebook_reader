@@ -90,6 +90,8 @@ void menu_destroy(menu_t *out) {
   event_queue_deregister(menu->evqueue, EventSubscribers_MENU);
   mem_free(*out);
   *out = NULL;
+
+  
 }
 
 static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
