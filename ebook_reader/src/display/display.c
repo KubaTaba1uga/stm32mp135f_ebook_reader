@@ -23,12 +23,12 @@ err_t display_init(display_t *out) {
     goto error_out;
   }
   lv_x11_inputs_create(lv_display, NULL);
-
+  
   *display = (struct Display){
       .lv_ingroup = lv_group_get_default(),
       .lv_disp = lv_display,
   };
-
+    
   return 0;
 
 error_out:

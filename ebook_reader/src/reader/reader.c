@@ -233,8 +233,13 @@ static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
   display_add_to_ingroup(reader->display, reader->view.page);
 }
 
+#include "lvgl.h"
 static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
 
   display_del_from_ingroup(reader->display, reader->view.page);
+
+  uint32_t n = lv_group_get_obj_count(lv_group_get_default());
+  log_info("group=%p count=%u", (void *)lv_group_get_default(), (unsigned)n);
+  
 }

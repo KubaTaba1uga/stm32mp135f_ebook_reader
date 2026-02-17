@@ -5,15 +5,23 @@
 
 enum Events {
   Events_NONE,
+  // Global events
   Events_BOOT_DONE,
+  // Book events
   Events_BOOK_OPENED,
   Events_BOOK_CLOSED,
   Events_BOOK_UPDATED,
+  // Book settings events
+  Events_BOOK_SETTINGS_OPENED,
+  Events_BOOK_SETTINGS_CLOSED,
+  // UI buttons event
   Events_BTN_NEXT_PAGE_CLICKED,
   Events_BTN_PREV_PAGE_CLICKED,
   Events_BTN_MENU_CLICKED,
-  Events_BOOK_SETTINGS_OPENED,
-  Events_BOOK_SETTINGS_CLOSED,  
+  Events_BTN_SET_SCALE_CLICKED,
+  Events_BTN_INC_SCALE_CLICKED,
+  Events_BTN_DEC_SCALE_CLICKED,
+  Events_BTN_EXIT_SCALE_CLICKED,
   // Add more events here
   Events_MAX,
 };
