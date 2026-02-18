@@ -84,12 +84,19 @@ struct ReaderTransition reader_fsm_table[ReaderStates_MAX][Events_MAX] = {
                     .action = reader_put_in_bg,
                 },
         },
-
+    [ReaderStates_BACKGROUND] =
+        {
+            [Events_BOOK_UPDATED] =
+                {
+                    .next_state = ReaderStates_BACKGROUND,
+                    .action = reader_refresh,
+                },
+        },
 };
 
 err_t reader_init(reader_t *out, display_t display, event_queue_t evqueue,
                   library_t library) {
-  puts(__func__);
+
   reader_t reader = *out = mem_malloc(sizeof(struct Reader));
   *reader = (struct Reader){
       .current_state = ReaderStates_NONE,
@@ -113,6 +120,7 @@ void reader_destroy(reader_t *out) {
 
   switch (reader->current_state) {
   case ReaderStates_ACTIVE:
+  case ReaderStates_BACKGROUND:
     reader_deactivate(Events_NONE, NULL, reader);
     break;
   default:;
@@ -125,7 +133,6 @@ void reader_destroy(reader_t *out) {
 
 static void reader_post_event(enum Events event, ref_t event_data,
                               void *sub_data) {
-  puts(__func__);
   struct ReaderTransition action;
   reader_t reader = sub_data;
 
@@ -158,7 +165,6 @@ static const char *reader_state_dump(enum ReaderStates state) {
 };
 
 static void reader_activate(enum Events __, ref_t arg, void *sub_data) {
-  puts(__func__);
   reader_t reader = sub_data;
   book_t book = arg;
 
@@ -175,10 +181,15 @@ error_out:;
 };
 
 static void reader_deactivate(enum Events __, ref_t ___, void *sub_data) {
-  puts(__func__);
   reader_t reader = sub_data;
 
-  display_del_from_ingroup(reader->display, reader->view.page);
+  switch (reader->current_state) {
+  case ReaderStates_ACTIVE:
+    display_del_from_ingroup(reader->display, reader->view.page);
+    break;
+  default:;
+  }
+
   reader_view_destroy(&reader->view);
 };
 
@@ -228,18 +239,11 @@ static void reader_prev_page(enum Events __, ref_t ___, void *sub_data) {
 
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
-  display_del_from_ingroup(reader->display, reader->view.page);
   reader_view_refresh(&reader->view);
-  display_add_to_ingroup(reader->display, reader->view.page);
 }
 
-#include "lvgl.h"
 static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
 
   display_del_from_ingroup(reader->display, reader->view.page);
-
-  uint32_t n = lv_group_get_obj_count(lv_group_get_default());
-  log_info("group=%p count=%u", (void *)lv_group_get_default(), (unsigned)n);
-  
 }

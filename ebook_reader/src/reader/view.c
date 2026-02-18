@@ -1,10 +1,12 @@
 #include <lvgl.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "library/library.h"
 #include "misc/lv_event.h"
 #include "reader/core.h"
 #include "utils/err.h"
+#include "utils/log.h"
 #include "utils/mem.h"
 
 static void reader_page_event_cb(lv_event_t *e);
@@ -49,12 +51,14 @@ error_out:
 };
 
 void reader_view_destroy(struct ReaderView *view) {
+  puts(__func__);
   if (view->page) {
     wdgt_page_destroy(&view->page);
   }
 
   if (view->book) {
     mem_deref(view->book);
+    log_debug("Book destroyed");
   }
 
   *view = (struct ReaderView){0};
@@ -72,16 +76,15 @@ err_t reader_view_refresh(struct ReaderView *view) {
     goto out;
   };
 
-  mem_ref(view->book);
-  struct ReaderView view_cp = *view;
+  const unsigned char *page_data;
+  int page_size = 0;
 
-  reader_view_destroy(view);
-  err_o = reader_view_init(view, view_cp.book, view_cp.next_page_cb,
-                           view_cp.prev_page_cb, view_cp.menu_cb,
-                           view_cp.book_settings_cb, view_cp.cb_data);
+  page_data =
+      book_get_page(view->book, lv_display_get_horizontal_resolution(NULL),
+                    lv_display_get_vertical_resolution(NULL), &page_size);
   ERR_TRY(err_o);
 
-  mem_deref(view->book);
+  wdgt_page_refresh(view->page, page_data, page_size);
 
 out:
   return 0;

@@ -95,7 +95,7 @@ struct BookSettingsTransition
 
 err_t book_settings_init(book_settings_t *out, display_t display,
                          event_queue_t evqueue, library_t library) {
-  puts(__func__);
+
   book_settings_t book_settings = *out =
       mem_malloc(sizeof(struct BookSettings));
   *book_settings =
@@ -121,6 +121,9 @@ void book_settings_destroy(book_settings_t *out) {
   case BookSettingsStates_ACTIVE:
     book_settings_deactivate(Events_NONE, NULL, book_settings);
     break;
+  case BookSettingsStates_SET_SCALE:
+    book_settings_deactivate_set_scale(Events_NONE, NULL, book_settings);
+    break;    
   default:;
   }
 
@@ -132,7 +135,7 @@ void book_settings_destroy(book_settings_t *out) {
 
 static void book_settings_post_event(enum Events event, ref_t event_data,
                                      void *sub_data) {
-  puts(__func__);
+
   struct BookSettingsTransition action;
   book_settings_t book_settings = sub_data;
 
@@ -166,7 +169,7 @@ static const char *book_settings_state_dump(enum BookSettingsStates state) {
 };
 
 static void book_settings_activate(enum Events __, ref_t book, void *sub_data) {
-  puts(__func__);
+
   book_settings_t book_settings = sub_data;
 
   err_o = book_settings_view_init(&book_settings->ctx.settings_view,
@@ -183,36 +186,21 @@ error_out:;
   // @todo post error event
 };
 
-/* static void select_book_cb(book_t book, void *sub_data) { */
-/*   puts(__func__); */
-/*   book_settings_t book_settings = sub_data; */
-
-/*   event_queue_push(book_settings->evqueue, Events_BOOK_OPENED, book); */
-/* }; */
-
 static void book_settings_deactivate(enum Events __, ref_t ___,
                                      void *sub_data) {
   puts(__func__);
-
   book_settings_t book_settings = sub_data;
 
-  switch (book_settings->current_state) {
-  case BookSettingsStates_ACTIVE:
-    display_del_from_ingroup(book_settings->display,
-                             book_settings->ctx.settings_view.settings);
+  display_del_from_ingroup(book_settings->display,
+                           book_settings->ctx.settings_view.settings);
 
-    book_settings_view_destroy(&book_settings->ctx.settings_view);
-    break;
-  default:;
-  }
+  book_settings_view_destroy(&book_settings->ctx.settings_view);
 
-  mem_deref(book_settings->ctx.book);
-  memset(&book_settings->ctx, 0, sizeof(book_settings->ctx));
+  mem_deref(book_settings->ctx.book);  
+  memset(&book_settings->ctx.settings_view, 0, sizeof(book_settings->ctx.settings_view));
 };
 
 static void book_click_set_scale_cb(void *data) {
-  puts(__func__);
-
   book_settings_t book_settings = data;
 
   event_queue_push(book_settings->evqueue, Events_BTN_SET_SCALE_CLICKED,
@@ -221,7 +209,6 @@ static void book_click_set_scale_cb(void *data) {
 
 static void book_settings_activate_set_scale(enum Events __, ref_t ___,
                                              void *sub_data) {
-
   book_settings_t book_settings = sub_data;
 
   err_o = book_settings_set_scale_view_init(
@@ -245,8 +232,6 @@ error_out:;
 }
 
 static void book_inc_scale_cb(void *data) {
-  puts(__func__);
-
   book_settings_t book_settings = data;
 
   event_queue_push(book_settings->evqueue, Events_BTN_INC_SCALE_CLICKED,
@@ -254,8 +239,6 @@ static void book_inc_scale_cb(void *data) {
 }
 
 static void book_dec_scale_cb(void *data) {
-  puts(__func__);
-
   book_settings_t book_settings = data;
 
   event_queue_push(book_settings->evqueue, Events_BTN_DEC_SCALE_CLICKED,
@@ -263,20 +246,20 @@ static void book_dec_scale_cb(void *data) {
 }
 
 static void book_settings_inc_scale(enum Events __, ref_t ___, void *sub_data) {
-  puts(__func__);
+
   book_settings_t book_settings = sub_data;
   double scale = book_get_scale(book_settings->ctx.book);
   scale += 0.25;
   book_set_scale(book_settings->ctx.book, scale);
   book_settings_set_scale_view_set_scale(&book_settings->ctx.set_scale_view,
                                          scale);
-  
+
   event_queue_push(book_settings->evqueue, Events_BOOK_UPDATED,
                    book_settings->ctx.book);
 }
 
 static void book_settings_dec_scale(enum Events __, ref_t ___, void *sub_data) {
-  puts(__func__);
+
   book_settings_t book_settings = sub_data;
   double scale = book_get_scale(book_settings->ctx.book);
   scale -= 0.25;
@@ -290,7 +273,10 @@ static void book_settings_dec_scale(enum Events __, ref_t ___, void *sub_data) {
 
 static void book_settings_deactivate_set_scale(enum Events __, ref_t ___,
                                                void *sub_data) {
+  puts(__func__);
   book_settings_t book_settings = sub_data;
 
   book_settings_set_scale_view_destroy(&book_settings->ctx.set_scale_view);
+  mem_deref(book_settings->ctx.book);  
+  memset(&book_settings->ctx.set_scale_view, 0, sizeof(book_settings->ctx.set_scale_view));
 }

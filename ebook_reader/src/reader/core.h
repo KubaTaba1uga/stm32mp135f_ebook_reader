@@ -9,7 +9,7 @@
 typedef lvgl_obj_t wdgt_page_t;
 
 struct ReaderViewBook {
-  int scale;
+  double scale;
   int x_off;
   int y_off;
   int page;
@@ -36,9 +36,7 @@ err_t reader_view_refresh(struct ReaderView *view);
 err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
                      int page_size, void (*cb)(lvgl_event_t), void *data);
 void wdgt_page_destroy(wdgt_page_t *out);
-
-/* err_t wdgt_books_init(wdgt_books_t *out, books_list_t books, */
-/*                       void (*event_cb)( void *), void *event_data); */
-/* void wdgt_books_destroy(wdgt_books_t *out); */
+void wdgt_page_refresh(wdgt_page_t page, const unsigned char *page_data,
+                       int page_size);
 
 #endif // EBOOK_READER_READER_CORE_H

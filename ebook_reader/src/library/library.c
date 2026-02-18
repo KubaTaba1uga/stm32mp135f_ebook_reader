@@ -59,7 +59,7 @@ error_out:
 };
 
 void library_destroy(library_t *out) {
-  puts(__func__);
+
   if (!out || !*out) {
     return;
   }
@@ -110,9 +110,9 @@ books_list_t library_list_books(library_t lib) {
     char *file_path = mem_malloc(bytes);
     snprintf(file_path, bytes, "%s/%s", settings_books_dir, dirent->d_name);
 
-    log_debug("Creating book: %s", file_path);
-
     book = mem_refalloc(sizeof(struct Book), book_destroy);
+
+    log_debug("Creating book: %p=%s", book, file_path);
 
     *book = (struct Book){
         .extension = book_ext,
@@ -147,7 +147,6 @@ error_out:
 };
 
 static void books_list_destroy(void *data) {
-  puts(__func__);
 
   books_list_t blist = data;
   if (!blist) {
@@ -229,7 +228,7 @@ void books_list_remove(books_list_t list, book_t book) {
 }
 
 const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
-  puts(__func__);
+
   return book->owner->modules[book->extension].book_get_page(book, x, y,
                                                              buf_len);
 }

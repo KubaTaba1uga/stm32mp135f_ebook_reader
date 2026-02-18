@@ -57,13 +57,13 @@ void book_settings_set_scale_view_destroy(
 }
 
 static void scale_click_event_cb(lvgl_event_t e) {
-  puts(__func__);
+  
   struct BookSettingsView *view = lv_event_get_user_data(e);
   view->click_set_scale_cb(view->cb_data);
 };
 
 static void scale_change_event_cb(lvgl_event_t e) {
-  puts(__func__);
+  
   struct BookSettingsSetScaleView *view = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
   if (key == LV_KEY_UP) {
