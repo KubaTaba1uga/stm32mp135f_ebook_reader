@@ -23,6 +23,7 @@ void book_settings_view_destroy(struct BookSettingsView *view);
 struct BookSettingsSetScaleView {
   void (*inc_scale_cb)(void *data);
   void (*dec_scale_cb)(void *data);
+  void (*back_cb)(void *data);  
   wdgt_set_scale_t set_scale;
   void *cb_data;
 };
@@ -31,6 +32,7 @@ err_t book_settings_set_scale_view_init(struct BookSettingsSetScaleView *view,
                                         double scale,
                                         void (*inc_scale_cb)(void *data),
                                         void (*dec_scale_cb)(void *data),
+                                        void (*back_cb)(void *data),                                        
                                         void *cb_data);
 void book_settings_set_scale_view_destroy(
     struct BookSettingsSetScaleView *view);

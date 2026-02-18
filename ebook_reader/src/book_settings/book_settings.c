@@ -3,7 +3,6 @@
 
 #include "book_settings/book_settings.h"
 #include "book_settings/core.h"
-#include "core/lv_group.h"
 #include "display/display.h"
 #include "event_queue/event_queue.h"
 #include "library/library.h"
@@ -43,10 +42,13 @@ static const char *book_settings_state_dump(enum BookSettingsStates state);
 static void book_click_set_scale_cb(void *data);
 static void book_inc_scale_cb(void *data);
 static void book_dec_scale_cb(void *data);
+static void book_back_cb(void *data);
 static void book_settings_activate_set_scale(enum Events __, ref_t ___,
                                              void *sub_data);
 static void book_settings_deactivate_set_scale(enum Events __, ref_t ___,
                                                void *sub_data);
+static void book_settings_close_set_scale(enum Events __, ref_t ___,
+                                          void *sub_data);
 static void book_settings_inc_scale(enum Events __, ref_t ___, void *sub_data);
 static void book_settings_dec_scale(enum Events __, ref_t ___, void *sub_data);
 
@@ -62,15 +64,15 @@ struct BookSettingsTransition
             },
         [BookSettingsStates_ACTIVE] =
             {
-                [Events_BOOK_SETTINGS_CLOSED] =
-                    {
-                        .next_state = BookSettingsStates_NONE,
-                        .action = book_settings_deactivate,
-                    },
                 [Events_BTN_SET_SCALE_CLICKED] =
                     {
                         .next_state = BookSettingsStates_SET_SCALE,
                         .action = book_settings_activate_set_scale,
+                    },
+                [Events_BOOK_SETTINGS_CLOSED] =
+                    {
+                        .next_state = BookSettingsStates_NONE,
+                        .action = book_settings_deactivate,
                     },
             },
         [BookSettingsStates_SET_SCALE] =
@@ -87,8 +89,8 @@ struct BookSettingsTransition
                     },
                 [Events_BTN_EXIT_SCALE_CLICKED] =
                     {
-                        .next_state = BookSettingsStates_ACTIVE,
-                        .action = book_settings_deactivate_set_scale,
+                        .next_state = BookSettingsStates_NONE,
+                        .action = book_settings_close_set_scale,
                     },
             },
 };
@@ -123,7 +125,7 @@ void book_settings_destroy(book_settings_t *out) {
     break;
   case BookSettingsStates_SET_SCALE:
     book_settings_deactivate_set_scale(Events_NONE, NULL, book_settings);
-    break;    
+    break;
   default:;
   }
 
@@ -196,8 +198,9 @@ static void book_settings_deactivate(enum Events __, ref_t ___,
 
   book_settings_view_destroy(&book_settings->ctx.settings_view);
 
-  mem_deref(book_settings->ctx.book);  
-  memset(&book_settings->ctx.settings_view, 0, sizeof(book_settings->ctx.settings_view));
+  mem_deref(book_settings->ctx.book);
+  memset(&book_settings->ctx.settings_view, 0,
+         sizeof(book_settings->ctx.settings_view));
 };
 
 static void book_click_set_scale_cb(void *data) {
@@ -214,7 +217,7 @@ static void book_settings_activate_set_scale(enum Events __, ref_t ___,
   err_o = book_settings_set_scale_view_init(
       &book_settings->ctx.set_scale_view,
       book_get_scale(book_settings->ctx.book), book_inc_scale_cb,
-      book_dec_scale_cb, book_settings);
+      book_dec_scale_cb, book_back_cb, book_settings);
   ERR_TRY(err_o);
 
   display_del_from_ingroup(book_settings->display,
@@ -277,6 +280,24 @@ static void book_settings_deactivate_set_scale(enum Events __, ref_t ___,
   book_settings_t book_settings = sub_data;
 
   book_settings_set_scale_view_destroy(&book_settings->ctx.set_scale_view);
-  mem_deref(book_settings->ctx.book);  
-  memset(&book_settings->ctx.set_scale_view, 0, sizeof(book_settings->ctx.set_scale_view));
+  mem_deref(book_settings->ctx.book);
+  memset(&book_settings->ctx.set_scale_view, 0,
+         sizeof(book_settings->ctx.set_scale_view));
+}
+
+static void book_back_cb(void *data) {
+  book_settings_t book_settings = data;
+
+  event_queue_push(book_settings->evqueue, Events_BTN_EXIT_SCALE_CLICKED,
+                   book_settings->ctx.book);
+}
+
+static void book_settings_close_set_scale(enum Events __, ref_t ___,
+                                          void *sub_data) {
+  book_settings_t book_settings = sub_data;
+
+  book_settings_deactivate_set_scale(__, ___, sub_data);
+
+  event_queue_push(book_settings->evqueue, Events_BOOK_SETTINGS_CLOSED,
+                   book_settings->ctx.book);
 }

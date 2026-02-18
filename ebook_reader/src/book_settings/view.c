@@ -34,10 +34,12 @@ err_t book_settings_set_scale_view_init(struct BookSettingsSetScaleView *view,
                                         double scale,
                                         void (*inc_scale_cb)(void *data),
                                         void (*dec_scale_cb)(void *data),
+                                        void (*back_cb)(void *data),
                                         void *cb_data) {
   *view = (struct BookSettingsSetScaleView){
       .inc_scale_cb = inc_scale_cb,
       .dec_scale_cb = dec_scale_cb,
+      .back_cb = back_cb,
       .cb_data = cb_data,
   };
 
@@ -57,13 +59,13 @@ void book_settings_set_scale_view_destroy(
 }
 
 static void scale_click_event_cb(lvgl_event_t e) {
-  
+
   struct BookSettingsView *view = lv_event_get_user_data(e);
   view->click_set_scale_cb(view->cb_data);
 };
 
 static void scale_change_event_cb(lvgl_event_t e) {
-  
+
   struct BookSettingsSetScaleView *view = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
   if (key == LV_KEY_UP) {
@@ -71,6 +73,9 @@ static void scale_change_event_cb(lvgl_event_t e) {
   }
   if (key == LV_KEY_DOWN) {
     view->dec_scale_cb(view->cb_data);
+  }
+  if (key == LV_KEY_ENTER || key == '\n' || key == '\r' || key == LV_KEY_ESC) {
+    view->back_cb(view->cb_data);
   }
 }
 
