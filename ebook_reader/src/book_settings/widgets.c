@@ -2,15 +2,7 @@
 #include <stdio.h>
 
 #include "book_settings/core.h"
-#include "core/lv_group.h"
 #include "core/lv_obj.h"
-#include "core/lv_obj_style_gen.h"
-#include "core/lv_obj_tree.h"
-#include "library/library.h"
-#include "lv_api_map_v8.h"
-#include "misc/lv_color.h"
-#include "misc/lv_event.h"
-#include "misc/lv_style.h"
 #include "utils/err.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"
@@ -21,39 +13,32 @@ struct WdgtBookSettings {
   struct {
     wdgt_settings_field_t set_scale_field;
     wdgt_settings_field_t set_x_off_field;
+    wdgt_settings_field_t exit_field;
     lv_style_t style;
   } settings;
 
   void (*set_scale_cb)(lvgl_event_t);
+  void (*back_cb)(lvgl_event_t);
   void *cb_data;
 };
 
 static lvgl_obj_t wdgt_set_hor_num_create(double hor_num);
 static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value);
+static lvgl_obj_t wdgt_set_ver_num_create(int ver_num);
+static void wdgt_set_ver_num_destroy(lvgl_obj_t ver_num);
+static void wdgt_set_ver_num_set_value(lvgl_obj_t wdgt, int value);
 err_t wdgt_settings_field_init(wdgt_set_scale_t *out, wdgt_settings_t parent,
                                const char *name, void (*event_cb)(lvgl_event_t),
                                void *event_data);
 void wdgt_settings_field_destroy(wdgt_set_scale_t *out);
 
-void dump_indev_groups(void) {
-  lv_indev_t *indev = lv_indev_get_next(NULL);
-  while (indev) {
-    lv_indev_type_t t = lv_indev_get_type(indev);
-    if (t == LV_INDEV_TYPE_KEYPAD || t == LV_INDEV_TYPE_ENCODER) {
-      lv_group_t *g = lv_indev_get_group(indev);
-      printf("indev=%p type=%d group=%p\n", (void *)indev, (int)t, (void *)g);
-    }
-    indev = lv_indev_get_next(indev);
-  }
-}
-
 err_t wdgt_settings_init(wdgt_settings_t *out,
-                         void (*set_scale_cb)(lvgl_event_t), void *event_data) {
-  
+                         void (*set_scale_cb)(lvgl_event_t),
+                         void (*back_cb)(lvgl_event_t),
+                         void (*x_off_cb)(lvgl_event_t), void *event_data) {
+
   const int setting_x = 480;
   const int setting_y = 800;
-
-  dump_indev_groups();
 
   wdgt_settings_t settings = *out = lvgl_obj_create(lv_screen_active());
 
@@ -68,6 +53,7 @@ err_t wdgt_settings_init(wdgt_settings_t *out,
 
   *priv = (struct WdgtBookSettings){
       .set_scale_cb = set_scale_cb,
+      .back_cb = back_cb,
       .cb_data = event_data,
   };
 
@@ -87,11 +73,19 @@ err_t wdgt_settings_init(wdgt_settings_t *out,
   ERR_TRY(err_o);
 
   err_o = wdgt_settings_field_init(&priv->settings.set_x_off_field, settings,
-                                   "Set X off", set_scale_cb, event_data);
-  ERR_TRY(err_o);
+                                   "Set X offset", x_off_cb, event_data);
+  ERR_TRY_CATCH(err_o, error_scale_cleanup);
+
+  err_o = wdgt_settings_field_init(&priv->settings.exit_field, settings, "Back",
+                                   back_cb, event_data);
+  ERR_TRY_CATCH(err_o, error_x_off_cleanup);
 
   return 0;
 
+error_x_off_cleanup:
+  wdgt_settings_field_destroy(&priv->settings.set_x_off_field);
+error_scale_cleanup:
+  wdgt_settings_field_destroy(&priv->settings.set_scale_field);
 error_out:
   lv_style_reset(style);
   lv_obj_del(settings);
@@ -101,13 +95,15 @@ error_out:
 };
 
 void wdgt_settings_destroy(wdgt_settings_t *out) {
+  puts(__func__);
   if (mem_is_null_ptr(out)) {
     return;
   }
 
   struct WdgtBookSettings *priv = lv_obj_get_user_data(*out);
-  wdgt_settings_field_destroy(&priv->settings.set_scale_field);
+  wdgt_settings_field_destroy(&priv->settings.exit_field);
   wdgt_settings_field_destroy(&priv->settings.set_x_off_field);
+  wdgt_settings_field_destroy(&priv->settings.set_scale_field);
   lv_style_reset(&priv->settings.style);
   lv_obj_del(*out);
   mem_free(priv);
@@ -123,7 +119,7 @@ struct WdgtSetScale {
 err_t wdgt_settings_field_init(wdgt_set_scale_t *out, wdgt_settings_t parent,
                                const char *name, void (*event_cb)(lvgl_event_t),
                                void *event_data) {
-  
+
   const int setting_x = 480;
 
   lvgl_obj_t field_wx = *out = lvgl_obj_create(parent);
@@ -172,7 +168,6 @@ void settings_field_set_scale_event_cb(lvgl_event_t e) {}
 
 err_t wdgt_set_scale_init(wdgt_set_scale_t *out, double scale,
                           void (*event_cb)(lvgl_event_t), void *event_data) {
-  
 
   lvgl_obj_t key_catcher = *out = lvgl_obj_create(lv_screen_active());
   lv_obj_set_size(key_catcher, 1, 1);
@@ -180,7 +175,7 @@ err_t wdgt_set_scale_init(wdgt_set_scale_t *out, double scale,
   lv_group_focus_obj(key_catcher);
   lv_obj_add_event_cb(key_catcher, event_cb, LV_EVENT_KEY, event_data);
 
-  lvgl_obj_t wdgt_scale = wdgt_set_hor_num_create(scale);  
+  lvgl_obj_t wdgt_scale = wdgt_set_hor_num_create(scale);
   lv_obj_set_user_data(key_catcher, wdgt_scale);
 
   return 0;
@@ -199,12 +194,12 @@ void wdgt_set_scale_destroy(wdgt_set_scale_t *out) {
 }
 
 void wdgt_set_scale_value(wdgt_set_scale_t key_catcher, double value) {
-  lvgl_obj_t wdgt_scale = lv_obj_get_user_data(key_catcher);  
+  lvgl_obj_t wdgt_scale = lv_obj_get_user_data(key_catcher);
   wdgt_set_hor_num_set_value(wdgt_scale, value);
-}  
+}
 
 static lvgl_obj_t wdgt_set_hor_num_create(double hor_num) {
-  const int setting_x = 600;
+  const int setting_x = 450;
   const int setting_y = 300;
 
   lv_obj_t *set_hor_num = lvgl_obj_create(lv_screen_active());
@@ -225,7 +220,7 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num) {
   lv_obj_t *hor_num_label = lv_label_create(set_hor_num);
   lv_label_set_text(hor_num_label, buf);
   lv_obj_set_user_data(set_hor_num, hor_num_label);
-  
+
   lv_obj_t *down_btn = lvgl_obj_create(set_hor_num);
   lv_obj_t *down_label = lv_label_create(down_btn);
   lv_label_set_text(down_label, LV_SYMBOL_DOWN);
@@ -265,5 +260,100 @@ static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value) {
   lvgl_obj_t label = lv_obj_get_user_data(wdgt);
   char buf[8] = {0};
   snprintf(buf, sizeof(buf), "%2.3f", value);
-  lv_label_set_text(label, buf);  
-}  
+  lv_label_set_text(label, buf);
+}
+
+err_t wdgt_set_x_off_init(wdgt_set_x_off_t *out, int x_off,
+                          void (*event_cb)(lvgl_event_t), void *event_data) {
+  lvgl_obj_t key_catcher = *out = lvgl_obj_create(lv_screen_active());
+  lv_obj_set_size(key_catcher, 1, 1);
+  lv_obj_set_style_opa(key_catcher, LV_OPA_MIN, LV_PART_MAIN);
+  lv_group_focus_obj(key_catcher);
+  lv_obj_add_event_cb(key_catcher, event_cb, LV_EVENT_KEY, event_data);
+
+  lvgl_obj_t wdgt_x_off = wdgt_set_ver_num_create(x_off);
+  lv_obj_set_user_data(key_catcher, wdgt_x_off);
+
+  return 0;
+}
+void wdgt_set_x_off_destroy(wdgt_set_x_off_t *out) {
+  if (mem_is_null_ptr(out)) {
+    return;
+  }
+
+  wdgt_set_ver_num_destroy(lv_obj_get_user_data(*out));
+  lv_obj_del(*out);
+  *out = NULL;
+}
+
+void wdgt_set_x_off_value(wdgt_set_x_off_t x_off, int value) {
+  lvgl_obj_t wdgt_x_off = lv_obj_get_user_data(x_off);
+  wdgt_set_ver_num_set_value(wdgt_x_off, value);
+}
+
+lvgl_obj_t wdgt_set_ver_num_create(int ver_num) {
+  const int ver_num_x = 600;
+  const int ver_num_y = 300;
+
+  lv_obj_t *set_ver_num = lvgl_obj_create(lv_screen_active());
+  lv_gridnav_add(set_ver_num, LV_GRIDNAV_CTRL_NONE);
+
+  lv_obj_set_pos(set_ver_num,
+                 (lv_display_get_horizontal_resolution(NULL) - ver_num_x) / 2,
+                 (lv_display_get_vertical_resolution(NULL) - ver_num_y) / 2);
+  lv_obj_set_size(set_ver_num, ver_num_x, ver_num_y);
+
+  lv_obj_t *left_btn = lv_obj_create(set_ver_num);
+  lv_obj_t *left_label = lv_label_create(left_btn);
+  lv_label_set_text(left_label, LV_SYMBOL_LEFT);
+
+  char buf[8] = {0};
+  snprintf(buf, sizeof(buf), "%5.5d", (int)ver_num);
+  puts(buf);
+  lv_obj_t *ver_num_label_cont = lv_obj_create(set_ver_num);
+  lv_obj_t *ver_num_label = lv_label_create(ver_num_label_cont);
+  lv_label_set_text(ver_num_label, buf);
+  lv_obj_align(ver_num_label, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_user_data(set_ver_num, ver_num_label);
+  
+  lv_obj_t *right_btn = lv_obj_create(set_ver_num);
+  lv_obj_t *right_label = lv_label_create(right_btn);
+  lv_label_set_text(right_label, LV_SYMBOL_RIGHT);
+
+  lv_obj_set_layout(set_ver_num, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(set_ver_num, LV_FLEX_FLOW_ROW);
+
+  lv_obj_set_flex_align(set_ver_num, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER,
+                        LV_FLEX_ALIGN_CENTER);
+
+  lv_obj_set_size(left_btn, lv_pct(25), 90);
+  lv_obj_set_size(right_btn, lv_pct(25), 90);
+  lv_obj_set_size(ver_num_label_cont, lv_pct(25), 90);
+
+  lv_obj_center(left_label);
+  lv_obj_center(right_label);
+  lv_obj_center(ver_num_label_cont);
+
+  lv_obj_set_style_text_font(ver_num_label, &lv_font_montserrat_30, 0);
+  lv_obj_set_style_text_font(left_label, &lv_font_montserrat_30, 0);
+  lv_obj_set_style_text_font(right_label, &lv_font_montserrat_30, 0);
+
+  lv_obj_set_style_border_width(ver_num_label_cont, 0,
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(left_label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(right_label, 0,
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(set_ver_num, 0,
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  return set_ver_num;
+}
+
+void wdgt_set_ver_num_destroy(lvgl_obj_t ver_num) { lv_obj_del(ver_num); };
+
+static void wdgt_set_ver_num_set_value(lvgl_obj_t wdgt, int value) {
+  lvgl_obj_t label = lv_obj_get_user_data(wdgt);
+  char buf[8] = {0};
+  snprintf(buf, sizeof(buf), "%5.5d", (int)value);
+  lv_label_set_text(label, buf);
+}

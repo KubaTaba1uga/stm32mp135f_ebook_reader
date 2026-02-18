@@ -22,6 +22,7 @@ enum Events {
   Events_BTN_INC_SCALE_CLICKED,
   Events_BTN_DEC_SCALE_CLICKED,
   Events_BTN_EXIT_SCALE_CLICKED,
+  Events_BTN_SET_X_OFF_CLICKED,  
   // Add more events here
   Events_MAX,
 };
