@@ -2,7 +2,6 @@
 #include "menu/core.h"
 #include "utils/err.h"
 #include "utils/mem.h"
-#include "utils/log.h"
 
 err_t menu_view_init(struct MenuView *view, books_list_t books,
                      void (*book_cb)(book_t, void *), void *data) {
@@ -26,13 +25,8 @@ error_out:
   return err_o;
 }
 
-#include "lvgl.h"
 void menu_view_destroy(struct MenuView *view) {
   wdgt_bar_destroy(&view->bar);
   wdgt_books_destroy(&view->books);
-  mem_deref(view->books_data);
-
-  uint32_t n = lv_group_get_obj_count(lv_group_get_default());
-  log_info("group=%p count=%u", (void *)lv_group_get_default(), (unsigned)n);
-    
+  mem_deref(view->books_data);    
 }

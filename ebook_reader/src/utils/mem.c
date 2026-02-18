@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "mem.h"
+#include "utils/log.h"
 
 void *mem_malloc(size_t size) {
   void *mem = malloc(size);
@@ -41,6 +42,8 @@ ref_t mem_ref(ref_t data) {
   struct Reference *ref = mem_container_of(data, struct Reference, bytes);
   ref->ref_count++;
 
+  log_debug("Ref count: %p=%d", ref->bytes, ref->ref_count);
+  
   return data;
 }
 
@@ -54,9 +57,12 @@ ref_t mem_deref(ref_t data) {
     if (ref->destroy) {
       ref->destroy(data);
     }
+    log_debug("Ref count: %p=%d", ref->bytes, ref->ref_count);    
     mem_free(ref);
     return NULL;
   };
 
+  log_debug("Ref count: %p=%d", ref->bytes, ref->ref_count);
+  
   return data;
 };

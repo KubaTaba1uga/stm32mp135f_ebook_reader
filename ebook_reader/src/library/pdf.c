@@ -169,7 +169,7 @@ static bool book_module_pdf_is_extension(const char *file_path) {
 }
 
 static void book_module_pdf_book_destroy(book_t book) {
-  puts(__func__);
+  
   if (!book->private) {
     return;
   }
@@ -190,7 +190,7 @@ static void book_module_pdf_book_destroy(book_t book) {
 
 static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
                                                      int *buf_len) {
-  puts(__func__);
+  
   pdf_book_t pdf_book = book->private;
   if (pdf_book->page) {
     cairo_surface_destroy(pdf_book->page);
@@ -219,7 +219,7 @@ static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
   cairo_paint(cr);
 
   unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
-  *buf_len = x * y * 4;
+  *buf_len = x * y * 4; // ARGB pixel size is 4 bytes 
 
   pclose(pdfinfo);
   cairo_surface_destroy(surface);

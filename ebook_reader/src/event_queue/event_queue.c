@@ -151,16 +151,19 @@ void event_queue_deregister(event_queue_t queue,
 
 const char *events_dump(enum Events event) {
   static const char *const dumps[Events_MAX] = {
-      [Events_NONE] = "Events_NONE",
-      [Events_BOOT_DONE] = "Events_BOOT_DONE",
-      [Events_BOOK_OPENED] = "Events_BOOK_OPENED",
-      [Events_BOOK_CLOSED] = "Events_BOOK_CLOSED",
-      [Events_BOOK_UPDATED] = "Events_BOOK_UPDATED",
-      [Events_BTN_NEXT_PAGE_CLICKED] = "Events_BTN_NEXT_PAGE_CLICKED",
-      [Events_BTN_PREV_PAGE_CLICKED] = "Events_BTN_PREV_PAGE_CLICKED",
-      [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
-      [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
-      [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
+    [Events_NONE] = "Events_NONE",
+    [Events_BOOT_DONE] = "Events_BOOT_DONE",
+    [Events_BOOK_OPENED] = "Events_BOOK_OPENED",
+    [Events_BOOK_CLOSED] = "Events_BOOK_CLOSED",
+    [Events_BOOK_UPDATED] = "Events_BOOK_UPDATED",
+    [Events_BTN_NEXT_PAGE_CLICKED] = "Events_BTN_NEXT_PAGE_CLICKED",
+    [Events_BTN_PREV_PAGE_CLICKED] = "Events_BTN_PREV_PAGE_CLICKED",
+    [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
+    [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
+    [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
+    [Events_BTN_SET_SCALE_CLICKED] = "Events_BTN_SET_SCALE_CLICKED",
+    [Events_BTN_INC_SCALE_CLICKED] = "Events_BTN_INC_SCALE_CLICKED",
+    [Events_BTN_DEC_SCALE_CLICKED] = "Events_BTN_DEC_SCALE_CLICKED",         
   };
 
   if (event < Events_NONE || event >= Events_MAX || !dumps[event]) {

@@ -49,7 +49,7 @@ void dump_indev_groups(void) {
 
 err_t wdgt_settings_init(wdgt_settings_t *out,
                          void (*set_scale_cb)(lvgl_event_t), void *event_data) {
-  puts(__func__);
+  
   const int setting_x = 480;
   const int setting_y = 800;
 
@@ -123,7 +123,7 @@ struct WdgtSetScale {
 err_t wdgt_settings_field_init(wdgt_set_scale_t *out, wdgt_settings_t parent,
                                const char *name, void (*event_cb)(lvgl_event_t),
                                void *event_data) {
-  puts(__func__);
+  
   const int setting_x = 480;
 
   lvgl_obj_t field_wx = *out = lvgl_obj_create(parent);
@@ -172,7 +172,7 @@ void settings_field_set_scale_event_cb(lvgl_event_t e) {}
 
 err_t wdgt_set_scale_init(wdgt_set_scale_t *out, double scale,
                           void (*event_cb)(lvgl_event_t), void *event_data) {
-  puts(__func__);
+  
 
   lvgl_obj_t key_catcher = *out = lvgl_obj_create(lv_screen_active());
   lv_obj_set_size(key_catcher, 1, 1);
