@@ -62,10 +62,19 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
         {
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_DEC_SCALE_CLICKED] = {
+    [Events_BTN_DEC_SCALE_CLICKED] =
+        {
             EventSubscribers_BOOK_SETTINGS,
-    },
-    
+        },
+    [Events_BTN_EXIT_SCALE_CLICKED] =
+        {
+            EventSubscribers_BOOK_SETTINGS,
+        },
+    [Events_BOOK_SETTINGS_CLOSED] =
+        {
+            EventSubscribers_READER,
+        },
+
 };
 
 static void event_bus_route_event(event_queue_t queue, event_t event);
@@ -93,8 +102,7 @@ void event_queue_destroy(event_queue_t *out) {
 void event_queue_push(event_queue_t queue, enum Events event,
                       ref_t event_data) {
   event_t ev = mem_malloc(sizeof(struct Event));
-  *ev = (struct Event){.data = mem_ref(event_data),
-                       .event = event};
+  *ev = (struct Event){.data = mem_ref(event_data), .event = event};
 
   zlist_append(&queue->queue, &ev->next);
 }
@@ -151,19 +159,19 @@ void event_queue_deregister(event_queue_t queue,
 
 const char *events_dump(enum Events event) {
   static const char *const dumps[Events_MAX] = {
-    [Events_NONE] = "Events_NONE",
-    [Events_BOOT_DONE] = "Events_BOOT_DONE",
-    [Events_BOOK_OPENED] = "Events_BOOK_OPENED",
-    [Events_BOOK_CLOSED] = "Events_BOOK_CLOSED",
-    [Events_BOOK_UPDATED] = "Events_BOOK_UPDATED",
-    [Events_BTN_NEXT_PAGE_CLICKED] = "Events_BTN_NEXT_PAGE_CLICKED",
-    [Events_BTN_PREV_PAGE_CLICKED] = "Events_BTN_PREV_PAGE_CLICKED",
-    [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
-    [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
-    [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
-    [Events_BTN_SET_SCALE_CLICKED] = "Events_BTN_SET_SCALE_CLICKED",
-    [Events_BTN_INC_SCALE_CLICKED] = "Events_BTN_INC_SCALE_CLICKED",
-    [Events_BTN_DEC_SCALE_CLICKED] = "Events_BTN_DEC_SCALE_CLICKED",         
+      [Events_NONE] = "Events_NONE",
+      [Events_BOOT_DONE] = "Events_BOOT_DONE",
+      [Events_BOOK_OPENED] = "Events_BOOK_OPENED",
+      [Events_BOOK_CLOSED] = "Events_BOOK_CLOSED",
+      [Events_BOOK_UPDATED] = "Events_BOOK_UPDATED",
+      [Events_BTN_NEXT_PAGE_CLICKED] = "Events_BTN_NEXT_PAGE_CLICKED",
+      [Events_BTN_PREV_PAGE_CLICKED] = "Events_BTN_PREV_PAGE_CLICKED",
+      [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
+      [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
+      [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
+      [Events_BTN_SET_SCALE_CLICKED] = "Events_BTN_SET_SCALE_CLICKED",
+      [Events_BTN_INC_SCALE_CLICKED] = "Events_BTN_INC_SCALE_CLICKED",
+      [Events_BTN_DEC_SCALE_CLICKED] = "Events_BTN_DEC_SCALE_CLICKED",
   };
 
   if (event < Events_NONE || event >= Events_MAX || !dumps[event]) {

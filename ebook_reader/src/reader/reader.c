@@ -33,6 +33,7 @@ static void reader_deactivate(enum Events __, ref_t ___, void *sub_data);
 static void reader_next_page(enum Events __, ref_t ___, void *sub_data);
 static void reader_prev_page(enum Events __, ref_t ___, void *sub_data);
 static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data);
+static void reader_put_in_fg(enum Events __, ref_t ___, void *sub_data);
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data);
 static void reader_post_event(enum Events event, ref_t event_data,
                               void *sub_data);
@@ -91,6 +92,12 @@ struct ReaderTransition reader_fsm_table[ReaderStates_MAX][Events_MAX] = {
                     .next_state = ReaderStates_BACKGROUND,
                     .action = reader_refresh,
                 },
+            [Events_BOOK_SETTINGS_CLOSED] =
+                {
+                    .next_state = ReaderStates_ACTIVE,
+                    .action = reader_put_in_fg,
+                },
+
         },
 };
 
@@ -246,4 +253,10 @@ static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
 
   display_del_from_ingroup(reader->display, reader->view.page);
+}
+
+static void reader_put_in_fg(enum Events __, ref_t ___, void *sub_data) {
+  reader_t reader = sub_data;
+
+  display_add_to_ingroup(reader->display, reader->view.page);
 }
