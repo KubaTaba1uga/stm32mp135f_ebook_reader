@@ -86,6 +86,8 @@ err_t reader_view_refresh(struct ReaderView *view) {
 
   wdgt_page_refresh(view->page, page_data, page_size);
 
+  view->last_book = book_new;
+
 out:
   return 0;
 

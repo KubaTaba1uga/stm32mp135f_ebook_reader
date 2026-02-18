@@ -73,6 +73,11 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
     [Events_BOOK_SETTINGS_CLOSED] =
         {
             EventSubscribers_READER,
+            EventSubscribers_BOOK_SETTINGS,
+        },
+    [Events_BTN_SET_X_OFF_CLICKED] =
+        {
+            EventSubscribers_BOOK_SETTINGS,
         },
 
 };
@@ -172,6 +177,7 @@ const char *events_dump(enum Events event) {
       [Events_BTN_SET_SCALE_CLICKED] = "Events_BTN_SET_SCALE_CLICKED",
       [Events_BTN_INC_SCALE_CLICKED] = "Events_BTN_INC_SCALE_CLICKED",
       [Events_BTN_DEC_SCALE_CLICKED] = "Events_BTN_DEC_SCALE_CLICKED",
+      [Events_BTN_SET_X_OFF_CLICKED] = "Events_BTN_SET_X_OFF_CLICKED",
   };
 
   if (event < Events_NONE || event >= Events_MAX || !dumps[event]) {
