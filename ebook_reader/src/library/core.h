@@ -2,7 +2,7 @@
 #define EBOOK_READER_BOOK_CORE_H
 #include <stdbool.h>
 
-#include "book/book.h"
+#include "library/library.h"
 #include "utils/err.h"
 #include "utils/zlist.h"
 
@@ -19,14 +19,13 @@ struct Book {
   struct ZListNode next;
   const char *file_path;
   int max_page_number;
-  const char *title;    
-  book_api_t owner;
+  const char *title;
+  library_t owner;
   int page_number;
   void *private;
   double scale;
   int x_off;
   int y_off;
-
 };
 
 struct BookModule {
@@ -41,6 +40,6 @@ struct BookModule {
   void *private;
 };
 
-err_t book_module_pdf_init(book_module_t, book_api_t);
+err_t book_module_pdf_init(book_module_t, library_t);
 
 #endif // EBOOK_READER_BOOK_CORE_H
