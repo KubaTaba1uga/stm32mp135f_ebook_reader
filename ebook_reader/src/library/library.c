@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "db/db.h"
 #include "library/core.h"
 #include "library/library.h"
 #include "utils/err.h"
@@ -13,6 +14,7 @@
 #define CAST_BOOK_PRIV(node) mem_container_of(node, struct Book, next)
 
 struct Library {
+  db_t db;
   struct BookModule modules[BookExtensionEnum_MAX];
 };
 
@@ -24,10 +26,12 @@ struct BooksList {
 
 static int book_get_extension(library_t lib, const char *path);
 static void books_list_destroy(void *data);
+static book_t book_init(library_t lib, const char *file_path);
 static void book_destroy(void *data);
 
-err_t library_init(library_t *out) {
+err_t library_init(library_t *out, db_t db) {
   library_t lib = *out = mem_malloc(sizeof(struct Library));
+  *lib = (struct Library){0};
 
   err_t (*module_inits[BookExtensionEnum_MAX])(book_module_t, library_t) = {
       [BookExtensionEnum_PDF] = book_module_pdf_init,
@@ -258,3 +262,65 @@ int book_get_y_off(book_t book) { return book->y_off; }
 void book_set_x_off(book_t book, int value) { book->x_off = value; }
 
 void book_set_y_off(book_t book, int value) { book->y_off = value; }
+
+static book_t book_init(library_t lib, const char *file_path) {
+  struct DbBook db_book = {0};
+  bool is_book_in_db = false;
+
+  err_o = db_book_get(lib->db, file_path, &db_book, &is_book_in_db);
+  ERR_TRY(err_o);
+
+  int book_ext = book_get_extension(lib, file_path);
+  if (book_ext == -1) {
+    return NULL;
+  };
+
+  book_t book;
+  if (is_book_in_db) {
+    book = mem_refalloc(sizeof(struct Book), book_destroy);
+    *book = (struct Book){
+        .extension = book_ext,
+        .max_page_number = db_book.max_page_number,
+        .title = db_book.title,
+        .file_path = db_book.path,
+        .page_number = db_book.page_number,
+        .thumbnail =
+            {
+                .buf = db_book.thumbnail.buf,
+                .len = db_book.thumbnail.len,
+            },
+        .settings =
+            {
+                .scale = db_book.settings.scale,
+                .x_off = db_book.settings.x_off,
+                .y_off = db_book.settings.y_off,
+            },
+    };
+  } else {
+    // To-do: 1. generate library book with thumbnail and everything
+    //        2. put new book into db (db should return new book)
+    //        3. destroy new book
+    //        4. use book from library to construct new book   
+    int book_ext = book_get_extension(lib, file_path);
+    if (book_ext == -1) {
+      return NULL;
+    };
+
+    book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
+
+    log_debug("Creating book: %p=%s", book, file_path);
+
+    *book = (struct Book){
+        .extension = book_ext,
+        .file_path = file_path,
+        .owner = lib,
+        .scale = 1,
+        .page_number = 1,
+    };
+  }
+
+  return book;
+
+error_out:
+  return NULL;
+}
