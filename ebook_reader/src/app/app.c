@@ -2,6 +2,7 @@
 
 #include "app/app.h"
 #include "book_settings/book_settings.h"
+#include "db/db.h"
 #include "display/display.h"
 #include "event_queue/event_queue.h"
 #include "library/library.h"
@@ -18,6 +19,7 @@ struct App {
   library_t library;
   reader_t reader;
   menu_t menu;
+  db_t db;
 };
 
 err_t app_init(app_t *out) {
@@ -30,7 +32,10 @@ err_t app_init(app_t *out) {
   err_o = display_init(&app->display);
   ERR_TRY(err_o);
 
-  err_o = library_init(&app->library);
+  err_o = db_init(&app->db);
+  ERR_TRY(err_o);
+
+  err_o = library_init(&app->library, app->db);
   ERR_TRY(err_o);
 
   err_o = menu_init(&app->menu, app->display, app->event_queue, app->library);
@@ -82,6 +87,10 @@ void app_destroy(app_t *out) {
 
   if (app->event_queue) {
     event_queue_destroy(&app->event_queue);
+  }
+
+  if (app->db) {
+    db_destroy(&app->db);
   }
 
   mem_free(app);

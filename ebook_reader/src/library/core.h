@@ -20,12 +20,20 @@ struct Book {
   const char *file_path;
   int max_page_number;
   const char *title;
-  library_t owner;
   int page_number;
+  library_t owner;
   void *private;
-  double scale;
-  int x_off;
-  int y_off;
+
+  struct {
+    const unsigned char *buf;
+    int len;
+  } thumbnail;
+
+  struct {
+    double scale;
+    int x_off;
+    int y_off;
+  } settings;
 };
 
 struct BookModule {

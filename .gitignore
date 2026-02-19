@@ -14,3 +14,5 @@ cmake_poppler
 old*
 docs/.$ebook_reader_fsm.drawio.bkp
 third_party
+sqlite-amalgamation-*
+*.db
