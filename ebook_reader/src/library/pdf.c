@@ -6,9 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "book/book.h"
-#include "book/core.h"
 #include "cairo.h"
+#include "library/core.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 
@@ -16,7 +15,7 @@ typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
 
 struct Pdf {
-  book_api_t owner;
+  library_t owner;
 };
 
 struct PdfBook {
@@ -33,9 +32,9 @@ static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
 static bool book_module_pdf_is_extension(const char *);
 static void book_module_pdf_destroy(book_module_t);
 
-err_t book_module_pdf_init(book_module_t module, book_api_t api) {
+err_t book_module_pdf_init(book_module_t module, library_t lib) {
   pdf_t pdf = mem_malloc(sizeof(struct Pdf));
-  pdf->owner = api;
+  pdf->owner = lib;
   module->book_init = book_module_pdf_book_init;
   module->book_destroy = book_module_pdf_book_destroy;
   module->book_get_thumbnail = book_module_pdf_book_get_thumbnail;
@@ -97,7 +96,6 @@ error_out:
   mem_free(pdf_book);
   return err_o;
 };
-
 
 static cairo_status_t cairo_read_func(void *closure, unsigned char *data,
                                       unsigned int length) {
@@ -170,6 +168,7 @@ static bool book_module_pdf_is_extension(const char *file_path) {
 }
 
 static void book_module_pdf_book_destroy(book_t book) {
+
   if (!book->private) {
     return;
   }
@@ -178,7 +177,7 @@ static void book_module_pdf_book_destroy(book_t book) {
   if (pdf_book->thumbnail) {
     cairo_surface_destroy(pdf_book->thumbnail);
   }
-  
+
   if (pdf_book->page) {
     cairo_surface_destroy(pdf_book->page);
   }
@@ -190,7 +189,7 @@ static void book_module_pdf_book_destroy(book_t book) {
 
 static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
                                                      int *buf_len) {
-  puts(__func__);
+
   pdf_book_t pdf_book = book->private;
   if (pdf_book->page) {
     cairo_surface_destroy(pdf_book->page);
@@ -219,7 +218,7 @@ static const unsigned char *book_module_pdf_get_page(book_t book, int x, int y,
   cairo_paint(cr);
 
   unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
-  *buf_len = x * y * 4;
+  *buf_len = x * y * 4; // ARGB pixel size is 4 bytes
 
   pclose(pdfinfo);
   cairo_surface_destroy(surface);

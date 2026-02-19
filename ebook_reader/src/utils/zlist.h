@@ -40,5 +40,5 @@ int zlist_append(zlist_t head, zlist_node_t node);
    @return On success pointer to node, on error NULL.
 */
 zlist_node_t zlist_get(zlist_t head, int idx);
-zlist_node_t zlist_pop(zlist_t list, int idx) ;
+zlist_node_t zlist_pop(zlist_t list, int idx);
 #endif // ZLIST_H
