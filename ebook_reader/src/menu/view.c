@@ -7,7 +7,7 @@ err_t menu_view_init(struct MenuView *view, books_list_t books,
                      void (*book_cb)(book_t, void *), void *data) {
   err_o = wdgt_bar_init(&view->bar);
   ERR_TRY(err_o);
-  
+
   if (!books) {
     goto out;
   }
@@ -28,5 +28,5 @@ error_out:
 void menu_view_destroy(struct MenuView *view) {
   wdgt_bar_destroy(&view->bar);
   wdgt_books_destroy(&view->books);
-  mem_deref(view->books_data);    
+  mem_deref(view->books_data);
 }

@@ -54,19 +54,19 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
             EventSubscribers_READER,
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_SET_SCALE_CLICKED] =
+    [Events_BTN_BOOK_SETTINGS_ENTER_SET_SCALE_CLICKED] =
         {
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_INC_SCALE_CLICKED] =
+    [Events_BTN_BOOK_SETTINGS_MORE_CLICKED] =
         {
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_DEC_SCALE_CLICKED] =
+    [Events_BTN_BOOK_SETTINGS_LESS_CLICKED] =
         {
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_EXIT_SCALE_CLICKED] =
+    [Events_BTN_BOOK_SETTINGS_EXIT_CLICKED] =
         {
             EventSubscribers_BOOK_SETTINGS,
         },
@@ -75,7 +75,11 @@ enum EventSubscribers route_table[Events_MAX][EventSubscribers_MAX] = {
             EventSubscribers_READER,
             EventSubscribers_BOOK_SETTINGS,
         },
-    [Events_BTN_SET_X_OFF_CLICKED] =
+    [Events_BTN_BOOK_SETTINGS_ENTER_SET_X_OFF_CLICKED] =
+        {
+            EventSubscribers_BOOK_SETTINGS,
+        },
+    [Events_BTN_BOOK_SETTINGS_ENTER_SET_Y_OFF_CLICKED] =
         {
             EventSubscribers_BOOK_SETTINGS,
         },
@@ -174,10 +178,16 @@ const char *events_dump(enum Events event) {
       [Events_BTN_MENU_CLICKED] = "Events_BTN_MENU_CLICKED",
       [Events_BOOK_SETTINGS_OPENED] = "Events_BOOK_SETTINGS_OPENED",
       [Events_BOOK_SETTINGS_CLOSED] = "Events_BOOK_SETTINGS_CLOSED",
-      [Events_BTN_SET_SCALE_CLICKED] = "Events_BTN_SET_SCALE_CLICKED",
-      [Events_BTN_INC_SCALE_CLICKED] = "Events_BTN_INC_SCALE_CLICKED",
-      [Events_BTN_DEC_SCALE_CLICKED] = "Events_BTN_DEC_SCALE_CLICKED",
-      [Events_BTN_SET_X_OFF_CLICKED] = "Events_BTN_SET_X_OFF_CLICKED",
+      [Events_BTN_BOOK_SETTINGS_ENTER_SET_SCALE_CLICKED] =
+          "Events_BTN_BOOK_SETTINGS_ENTER_SET_SCALE_CLICKED",
+      [Events_BTN_BOOK_SETTINGS_MORE_CLICKED] =
+          "Events_BTN_BOOK_SETTINGS_MORE_CLICKED",
+      [Events_BTN_BOOK_SETTINGS_LESS_CLICKED] =
+          "Events_BTN_BOOK_SETTINGS_LESS_CLICKED",
+      [Events_BTN_BOOK_SETTINGS_ENTER_SET_X_OFF_CLICKED] =
+          "Events_BTN_BOOK_SETTINGS_ENTER_SET_X_OFF_CLICKED",
+      [Events_BTN_BOOK_SETTINGS_ENTER_SET_Y_OFF_CLICKED] =
+          "Events_BTN_BOOK_SETTINGS_ENTER_SET_Y_OFF_CLICKED",
   };
 
   if (event < Events_NONE || event >= Events_MAX || !dumps[event]) {

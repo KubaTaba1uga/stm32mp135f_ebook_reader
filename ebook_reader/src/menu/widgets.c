@@ -126,7 +126,8 @@ err_t wdgt_books_init(wdgt_books_t *out, books_list_t books,
   lv_style_set_bg_color(style, lv_color_white());
   lv_obj_add_style(books_container, style, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-  wdgt_book_t *lv_books = mem_malloc(sizeof(wdgt_book_t) * books_list_len(books));
+  wdgt_book_t *lv_books =
+      mem_malloc(sizeof(wdgt_book_t) * books_list_len(books));
   wdgt_book_t lv_book = NULL;
   int i = 0;
 
@@ -177,8 +178,8 @@ void wdgt_books_destroy(wdgt_books_t *out) {
 }
 
 static wdgt_book_t wdgt_book_create(wdgt_books_t books, const char *book_title,
-                             bool is_focused, const uint8_t *thumbnail,
-                             ref_t data) {
+                                    bool is_focused, const uint8_t *thumbnail,
+                                    ref_t data) {
   struct WdgtBook *wdgt = mem_malloc(sizeof(struct WdgtBook));
   lv_obj_t *book_card = lvgl_obj_create(books);
   lv_obj_t *book_img = NULL;

@@ -18,11 +18,12 @@ enum Events {
   Events_BTN_NEXT_PAGE_CLICKED,
   Events_BTN_PREV_PAGE_CLICKED,
   Events_BTN_MENU_CLICKED,
-  Events_BTN_SET_SCALE_CLICKED,
-  Events_BTN_INC_SCALE_CLICKED,
-  Events_BTN_DEC_SCALE_CLICKED,
-  Events_BTN_EXIT_SCALE_CLICKED,
-  Events_BTN_SET_X_OFF_CLICKED,  
+  Events_BTN_BOOK_SETTINGS_ENTER_SET_SCALE_CLICKED,
+  Events_BTN_BOOK_SETTINGS_MORE_CLICKED,
+  Events_BTN_BOOK_SETTINGS_LESS_CLICKED,
+  Events_BTN_BOOK_SETTINGS_EXIT_CLICKED,
+  Events_BTN_BOOK_SETTINGS_ENTER_SET_X_OFF_CLICKED,
+  Events_BTN_BOOK_SETTINGS_ENTER_SET_Y_OFF_CLICKED,
   // Add more events here
   Events_MAX,
 };
@@ -47,7 +48,8 @@ void event_queue_step(event_queue_t queue);
 void event_queue_register(event_queue_t queue, enum EventSubscribers subscriber,
                           post_event_func_t subscriber_func,
                           void *subscriber_data);
-void event_queue_deregister(event_queue_t queue, enum EventSubscribers subscriber);
+void event_queue_deregister(event_queue_t queue,
+                            enum EventSubscribers subscriber);
 const char *events_dump(enum Events state);
 const char *event_subscriber_dump(enum EventSubscribers sub);
 
