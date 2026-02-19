@@ -9,7 +9,6 @@
 err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
                      int page_size, void (*event_cb)(lvgl_event_t),
                      void *event_data) {
-  
 
   wdgt_page_t page = *out = lvgl_img_create(lv_screen_active());
 
@@ -45,5 +44,5 @@ void wdgt_page_refresh(wdgt_page_t page, const unsigned char *page_data,
   dsc->data = page_data;
   dsc->data_size = page_size;
   lv_image_set_src(page, dsc); // We need to set dsc again to let lvgl
-                               //  now dsc got update.  
+                               //  now dsc got update.
 }

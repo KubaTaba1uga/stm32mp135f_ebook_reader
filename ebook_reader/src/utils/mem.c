@@ -43,7 +43,7 @@ ref_t mem_ref(ref_t data) {
   ref->ref_count++;
 
   /* log_debug("Ref count: %p=%d", ref->bytes, ref->ref_count); */
-  
+
   return data;
 }
 
@@ -63,6 +63,6 @@ ref_t mem_deref(ref_t data) {
   };
 
   /* log_debug("Ref count: %p=%d", ref->bytes, ref->ref_count); */
-  
+
   return data;
 };

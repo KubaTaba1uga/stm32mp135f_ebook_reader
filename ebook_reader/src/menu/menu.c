@@ -61,7 +61,7 @@ struct MenuTransition menu_fsm_table[MenuStates_MAX][Events_MAX] = {
 
 err_t menu_init(menu_t *out, display_t display, event_queue_t evqueue,
                 library_t library) {
-  
+
   menu_t menu = *out = mem_malloc(sizeof(struct Menu));
   *menu = (struct Menu){.current_state = MenuStates_NONE,
                         .evqueue = evqueue,
@@ -90,12 +90,10 @@ void menu_destroy(menu_t *out) {
   event_queue_deregister(menu->evqueue, EventSubscribers_MENU);
   mem_free(*out);
   *out = NULL;
-
-  
 }
 
 static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
-  
+
   menu_t menu = sub_data;
 
   books_list_t books = library_list_books(menu->library);
@@ -112,14 +110,14 @@ error_out:
 };
 
 static void select_book_cb(book_t book, void *sub_data) {
-  
+
   menu_t menu = sub_data;
 
   event_queue_push(menu->evqueue, Events_BOOK_OPENED, book);
 };
 
 static void menu_deactivate(enum Events __, ref_t ___, void *sub_data) {
-  
+
   menu_t menu = sub_data;
 
   display_del_from_ingroup(menu->display, menu->view.books);
@@ -128,7 +126,7 @@ static void menu_deactivate(enum Events __, ref_t ___, void *sub_data) {
 
 static void menu_post_event(enum Events event, ref_t event_data,
                             void *sub_data) {
-  
+
   struct MenuTransition action;
   menu_t menu = sub_data;
 

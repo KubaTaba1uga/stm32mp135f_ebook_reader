@@ -16,7 +16,7 @@ struct App {
   event_queue_t event_queue;
   display_t display;
   library_t library;
-  reader_t reader;  
+  reader_t reader;
   menu_t menu;
 };
 
@@ -40,10 +40,10 @@ err_t app_init(app_t *out) {
       reader_init(&app->reader, app->display, app->event_queue, app->library);
   ERR_TRY(err_o);
 
-  err_o =
-      book_settings_init(&app->book_settings, app->display, app->event_queue, app->library);
+  err_o = book_settings_init(&app->book_settings, app->display,
+                             app->event_queue, app->library);
   ERR_TRY(err_o);
-  
+
   event_queue_push(app->event_queue, Events_BOOT_DONE, NULL);
 
   return 0;

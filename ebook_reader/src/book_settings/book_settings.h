@@ -8,8 +8,8 @@
 
 typedef struct BookSettings *book_settings_t;
 
-err_t book_settings_init(book_settings_t *out, display_t display, event_queue_t queue,
-                library_t library);
+err_t book_settings_init(book_settings_t *out, display_t display,
+                         event_queue_t queue, library_t library);
 void book_settings_destroy(book_settings_t *out);
 
 #endif // EBOOK_READER_BOOK_SETTINGS_H

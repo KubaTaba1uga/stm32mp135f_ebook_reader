@@ -13,17 +13,17 @@ struct WdgtBookSettings {
   struct {
     wdgt_settings_field_t set_scale_field;
     wdgt_settings_field_t set_x_off_field;
+    wdgt_settings_field_t set_y_off_field;
     wdgt_settings_field_t exit_field;
     lv_style_t style;
   } settings;
 
-  void (*set_scale_cb)(lvgl_event_t);
-  void (*back_cb)(lvgl_event_t);
   void *cb_data;
 };
 
-static lvgl_obj_t wdgt_set_hor_num_create(double hor_num);
-static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value);
+static lvgl_obj_t wdgt_set_hor_num_create(double hor_num, bool is_int);
+static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value,
+                                       bool is_int);
 static lvgl_obj_t wdgt_set_ver_num_create(int ver_num);
 static void wdgt_set_ver_num_destroy(lvgl_obj_t ver_num);
 static void wdgt_set_ver_num_set_value(lvgl_obj_t wdgt, int value);
@@ -35,7 +35,8 @@ void wdgt_settings_field_destroy(wdgt_set_scale_t *out);
 err_t wdgt_settings_init(wdgt_settings_t *out,
                          void (*set_scale_cb)(lvgl_event_t),
                          void (*back_cb)(lvgl_event_t),
-                         void (*x_off_cb)(lvgl_event_t), void *event_data) {
+                         void (*x_off_cb)(lvgl_event_t),
+                         void (*y_off_cb)(lvgl_event_t), void *event_data) {
 
   const int setting_x = 480;
   const int setting_y = 800;
@@ -52,8 +53,6 @@ err_t wdgt_settings_init(wdgt_settings_t *out,
   lv_obj_set_size(settings, setting_x, setting_y);
 
   *priv = (struct WdgtBookSettings){
-      .set_scale_cb = set_scale_cb,
-      .back_cb = back_cb,
       .cb_data = event_data,
   };
 
@@ -76,12 +75,18 @@ err_t wdgt_settings_init(wdgt_settings_t *out,
                                    "Set X offset", x_off_cb, event_data);
   ERR_TRY_CATCH(err_o, error_scale_cleanup);
 
+  err_o = wdgt_settings_field_init(&priv->settings.set_y_off_field, settings,
+                                   "Set Y offset", y_off_cb, event_data);
+  ERR_TRY_CATCH(err_o, error_x_off_cleanup);
+
   err_o = wdgt_settings_field_init(&priv->settings.exit_field, settings, "Back",
                                    back_cb, event_data);
-  ERR_TRY_CATCH(err_o, error_x_off_cleanup);
+  ERR_TRY_CATCH(err_o, error_y_off_cleanup);
 
   return 0;
 
+error_y_off_cleanup:
+  wdgt_settings_field_destroy(&priv->settings.set_y_off_field);
 error_x_off_cleanup:
   wdgt_settings_field_destroy(&priv->settings.set_x_off_field);
 error_scale_cleanup:
@@ -102,6 +107,7 @@ void wdgt_settings_destroy(wdgt_settings_t *out) {
 
   struct WdgtBookSettings *priv = lv_obj_get_user_data(*out);
   wdgt_settings_field_destroy(&priv->settings.exit_field);
+  wdgt_settings_field_destroy(&priv->settings.set_y_off_field);
   wdgt_settings_field_destroy(&priv->settings.set_x_off_field);
   wdgt_settings_field_destroy(&priv->settings.set_scale_field);
   lv_style_reset(&priv->settings.style);
@@ -175,7 +181,7 @@ err_t wdgt_set_scale_init(wdgt_set_scale_t *out, double scale,
   lv_group_focus_obj(key_catcher);
   lv_obj_add_event_cb(key_catcher, event_cb, LV_EVENT_KEY, event_data);
 
-  lvgl_obj_t wdgt_scale = wdgt_set_hor_num_create(scale);
+  lvgl_obj_t wdgt_scale = wdgt_set_hor_num_create(scale, false);
   lv_obj_set_user_data(key_catcher, wdgt_scale);
 
   return 0;
@@ -195,10 +201,10 @@ void wdgt_set_scale_destroy(wdgt_set_scale_t *out) {
 
 void wdgt_set_scale_value(wdgt_set_scale_t key_catcher, double value) {
   lvgl_obj_t wdgt_scale = lv_obj_get_user_data(key_catcher);
-  wdgt_set_hor_num_set_value(wdgt_scale, value);
+  wdgt_set_hor_num_set_value(wdgt_scale, value, false);
 }
 
-static lvgl_obj_t wdgt_set_hor_num_create(double hor_num) {
+static lvgl_obj_t wdgt_set_hor_num_create(double hor_num, bool is_int) {
   const int setting_x = 450;
   const int setting_y = 300;
 
@@ -216,7 +222,12 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num) {
   lv_label_set_text(up_label, LV_SYMBOL_UP);
 
   char buf[8] = {0};
-  snprintf(buf, sizeof(buf), "%2.3f", hor_num);
+  if (!is_int) {
+    snprintf(buf, sizeof(buf), "%2.3f", hor_num);
+  } else {
+    snprintf(buf, sizeof(buf), "%5.5d", (int)hor_num);
+  }
+
   lv_obj_t *hor_num_label = lv_label_create(set_hor_num);
   lv_label_set_text(hor_num_label, buf);
   lv_obj_set_user_data(set_hor_num, hor_num_label);
@@ -256,10 +267,17 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num) {
   return set_hor_num;
 }
 
-static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value) {
+static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value,
+                                       bool is_int) {
   lvgl_obj_t label = lv_obj_get_user_data(wdgt);
   char buf[8] = {0};
-  snprintf(buf, sizeof(buf), "%2.3f", value);
+
+  if (!is_int) {
+    snprintf(buf, sizeof(buf), "%2.3f", value);
+  } else {
+    snprintf(buf, sizeof(buf), "%5.5d", (int)value);
+  }
+
   lv_label_set_text(label, buf);
 }
 
@@ -315,7 +333,7 @@ lvgl_obj_t wdgt_set_ver_num_create(int ver_num) {
   lv_label_set_text(ver_num_label, buf);
   lv_obj_align(ver_num_label, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_user_data(set_ver_num, ver_num_label);
-  
+
   lv_obj_t *right_btn = lv_obj_create(set_ver_num);
   lv_obj_t *right_label = lv_label_create(right_btn);
   lv_label_set_text(right_label, LV_SYMBOL_RIGHT);
@@ -356,4 +374,32 @@ static void wdgt_set_ver_num_set_value(lvgl_obj_t wdgt, int value) {
   char buf[8] = {0};
   snprintf(buf, sizeof(buf), "%5.5d", (int)value);
   lv_label_set_text(label, buf);
+}
+
+err_t wdgt_set_y_off_init(wdgt_set_y_off_t *out, int y_off,
+                          void (*event_cb)(lvgl_event_t), void *event_data) {
+  lvgl_obj_t key_catcher = *out = lvgl_obj_create(lv_screen_active());
+  lv_obj_set_size(key_catcher, 1, 1);
+  lv_obj_set_style_opa(key_catcher, LV_OPA_MIN, LV_PART_MAIN);
+  lv_group_focus_obj(key_catcher);
+  lv_obj_add_event_cb(key_catcher, event_cb, LV_EVENT_KEY, event_data);
+
+  lvgl_obj_t wdgt_y_off = wdgt_set_hor_num_create(y_off * -1, true);
+  lv_obj_set_user_data(key_catcher, wdgt_y_off);
+
+  return 0;
+}
+void wdgt_set_y_off_destroy(wdgt_set_y_off_t *out) {
+  if (mem_is_null_ptr(out)) {
+    return;
+  }
+
+  lv_obj_del(lv_obj_get_user_data(*out));
+  lv_obj_del(*out);
+  *out = NULL;
+}
+
+void wdgt_set_y_off_value(wdgt_set_y_off_t y_off, int value) {
+  lvgl_obj_t wdgt_y_off = lv_obj_get_user_data(y_off);
+  wdgt_set_hor_num_set_value(wdgt_y_off, value * -1, true);
 }
