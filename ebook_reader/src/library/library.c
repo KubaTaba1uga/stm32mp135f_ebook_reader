@@ -24,6 +24,9 @@ struct BooksList {
   library_t owner;
 };
 
+int book_thumbnail_x = 128;
+int book_thumbnail_y = 128;
+
 static int book_get_extension(library_t lib, const char *path);
 static void books_list_destroy(void *data);
 static book_t book_init(library_t lib, const char *file_path);
@@ -264,63 +267,75 @@ void book_set_x_off(book_t book, int value) { book->x_off = value; }
 void book_set_y_off(book_t book, int value) { book->y_off = value; }
 
 static book_t book_init(library_t lib, const char *file_path) {
-  struct DbBook db_book = {0};
+  book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
   bool is_book_in_db = false;
 
-  err_o = db_book_get(lib->db, file_path, &db_book, &is_book_in_db);
+  err_o = db_book_get(lib->db, file_path, &book->db_data, &is_book_in_db);
   ERR_TRY(err_o);
 
+  if (is_book_in_db) {
+    goto out;
+  }
+
+  int book_ext = book_get_extension(lib, file_path);
+  if (book_ext == -1) {
+    goto error_out;
+  };
+
+  err_o = lib->modules[book_ext].book_init(lib->modules[book_ext].private,
+                                             file_path);
+  ERR_TRY(err_o);
+
+  void *private = 
+  
+  err_o = db_book_get(lib->db, file_path, &book->db_data, &is_book_in_db);
+  ERR_TRY_CATCH(err_o, error_db_book_cleanup);
+}
+
+if (is_book_in_db) {
+  book = mem_refalloc(sizeof(struct Book), book_destroy);
+  *book = (struct Book){
+      .extension = book_ext,
+      .max_page_number = db_book.max_page_number,
+      .title = db_book.title,
+      .file_path = db_book.path,
+      .page_number = db_book.page_number,
+      .thumbnail =
+          {
+              .buf = db_book.thumbnail.buf,
+              .len = db_book.thumbnail.len,
+          },
+      .settings =
+          {
+              .scale = db_book.settings.scale,
+              .x_off = db_book.settings.x_off,
+              .y_off = db_book.settings.y_off,
+          },
+  };
+} else {
+  // To-do: 1. generate library book with thumbnail and everything
+  //        2. put new book into db (db should return new book)
+  //        3. destroy new book
+  //        4. use book from library to construct new book
   int book_ext = book_get_extension(lib, file_path);
   if (book_ext == -1) {
     return NULL;
   };
 
-  book_t book;
-  if (is_book_in_db) {
-    book = mem_refalloc(sizeof(struct Book), book_destroy);
-    *book = (struct Book){
-        .extension = book_ext,
-        .max_page_number = db_book.max_page_number,
-        .title = db_book.title,
-        .file_path = db_book.path,
-        .page_number = db_book.page_number,
-        .thumbnail =
-            {
-                .buf = db_book.thumbnail.buf,
-                .len = db_book.thumbnail.len,
-            },
-        .settings =
-            {
-                .scale = db_book.settings.scale,
-                .x_off = db_book.settings.x_off,
-                .y_off = db_book.settings.y_off,
-            },
-    };
-  } else {
-    // To-do: 1. generate library book with thumbnail and everything
-    //        2. put new book into db (db should return new book)
-    //        3. destroy new book
-    //        4. use book from library to construct new book   
-    int book_ext = book_get_extension(lib, file_path);
-    if (book_ext == -1) {
-      return NULL;
-    };
+  book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
 
-    book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
+  log_debug("Creating book: %p=%s", book, file_path);
 
-    log_debug("Creating book: %p=%s", book, file_path);
+  *book = (struct Book){
+      .extension = book_ext,
+      .file_path = file_path,
+      .owner = lib,
+      .scale = 1,
+      .page_number = 1,
+  };
+}
 
-    *book = (struct Book){
-        .extension = book_ext,
-        .file_path = file_path,
-        .owner = lib,
-        .scale = 1,
-        .page_number = 1,
-    };
-  }
+return book;
 
-  return book;
-
-error_out:
-  return NULL;
+error_out : return NULL;
 }
