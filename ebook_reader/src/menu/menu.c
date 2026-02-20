@@ -68,8 +68,10 @@ err_t menu_init(menu_t *out, display_t display, event_queue_t evqueue,
                         .display = display,
                         .library = library};
 
+  menu_wdgts_init();
   event_queue_register(evqueue, EventSubscribers_MENU, menu_post_event, menu);
 
+  
   return 0;
 };
 

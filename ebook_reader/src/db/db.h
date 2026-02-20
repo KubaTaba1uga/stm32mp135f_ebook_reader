@@ -14,6 +14,7 @@ struct DbBook {
   const char *title;
   const char *path;
   int page_number;
+  int extension;
   
   struct {
     const unsigned char *buf;

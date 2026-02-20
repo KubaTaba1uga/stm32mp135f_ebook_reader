@@ -63,7 +63,7 @@ err_t db_book_insert(db_t db, struct DbBook book) {
   sqlite3_prepare_v2(
       db->db,
       "INSERT INTO library(title, path, max_page_number, page_number, "
-      "thumbnail_buf) "
+      "extension, thumbnail_buf) "
       "VALUES(?, ?, ?, ?, ?);",
       -1, &st, NULL);
 
@@ -71,7 +71,8 @@ err_t db_book_insert(db_t db, struct DbBook book) {
   sqlite3_bind_text(st, 2, book.path, -1, SQLITE_TRANSIENT);
   sqlite3_bind_int(st, 3, book.max_page_number);
   sqlite3_bind_int(st, 4, book.page_number);
-  sqlite3_bind_blob(st, 5, book.thumbnail.buf, book.thumbnail.len,
+  sqlite3_bind_int(st, 5, book.extension);
+  sqlite3_bind_blob(st, 6, book.thumbnail.buf, book.thumbnail.len,
                     SQLITE_TRANSIENT);
 
   sqlite3_step(st);
@@ -87,7 +88,7 @@ err_t db_book_get(db_t db, const char *path, struct DbBook *book,
 
   err = sqlite3_prepare_v2(db->db,
                            "SELECT id, title, path, max_page_number, "
-                           "page_number, thumbnail_buf "
+                           "page_number, extension, thumbnail_buf "
                            "FROM library WHERE path = ? LIMIT 1;",
                            -1, &st, NULL);
   if (err) {
@@ -109,15 +110,16 @@ err_t db_book_get(db_t db, const char *path, struct DbBook *book,
     const char *path = (const char *)sqlite3_column_text(st, 2);
     int max_page_number = sqlite3_column_int(st, 3);
     int page_number = sqlite3_column_int(st, 4);
-    const unsigned char *blob = sqlite3_column_blob(st, 5);
-    int blob_len = sqlite3_column_bytes(st, 5);
-
+    int extension = sqlite3_column_int(st, 5);
+    const unsigned char *blob = sqlite3_column_blob(st, 6);
+    int blob_len = sqlite3_column_bytes(st, 6);
     *is_found = true;
     *book = (struct DbBook){
         .title = title,
         .path = path,
         .max_page_number = max_page_number,
         .page_number = page_number,
+        .extension = extension,
         .thumbnail =
             {
                 .buf = blob,
