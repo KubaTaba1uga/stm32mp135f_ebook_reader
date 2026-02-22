@@ -2,11 +2,12 @@
 #define EBOOK_READER_BOOK_CORE_H
 #include <stdbool.h>
 
+#include "db/db.h"
 #include "library/library.h"
 #include "utils/err.h"
 #include "utils/zlist.h"
 
-typedef struct BookModule *book_module_t;
+typedef struct BookInterface *book_interface_t;
 
 enum BookExtensionEnum {
   BookExtensionEnum_PDF,
@@ -15,31 +16,23 @@ enum BookExtensionEnum {
 };
 
 struct Book {
-  enum BookExtensionEnum extension;
+  enum BookExtensionEnum ext;
   struct ZListNode next;
-  const char *file_path;
-  int max_page_number;
-  const char *title;
+  struct DbBook db_data;
   library_t owner;
-  int page_number;
-  void *private;
-  double scale;
-  int x_off;
-  int y_off;
-};
-
-struct BookModule {
-  err_t (*book_init)(book_t);
-  void (*book_destroy)(book_t);
-  const unsigned char *(*book_get_thumbnail)(book_t, int x, int y);
-  const unsigned char *(*book_get_page)(book_t book, int x, int y,
-                                        int *buf_len);
-  bool (*is_extension)(const char *);
-  void (*destroy)(book_module_t);
-
   void *private;
 };
 
-err_t book_module_pdf_init(book_module_t, library_t);
+struct BookInterface {
+  err_t (*book_create)(void *private, const char *path, book_t book);
+  void (*book_destroy)(void *private, book_t book);
+  const unsigned char *(*book_get_page)(void *private, book_t book, int x,
+                                        int y, int *buf_len);
+  bool (*is_extension)(void *private, const char *);
+  void (*destroy)(book_interface_t);
+  void *private;
+};
+
+err_t book_interface_pdf_init(book_interface_t, library_t, db_t);
 
 #endif // EBOOK_READER_BOOK_CORE_H
