@@ -15,6 +15,8 @@ err_t db_init(db_t *out) {
   db_t db = *out = mem_malloc(sizeof(struct Db));
   *db = (struct Db){0};
 
+
+  
   int err = sqlite3_open("ebk.db", &db->db);
   if (err) {
     err_o = err_errnof(err, "Cannot open connection to ebk.db: %s",
@@ -22,6 +24,9 @@ err_t db_init(db_t *out) {
     goto error_out;
   }
 
+  sqlite3_busy_timeout(db->db, 0); // Never wait, waiting causes mem leaks on exit cause finalize can be delayed
+
+  
   err = sqlite3_exec(db->db,
                      "CREATE TABLE if NOT EXISTS library ("
                      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -57,6 +62,13 @@ void db_destroy(db_t *out) {
   if (mem_is_null_ptr(out)) {
     return;
   }
+
+  // Debug db:
+  /* sqlite3_stmt *s = NULL; */
+  /* while ((s = sqlite3_next_stmt((*out)->db, NULL)) != NULL) { */
+  /*   puts("FINALIZING"); */
+  /*   sqlite3_finalize(s); */
+  /* } */
 
   sqlite3_close((*out)->db);
   mem_free(*out);
@@ -166,6 +178,8 @@ void db_book_destroy(db_t db, struct DbBook *book) {
   if (!book->priv) {
     return;
   }
+
+  puts(__func__)  ;
 
   sqlite3_finalize((void *)book->priv);
   *book = (struct DbBook){0};

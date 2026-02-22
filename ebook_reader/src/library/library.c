@@ -53,6 +53,8 @@ err_t library_init(library_t *out, db_t db) {
     ERR_TRY(err_o);
   }
 
+  
+
   return 0;
 
 error_out:
@@ -69,7 +71,6 @@ error_out:
 };
 
 void library_destroy(library_t *out) {
-
   if (!out || !*out) {
     return;
   }
@@ -223,6 +224,8 @@ static void book_destroy(void *data) {
 
   assert(book->owner->interfaces[book->ext].book_destroy != NULL);
 
+    log_debug("Destroying book: %p=%s", book, book->db_data.path);
+  
   book->owner->interfaces[book->ext].book_destroy(
       book->owner->interfaces[book->ext].private, book);
 };
@@ -258,8 +261,6 @@ void book_set_page_no(book_t book, int page_no) {
 void book_set_scale(book_t book, double value) {
   book->db_data.settings.scale = value;
   db_book_save(book->owner->db, &book->db_data);
-  log_info("Scale=%f", book->db_data.settings.scale);
-  
 }
 
 int book_get_max_page_no(book_t book) { return book->db_data.max_page_number; }

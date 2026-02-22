@@ -220,6 +220,7 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
   }
 
   pdf_book_t pdf_book = book->private;
+  pdf_t pdf = private;
 
   if (pdf_book->thumbnail) {
     cairo_surface_destroy(pdf_book->thumbnail);
@@ -229,6 +230,7 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
     cairo_surface_destroy(pdf_book->page);
   }
 
+  db_book_destroy(pdf->db, &book->db_data);
   mem_free(pdf_book);
   book->private = NULL;
 };
@@ -241,8 +243,6 @@ static const unsigned char *book_interface_pdf_get_page(void *private,
     cairo_surface_destroy(pdf_book->page);
     pdf_book->page = NULL;
   }
-
-  log_info("Scale=%f", book->db_data.settings.scale);
 
   char cmd_buf[4096] = {0};
   snprintf(cmd_buf, sizeof(cmd_buf),

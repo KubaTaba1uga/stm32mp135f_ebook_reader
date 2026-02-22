@@ -73,7 +73,6 @@ err_t reader_view_refresh(struct ReaderView *view) {
   };
 
   if (memcmp(&view->last_book, &book_new, sizeof(struct ReaderViewBook)) == 0) {
-    log_info("NOT REFRESHED");    
     goto out;
   };
 
@@ -89,13 +88,10 @@ err_t reader_view_refresh(struct ReaderView *view) {
 
   view->last_book = book_new;
 
-  log_info("REFRESHED");
-  
 out:
   return 0;
 
 error_out:
-  log_info("ERROR");  
   mem_deref(view->book);
   return err_o;
 }
