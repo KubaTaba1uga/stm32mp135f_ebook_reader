@@ -5,6 +5,7 @@
 #include "library/library.h"
 #include "reader/core.h"
 #include "reader/reader.h"
+#include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
 
@@ -184,6 +185,7 @@ static void reader_activate(enum Events __, ref_t arg, void *sub_data) {
   return;
 
 error_out:;
+  log_error(err_o);
   // @todo post error event
 };
 
@@ -246,7 +248,14 @@ static void reader_prev_page(enum Events __, ref_t ___, void *sub_data) {
 
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
   reader_t reader = sub_data;
-  reader_view_refresh(&reader->view);
+  err_o = reader_view_refresh(&reader->view);
+  ERR_TRY(err_o);
+
+  return;
+
+error_out:
+  log_error(err_o);
+  // @todo: post error event
 }
 
 static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {

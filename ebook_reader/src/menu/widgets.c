@@ -38,6 +38,11 @@ static wdgt_book_t wdgt_book_create(wdgt_books_t books, const char *book_title,
 static void wdgt_book_destroy(wdgt_book_t book);
 static void wdgt_book_event_cb(lv_event_t *e);
 
+void menu_wdgts_init(void) {
+  book_thumbnail_x = book_x;
+  book_thumbnail_y = book_y - book_text_y;
+}
+
 err_t wdgt_bar_init(wdgt_bar_t *out) {
   lv_obj_t *bar = lvgl_obj_create(lv_screen_active());
   lv_obj_set_size(bar, lv_display_get_horizontal_resolution(NULL), bar_y);

@@ -1,13 +1,17 @@
 #ifndef EBOOK_READER_LIBRARY_H
 #define EBOOK_READER_LIBRARY_H
 
+#include "db/db.h"
 #include "utils/err.h"
 
 typedef struct Library *library_t;
 typedef struct Book *book_t;
 typedef struct BooksList *books_list_t;
 
-err_t library_init(library_t *out);
+extern int book_thumbnail_x;
+extern int book_thumbnail_y;
+
+err_t library_init(library_t *out, db_t db);
 void library_destroy(library_t *out);
 books_list_t library_list_books(library_t lib);
 book_t books_list_get(books_list_t);
