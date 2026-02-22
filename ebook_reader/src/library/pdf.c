@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <libgen.h>
 #include <lvgl.h>
 #include <poppler.h>
@@ -26,17 +27,20 @@ struct PdfBook {
   cairo_surface_t *page;
 };
 
-static err_t book_interface_pdf_book_init(void *private, void **interface_data,
-                                          const char *path);
+static err_t book_interface_pdf_book_create(void *private, const char *path,
+                                            book_t book);
 static void book_interface_pdf_book_destroy(void *private, book_t book);
 static const unsigned char *
 book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
                                       const char *path, int x, int y);
 /* static const unsigned char *book_interface_pdf_get_page(void *private, */
-/*                                                         book_t book, int x, */
-/*                                                         int y, int *buf_len); */
+/*                                                         book_t book, int x,
+ */
+/*                                                         int y, int *buf_len);
+ */
 static bool book_interface_pdf_is_extension(void *private, const char *);
 static void book_interface_pdf_destroy(book_interface_t);
+static char *pdfinfo_find_field(void *, char *, const char *);
 
 err_t book_interface_pdf_init(book_interface_t interface, library_t lib,
                               db_t db) {
@@ -46,7 +50,7 @@ err_t book_interface_pdf_init(book_interface_t interface, library_t lib,
       .db = db,
   };
 
-  interface->book_init = book_interface_pdf_book_init;
+  interface->book_create = book_interface_pdf_book_create;
   interface->book_destroy = book_interface_pdf_book_destroy;
   /* interface->book_get_page = book_interface_pdf_get_page; */
   interface->is_extension = book_interface_pdf_is_extension;
@@ -65,12 +69,19 @@ void book_interface_pdf_destroy(book_interface_t interface) {
   interface->private = NULL;
 };
 
-static char *pdfinfo_find_field(void *, char *, const char *);
-static err_t book_interface_pdf_book_init(void *private, void **interface_data,
-                                          const char *path) {
-  pdf_t pdf = private;
-  pdf_book_t pdf_book = *interface_data = mem_malloc(sizeof(struct PdfBook));
+static err_t book_interface_pdf_book_create(void *interface, const char *path,
+                                            book_t book) {
+  pdf_t pdf = interface;
+  pdf_book_t pdf_book = book->private = mem_malloc(sizeof(struct PdfBook));
   *pdf_book = (struct PdfBook){0};
+
+  bool is_in_db = false;
+  err_o = db_book_get(pdf->db, path, &book->db_data, &is_in_db);
+  ERR_TRY(err_o);
+
+  if (is_in_db) {
+    goto out;
+  }
 
   char cmd_buf[4096] = {0};
   snprintf(cmd_buf, sizeof(cmd_buf), "/usr/bin/pdfinfo %s", path);
@@ -111,14 +122,18 @@ static err_t book_interface_pdf_book_init(void *private, void **interface_data,
   ERR_TRY_CATCH(err_o, error_pages_cleanup);
 
   cairo_surface_destroy(pdf_book->thumbnail);
-  pdf_book->thumbnail = NULL;
   mem_free(title);
   mem_free(pages);
   pclose(pdfinfo);
 
+  err_o = db_book_get(pdf->db, path, &book->db_data, &(bool){0});
+  ERR_TRY(err_o);
+
+out:
   return 0;
 
 error_pages_cleanup:
+  cairo_surface_destroy(pdf_book->thumbnail);
   mem_free(pages);
 error_title_cleanup:
   mem_free(title);
@@ -203,6 +218,7 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
   }
 
   pdf_book_t pdf_book = book->private;
+
   if (pdf_book->thumbnail) {
     cairo_surface_destroy(pdf_book->thumbnail);
   }

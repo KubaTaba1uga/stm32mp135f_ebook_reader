@@ -16,6 +16,7 @@ enum BookExtensionEnum {
 };
 
 struct Book {
+  enum BookExtensionEnum ext;
   struct ZListNode next;
   struct DbBook db_data;
   library_t owner;
@@ -23,11 +24,10 @@ struct Book {
 };
 
 struct BookInterface {
-  // Init assumes that book is not in db
-  err_t (*book_init)(void *private, void **interface_data, const char *path);
+  err_t (*book_create)(void *private, const char *path, book_t book);
   void (*book_destroy)(void *private, book_t book);
-  const unsigned char *(*book_get_page)(void *private, book_t book, int x, int y,
-                                        int *buf_len);
+  const unsigned char *(*book_get_page)(void *private, book_t book, int x,
+                                        int y, int *buf_len);
   bool (*is_extension)(void *private, const char *);
   void (*destroy)(book_interface_t);
   void *private;

@@ -29,6 +29,7 @@ err_t db_init(db_t *out) {
                      "max_page_number INTEGER,"
                      "page_number INTEGER,"
                      "thumbnail_buf BLOB,"
+                     "extension INTEGER"
                      ");",
                      NULL, NULL, NULL);
   if (err) {
@@ -64,7 +65,7 @@ err_t db_book_insert(db_t db, struct DbBook book) {
       db->db,
       "INSERT INTO library(title, path, max_page_number, page_number, "
       "extension, thumbnail_buf) "
-      "VALUES(?, ?, ?, ?, ?);",
+      "VALUES(?, ?, ?, ?, ?, ?);",
       -1, &st, NULL);
 
   sqlite3_bind_text(st, 1, book.title, -1, SQLITE_TRANSIENT);

@@ -14,8 +14,7 @@
 #define CAST_BOOK_PRIV(node) mem_container_of(node, struct Book, next)
 
 struct Library {
-  db_t db;
-  struct BookModule modules[BookExtensionEnum_MAX];
+  struct BookInterface interfaces[BookExtensionEnum_MAX];
 };
 
 struct BooksList {
@@ -29,24 +28,25 @@ int book_thumbnail_y = 128;
 
 static int book_get_extension(library_t lib, const char *path);
 static void books_list_destroy(void *data);
-static book_t book_init(library_t lib, const char *file_path);
 static void book_destroy(void *data);
 
 err_t library_init(library_t *out, db_t db) {
   library_t lib = *out = mem_malloc(sizeof(struct Library));
   *lib = (struct Library){0};
 
-  err_t (*module_inits[BookExtensionEnum_MAX])(book_module_t, library_t) = {
-      [BookExtensionEnum_PDF] = book_module_pdf_init,
+  err_t (*interface_inits[BookExtensionEnum_MAX])(book_interface_t, library_t,
+                                                  db_t) = {
+      [BookExtensionEnum_PDF] = book_interface_pdf_init,
   };
   int inits_status;
   for (inits_status = BookExtensionEnum_PDF;
        inits_status < BookExtensionEnum_MAX; inits_status++) {
-    if (!module_inits[inits_status]) {
+    if (!interface_inits[inits_status]) {
       continue;
     }
 
-    err_o = module_inits[inits_status](&lib->modules[inits_status], lib);
+    err_o =
+        interface_inits[inits_status](&lib->interfaces[inits_status], lib, db);
     ERR_TRY(err_o);
   }
 
@@ -54,10 +54,10 @@ err_t library_init(library_t *out, db_t db) {
 
 error_out:
   for (; inits_status >= BookExtensionEnum_PDF; inits_status--) {
-    if (!lib->modules[inits_status].destroy) {
+    if (!lib->interfaces[inits_status].destroy) {
       continue;
     }
-    lib->modules[inits_status].destroy(&lib->modules[inits_status]);
+    lib->interfaces[inits_status].destroy(&lib->interfaces[inits_status]);
   }
 
   mem_free(*out);
@@ -74,10 +74,10 @@ void library_destroy(library_t *out) {
   library_t lib = *out;
   for (int inits_status = BookExtensionEnum_MAX - 1;
        inits_status >= BookExtensionEnum_PDF; inits_status--) {
-    if (!lib->modules[inits_status].destroy) {
+    if (!lib->interfaces[inits_status].destroy) {
       continue;
     }
-    lib->modules[inits_status].destroy(&lib->modules[inits_status]);
+    lib->interfaces[inits_status].destroy(&lib->interfaces[inits_status]);
   }
 
   mem_free(*out);
@@ -86,6 +86,7 @@ void library_destroy(library_t *out) {
 
 books_list_t library_list_books(library_t lib) {
   struct dirent *dirent;
+  char *file_path ;  
   DIR *books_dir;
   int book_ext;
   book_t book;
@@ -112,33 +113,29 @@ books_list_t library_list_books(library_t lib) {
       continue;
     };
 
+    if (!lib->interfaces[book_ext].book_create) {
+      continue;
+    }
+
     int bytes =
         snprintf(NULL, 0, "%s/%s", settings_books_dir, dirent->d_name) + 1;
-    char *file_path = mem_malloc(bytes);
+    file_path = mem_malloc(bytes);
     snprintf(file_path, bytes, "%s/%s", settings_books_dir, dirent->d_name);
 
     book = mem_refalloc(sizeof(struct Book), book_destroy);
+    *book = (struct Book){.owner = lib, .ext = book_ext};
 
     log_debug("Creating book: %p=%s", book, file_path);
-
-    *book = (struct Book){
-        .extension = book_ext,
-        .file_path = file_path,
-        .owner = lib,
-        .scale = 1,
-        .page_number = 1,
-    };
-
-    zlist_append(&list->books, &book->next);
+    err_o = lib->interfaces[book_ext].book_create(
+        lib->interfaces[book_ext].private, file_path, book);
+    ERR_TRY_CATCH(err_o, error_list_cleanup);
 
     if (!list->current_book) {
       list->current_book = list->books.head;
     }
 
-    if (lib->modules[book_ext].book_init) {
-      err_o = lib->modules[book_ext].book_init(book);
-      ERR_TRY_CATCH(err_o, error_list_cleanup);
-    }
+    zlist_append(&list->books, &book->next);
+    mem_free(file_path);
   }
 
   closedir(books_dir);
@@ -146,10 +143,11 @@ books_list_t library_list_books(library_t lib) {
   return list;
 
 error_list_cleanup:
+  mem_free(file_path);
   books_list_destroy(list);
   closedir(books_dir);
 error_out:
-  mem_free(list);
+  mem_deref(list);
   return NULL;
 };
 
@@ -183,13 +181,12 @@ void books_list_reset(books_list_t list) {
 }
 
 static int book_get_extension(library_t lib, const char *path) {
-
   for (int i = BookExtensionEnum_PDF; i < BookExtensionEnum_MAX; i++) {
-    if (!lib->modules[i].is_extension) {
+    if (!lib->interfaces[i].is_extension) {
       continue;
     }
 
-    if (lib->modules[i].is_extension(path)) {
+    if (lib->interfaces[i].is_extension(lib->interfaces[i].private, path)) {
       return i;
     };
   }
@@ -197,10 +194,10 @@ static int book_get_extension(library_t lib, const char *path) {
   return -1;
 }
 
-const char *book_get_title(book_t book) { return book->title; }
+const char *book_get_title(book_t book) { return book->db_data.title; }
 
 const unsigned char *book_get_thumbnail(book_t book, int x, int y) {
-  return book->owner->modules[book->extension].book_get_thumbnail(book, x, y);
+  return book->db_data.thumbnail.buf;
 }
 
 int books_list_len(books_list_t list) { return list->books.len; }
@@ -221,8 +218,8 @@ static void book_destroy(void *data) {
     return;
   }
 
-  book->owner->modules[book->extension].book_destroy(book);
-  mem_free((void *)book->file_path);
+  book->owner->interfaces[book->ext].book_destroy(
+      book->owner->interfaces[book->ext].private, book);
 };
 
 void books_list_remove(books_list_t list, book_t book) {
@@ -235,107 +232,38 @@ void books_list_remove(books_list_t list, book_t book) {
 }
 
 const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
-
-  return book->owner->modules[book->extension].book_get_page(book, x, y,
-                                                             buf_len);
+  return book->owner->interfaces[book->ext].book_get_page(
+      book->owner->interfaces[book->ext].private, book, x, y, buf_len);
 }
 
-int book_get_page_no(book_t book) { return book->page_number; }
+int book_get_page_no(book_t book) { return book->db_data.page_number; }
 
 void book_set_page_no(book_t book, int page_no) {
-  if (page_no >= book->max_page_number) {
-    page_no = book->max_page_number;
+  if (page_no >= book->db_data.max_page_number) {
+    page_no = book->db_data.max_page_number;
   } else if (page_no < 1) {
     page_no = 1;
   }
 
-  book->page_number = page_no;
+  book->db_data.page_number = page_no;
 }
 
-void book_set_scale(book_t book, double value) { book->scale = value; }
-
-int book_get_max_page_no(book_t book) { return book->max_page_number; }
-
-double book_get_scale(book_t book) { return book->scale; }
-
-int book_get_x_off(book_t book) { return book->x_off; }
-
-int book_get_y_off(book_t book) { return book->y_off; }
-
-void book_set_x_off(book_t book, int value) { book->x_off = value; }
-
-void book_set_y_off(book_t book, int value) { book->y_off = value; }
-
-static book_t book_init(library_t lib, const char *file_path) {
-  book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
-  bool is_book_in_db = false;
-
-  err_o = db_book_get(lib->db, file_path, &book->db_data, &is_book_in_db);
-  ERR_TRY(err_o);
-
-  if (is_book_in_db) {
-    goto out;
-  }
-
-  int book_ext = book_get_extension(lib, file_path);
-  if (book_ext == -1) {
-    goto error_out;
-  };
-
-  err_o = lib->modules[book_ext].book_init(lib->modules[book_ext].private,
-                                             file_path);
-  ERR_TRY(err_o);
-
-  void *private = 
-  
-  err_o = db_book_get(lib->db, file_path, &book->db_data, &is_book_in_db);
-  ERR_TRY_CATCH(err_o, error_db_book_cleanup);
+void book_set_scale(book_t book, double value) {
+  book->db_data.settings.scale = value;
 }
 
-if (is_book_in_db) {
-  book = mem_refalloc(sizeof(struct Book), book_destroy);
-  *book = (struct Book){
-      .extension = book_ext,
-      .max_page_number = db_book.max_page_number,
-      .title = db_book.title,
-      .file_path = db_book.path,
-      .page_number = db_book.page_number,
-      .thumbnail =
-          {
-              .buf = db_book.thumbnail.buf,
-              .len = db_book.thumbnail.len,
-          },
-      .settings =
-          {
-              .scale = db_book.settings.scale,
-              .x_off = db_book.settings.x_off,
-              .y_off = db_book.settings.y_off,
-          },
-  };
-} else {
-  // To-do: 1. generate library book with thumbnail and everything
-  //        2. put new book into db (db should return new book)
-  //        3. destroy new book
-  //        4. use book from library to construct new book
-  int book_ext = book_get_extension(lib, file_path);
-  if (book_ext == -1) {
-    return NULL;
-  };
+int book_get_max_page_no(book_t book) { return book->db_data.max_page_number; }
 
-  book_t book = mem_refalloc(sizeof(struct Book), book_destroy);
+double book_get_scale(book_t book) { return book->db_data.settings.scale; }
 
-  log_debug("Creating book: %p=%s", book, file_path);
+int book_get_x_off(book_t book) { return book->db_data.settings.x_off; }
 
-  *book = (struct Book){
-      .extension = book_ext,
-      .file_path = file_path,
-      .owner = lib,
-      .scale = 1,
-      .page_number = 1,
-  };
+int book_get_y_off(book_t book) { return book->db_data.settings.y_off; }
+
+void book_set_x_off(book_t book, int value) {
+  book->db_data.settings.x_off = value;
 }
 
-return book;
-
-error_out : return NULL;
+void book_set_y_off(book_t book, int value) {
+  book->db_data.settings.y_off = value;
 }

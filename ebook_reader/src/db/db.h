@@ -9,6 +9,10 @@ typedef struct Db *db_t;
 err_t db_init(db_t *out);
 void db_destroy(db_t *out);
 
+
+/**
+  DbBook is part of the Book which should be stored in db.
+*/
 struct DbBook {
   int max_page_number;
   const char *title;
