@@ -12,8 +12,8 @@
 #include "library/core.h"
 #include "library/library.h"
 #include "utils/err.h"
-#include "utils/mem.h"
 #include "utils/log.h"
+#include "utils/mem.h"
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
@@ -109,7 +109,7 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
           .extension = BookExtensionEnum_PDF,
           .title = title,
           .max_page_number = atoi(pages),
-          .page_number = 0,
+          .page_number = 1,
           .path = path,
           .thumbnail =
               {
@@ -117,10 +117,13 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
                       pdf, pdf_book, path, book_thumbnail_x, book_thumbnail_y),
                   .len = book_thumbnail_x * book_thumbnail_y * 4 // ARGB
               },
-      });
+          .settings = {
+              .scale = 1.0,
+          }});
   ERR_TRY_CATCH(err_o, error_pages_cleanup);
 
   cairo_surface_destroy(pdf_book->thumbnail);
+  pdf_book->thumbnail = NULL;
   mem_free(title);
   mem_free(pages);
   pclose(pdfinfo);
@@ -240,7 +243,7 @@ static const unsigned char *book_interface_pdf_get_page(void *private,
   }
 
   log_info("Scale=%f", book->db_data.settings.scale);
-  
+
   char cmd_buf[4096] = {0};
   snprintf(cmd_buf, sizeof(cmd_buf),
            "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d "

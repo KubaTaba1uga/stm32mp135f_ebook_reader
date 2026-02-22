@@ -341,7 +341,7 @@ static void book_settings_inc_scale(enum Events __, ref_t ___, void *sub_data) {
 
   book_settings_t book_settings = sub_data;
   double scale = book_get_scale(book_settings->ctx.book);
-  scale += 0.25;
+  scale += 0.1;
   book_set_scale(book_settings->ctx.book, scale);
   book_settings_set_scale_view_set_scale(&book_settings->ctx.set_scale_view,
                                          scale);
@@ -354,7 +354,7 @@ static void book_settings_dec_scale(enum Events __, ref_t ___, void *sub_data) {
 
   book_settings_t book_settings = sub_data;
   double scale = book_get_scale(book_settings->ctx.book);
-  scale -= 0.25;
+  scale -= 0.1;
   book_set_scale(book_settings->ctx.book, scale);
   book_settings_set_scale_view_set_scale(&book_settings->ctx.set_scale_view,
                                          scale);
