@@ -13,5 +13,4 @@ extern const char *settings_boot_screen_path;
 extern const char *settings_input_path;
 extern const char *settings_books_dir;
 
-
 #endif // SETTINGS_H
