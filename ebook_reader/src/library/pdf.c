@@ -13,6 +13,7 @@
 #include "library/library.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include "utils/log.h"
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
@@ -33,11 +34,9 @@ static void book_interface_pdf_book_destroy(void *private, book_t book);
 static const unsigned char *
 book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
                                       const char *path, int x, int y);
-/* static const unsigned char *book_interface_pdf_get_page(void *private, */
-/*                                                         book_t book, int x,
- */
-/*                                                         int y, int *buf_len);
- */
+static const unsigned char *book_interface_pdf_get_page(void *private,
+                                                        book_t book, int x,
+                                                        int y, int *buf_len);
 static bool book_interface_pdf_is_extension(void *private, const char *);
 static void book_interface_pdf_destroy(book_interface_t);
 static char *pdfinfo_find_field(void *, char *, const char *);
@@ -52,7 +51,7 @@ err_t book_interface_pdf_init(book_interface_t interface, library_t lib,
 
   interface->book_create = book_interface_pdf_book_create;
   interface->book_destroy = book_interface_pdf_book_destroy;
-  /* interface->book_get_page = book_interface_pdf_get_page; */
+  interface->book_get_page = book_interface_pdf_get_page;
   interface->is_extension = book_interface_pdf_is_extension;
   interface->destroy = book_interface_pdf_destroy;
   interface->private = pdf;
@@ -231,48 +230,49 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
   book->private = NULL;
 };
 
-/* static const unsigned char *book_interface_pdf_get_page(void *private, */
-/*                                                         book_t book, int x,
- */
-/*                                                         int y, int *buf_len)
- * { */
-/*   pdf_book_t pdf_book = book->private; */
-/*   if (pdf_book->page) { */
-/*     cairo_surface_destroy(pdf_book->page); */
-/*     pdf_book->page = NULL; */
-/*   } */
+static const unsigned char *book_interface_pdf_get_page(void *private,
+                                                        book_t book, int x,
+                                                        int y, int *buf_len) {
+  pdf_book_t pdf_book = book->private;
+  if (pdf_book->page) {
+    cairo_surface_destroy(pdf_book->page);
+    pdf_book->page = NULL;
+  }
 
-/*   char cmd_buf[4096] = {0}; */
-/*   snprintf(cmd_buf, sizeof(cmd_buf), */
-/*            "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d " */
-/*            "-png -mono %s", */
-/*            book->page_number, book->page_number, (int)(x * book->scale), */
-/*            (int)(y * book->scale), book->file_path); */
-/*   FILE *pdfinfo = popen(cmd_buf, "r"); */
-/*   if (!pdfinfo) { */
-/*     err_o = err_errnof(errno, "Cannot execute cmd: %s", cmd_buf); */
-/*     goto error_out; */
-/*   } */
+  log_info("Scale=%f", book->db_data.settings.scale);
+  
+  char cmd_buf[4096] = {0};
+  snprintf(cmd_buf, sizeof(cmd_buf),
+           "/usr/bin/pdftoppm -f %d -l %d -scale-to-x %d -scale-to-y %d "
+           "-png -mono %s",
+           book->db_data.page_number, book->db_data.page_number,
+           (int)(x * book->db_data.settings.scale),
+           (int)(y * book->db_data.settings.scale), book->db_data.path);
+  FILE *pdfinfo = popen(cmd_buf, "r");
+  if (!pdfinfo) {
+    err_o = err_errnof(errno, "Cannot execute cmd: %s", cmd_buf);
+    goto error_out;
+  }
 
-/*   cairo_surface_t *surface = */
-/*       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
- */
+  cairo_surface_t *surface =
+      cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
-/*   pdf_book->page = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y); */
-/*   cairo_t *cr = cairo_create(pdf_book->page); */
-/*   cairo_set_source_surface(cr, surface, book->x_off * book->scale, */
-/*                            book->y_off * book->scale); */
-/*   cairo_paint(cr); */
+  pdf_book->page = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
+  cairo_t *cr = cairo_create(pdf_book->page);
+  cairo_set_source_surface(
+      cr, surface, book->db_data.settings.x_off * book->db_data.settings.scale,
+      book->db_data.settings.y_off * book->db_data.settings.scale);
+  cairo_paint(cr);
 
-/*   unsigned char *page = cairo_image_surface_get_data(pdf_book->page); */
-/*   *buf_len = x * y * 4; // ARGB pixel size is 4 bytes */
+  unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
+  *buf_len = x * y * 4; // ARGB pixel size is 4 bytes
 
-/*   pclose(pdfinfo); */
-/*   cairo_surface_destroy(surface); */
-/*   cairo_destroy(cr); */
+  pclose(pdfinfo);
+  cairo_surface_destroy(surface);
+  cairo_destroy(cr);
 
-/*   return page; */
+  return page;
 
-/* error_out: */
-/*   return NULL; */
-/* } */
+error_out:
+  return NULL;
+}

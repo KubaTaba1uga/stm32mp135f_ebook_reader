@@ -35,7 +35,9 @@ struct DbBook {
 };
 
 err_t db_book_insert(db_t db, struct DbBook book);
-err_t db_book_get(db_t db, const char *path, struct DbBook *book, bool *is_found);
+err_t db_book_get(db_t db, const char *path, struct DbBook *book,
+                  bool *is_found);
+err_t db_book_save(db_t db, struct DbBook *book);
 void db_book_destroy(db_t db, struct DbBook *book);
 
 #endif // EBOOK_READER_DB_H

@@ -14,6 +14,7 @@
 #define CAST_BOOK_PRIV(node) mem_container_of(node, struct Book, next)
 
 struct Library {
+  db_t db;
   struct BookInterface interfaces[BookExtensionEnum_MAX];
 };
 
@@ -32,7 +33,9 @@ static void book_destroy(void *data);
 
 err_t library_init(library_t *out, db_t db) {
   library_t lib = *out = mem_malloc(sizeof(struct Library));
-  *lib = (struct Library){0};
+  *lib = (struct Library){
+      .db = db,
+  };
 
   err_t (*interface_inits[BookExtensionEnum_MAX])(book_interface_t, library_t,
                                                   db_t) = {
@@ -86,7 +89,7 @@ void library_destroy(library_t *out) {
 
 books_list_t library_list_books(library_t lib) {
   struct dirent *dirent;
-  char *file_path ;  
+  char *file_path;
   DIR *books_dir;
   int book_ext;
   book_t book;
@@ -218,6 +221,8 @@ static void book_destroy(void *data) {
     return;
   }
 
+  assert(book->owner->interfaces[book->ext].book_destroy != NULL);
+
   book->owner->interfaces[book->ext].book_destroy(
       book->owner->interfaces[book->ext].private, book);
 };
@@ -232,6 +237,7 @@ void books_list_remove(books_list_t list, book_t book) {
 }
 
 const unsigned char *book_get_page(book_t book, int x, int y, int *buf_len) {
+  assert(book->owner->interfaces[book->ext].book_get_page != NULL);
   return book->owner->interfaces[book->ext].book_get_page(
       book->owner->interfaces[book->ext].private, book, x, y, buf_len);
 }
@@ -246,10 +252,14 @@ void book_set_page_no(book_t book, int page_no) {
   }
 
   book->db_data.page_number = page_no;
+  db_book_save(book->owner->db, &book->db_data);
 }
 
 void book_set_scale(book_t book, double value) {
   book->db_data.settings.scale = value;
+  db_book_save(book->owner->db, &book->db_data);
+  log_info("Scale=%f", book->db_data.settings.scale);
+  
 }
 
 int book_get_max_page_no(book_t book) { return book->db_data.max_page_number; }
@@ -262,8 +272,10 @@ int book_get_y_off(book_t book) { return book->db_data.settings.y_off; }
 
 void book_set_x_off(book_t book, int value) {
   book->db_data.settings.x_off = value;
+  db_book_save(book->owner->db, &book->db_data);  
 }
 
 void book_set_y_off(book_t book, int value) {
   book->db_data.settings.y_off = value;
+  db_book_save(book->owner->db, &book->db_data);  
 }
