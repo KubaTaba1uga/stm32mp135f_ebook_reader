@@ -82,7 +82,6 @@ static void x_off_click_event_cb(lvgl_event_t e) {
 }
 
 static void exit_click_event_cb(lvgl_event_t e) {
-  puts(__func__);
   struct BookSettingsView *view = lv_event_get_user_data(e);
   view->click_exit_cb(view->cb_data);
 };
@@ -135,7 +134,6 @@ void book_settings_set_x_off_view_destroy(
 }
 
 static void x_off_change_event_cb(lvgl_event_t e) {
-  puts(__func__);
   struct BookSettingsSetXOffView *view = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
   if (key == LV_KEY_RIGHT) {
@@ -188,7 +186,6 @@ void book_settings_set_y_off_view_destroy(
 }
 
 static void y_off_change_event_cb(lvgl_event_t e) {
-  puts(__func__);
   struct BookSettingsSetYOffView *view = lv_event_get_user_data(e);
   lv_key_t key = lv_event_get_key(e);
   if (key == LV_KEY_DOWN) {
