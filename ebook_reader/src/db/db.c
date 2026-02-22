@@ -24,9 +24,6 @@ err_t db_init(db_t *out) {
     goto error_out;
   }
 
-  sqlite3_busy_timeout(db->db, 0); // Never wait, waiting causes mem leaks on exit cause finalize can be delayed
-
-  
   err = sqlite3_exec(db->db,
                      "CREATE TABLE if NOT EXISTS library ("
                      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
