@@ -182,7 +182,6 @@ err_t book_settings_init(book_settings_t *out, display_t display,
 };
 
 void book_settings_destroy(book_settings_t *out) {
-  puts(__func__);
   if (mem_is_null_ptr(out)) {
     return;
   }
@@ -211,7 +210,6 @@ void book_settings_destroy(book_settings_t *out) {
 
 static void book_settings_post_event(enum Events event, ref_t event_data,
                                      void *sub_data) {
-  puts(__func__);
   struct BookSettingsTransition action;
   book_settings_t book_settings = sub_data;
 
@@ -227,8 +225,6 @@ static void book_settings_post_event(enum Events event, ref_t event_data,
 
   action.action(event, event_data, sub_data);
   book_settings->current_state = action.next_state;
-
-  puts(events_dump(event));
 }
 
 static const char *book_settings_state_dump(enum BookSettingsStates state) {
@@ -269,7 +265,6 @@ error_out:;
 
 static void book_settings_deactivate(enum Events __, ref_t ___,
                                      void *sub_data) {
-  puts(__func__);
   book_settings_t book_settings = sub_data;
 
   display_del_from_ingroup(book_settings->display,
@@ -366,7 +361,6 @@ static void book_settings_dec_scale(enum Events __, ref_t ___, void *sub_data) {
 
 static void book_settings_deactivate_set_scale(enum Events __, ref_t ___,
                                                void *sub_data) {
-  puts(__func__);
   book_settings_t book_settings = sub_data;
 
   book_settings_set_scale_view_destroy(&book_settings->ctx.set_scale_view);
@@ -394,7 +388,6 @@ static void book_settings_close_set_scale(enum Events __, ref_t ___,
 }
 
 static void book_settings_close_settings(void *data) {
-  puts(__func__);
   book_settings_t book_settings = data;
 
   event_queue_push(book_settings->evqueue, Events_BOOK_SETTINGS_CLOSED,
@@ -427,7 +420,6 @@ error_out:;
 
 static void book_settings_deactivate_set_x_off(enum Events __, ref_t ___,
                                                void *sub_data) {
-  puts(__func__);
   book_settings_t book_settings = sub_data;
 
   book_settings_set_x_off_view_destroy(&book_settings->ctx.set_x_off_view);
@@ -496,7 +488,6 @@ error_out:;
 
 static void book_settings_deactivate_set_y_off(enum Events __, ref_t ___,
                                                void *sub_data) {
-  puts(__func__);
   book_settings_t book_settings = sub_data;
 
   book_settings_set_y_off_view_destroy(&book_settings->ctx.set_y_off_view);

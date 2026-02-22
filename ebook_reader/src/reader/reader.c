@@ -247,7 +247,6 @@ static void reader_prev_page(enum Events __, ref_t ___, void *sub_data) {
 }
 
 static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
-  puts(__func__);
   reader_t reader = sub_data;
   err_o = reader_view_refresh(&reader->view);
   ERR_TRY(err_o);

@@ -100,7 +100,6 @@ error_out:
 };
 
 void wdgt_settings_destroy(wdgt_settings_t *out) {
-  puts(__func__);
   if (mem_is_null_ptr(out)) {
     return;
   }
@@ -327,7 +326,6 @@ lvgl_obj_t wdgt_set_ver_num_create(int ver_num) {
 
   char buf[8] = {0};
   snprintf(buf, sizeof(buf), "%5.5d", (int)ver_num);
-  puts(buf);
   lv_obj_t *ver_num_label_cont = lv_obj_create(set_ver_num);
   lv_obj_t *ver_num_label = lv_label_create(ver_num_label_cont);
   lv_label_set_text(ver_num_label, buf);

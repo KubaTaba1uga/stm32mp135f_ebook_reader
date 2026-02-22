@@ -179,8 +179,6 @@ void db_book_destroy(db_t db, struct DbBook *book) {
     return;
   }
 
-  puts(__func__)  ;
-
   sqlite3_finalize((void *)book->priv);
   *book = (struct DbBook){0};
 };
