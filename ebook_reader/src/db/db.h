@@ -11,7 +11,8 @@ void db_destroy(db_t *out);
 
 
 /**
-  DbBook is part of the Book which should be stored in db.
+  Book is splitted in two parts, one stored only in memory and one stored in
+  memory and db. DbBook is responsible for handling `memory and db` part.
 */
 struct DbBook {
   int max_page_number;
