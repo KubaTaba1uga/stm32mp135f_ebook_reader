@@ -51,7 +51,6 @@ error_out:
 };
 
 void reader_view_destroy(struct ReaderView *view) {
-  puts(__func__);
   if (view->page) {
     wdgt_page_destroy(&view->page);
   }

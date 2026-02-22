@@ -35,7 +35,12 @@
 #error "Unsupported display model"
 #endif
 
+#if !EBK_DB_PATH
+#define EBK_DB_PATH "ebk.db"
+#endif
+
 const enum DisplayModelEnum settings_display_model = EBK_DISPLAY_MODEL;
 const char *settings_boot_screen_path = EBK_DISPLAY_BOOT_SCREEN_PATH;
 const char *settings_books_dir = "/mnt/sdcard";
 const char *settings_input_path = "/dev/input/event0";
+const char *settings_db_path = EBK_DB_PATH;
