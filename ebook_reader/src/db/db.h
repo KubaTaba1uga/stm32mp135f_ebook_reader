@@ -9,7 +9,6 @@ typedef struct Db *db_t;
 err_t db_init(db_t *out);
 void db_destroy(db_t *out);
 
-
 /**
   Book is splitted in two parts, one stored only in memory and one stored in
   memory and db. DbBook is responsible for handling `memory and db` part.
@@ -20,7 +19,7 @@ struct DbBook {
   const char *path;
   int page_number;
   int extension;
-  
+
   struct {
     const unsigned char *buf;
     int len;
@@ -31,7 +30,7 @@ struct DbBook {
     int x_off;
     int y_off;
   } settings;
-  
+
   const void *priv;
 };
 

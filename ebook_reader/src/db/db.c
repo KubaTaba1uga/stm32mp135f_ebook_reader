@@ -15,8 +15,6 @@ err_t db_init(db_t *out) {
   db_t db = *out = mem_malloc(sizeof(struct Db));
   *db = (struct Db){0};
 
-
-  
   int err = sqlite3_open("ebk.db", &db->db);
   if (err) {
     err_o = err_errnof(err, "Cannot open connection to ebk.db: %s",
@@ -39,7 +37,6 @@ err_t db_init(db_t *out) {
                      ");",
                      NULL, NULL, NULL);
   if (err) {
-    puts(strerror(err));
     err_o = err_errnof(err, "Cannot create 'library' table: %s",
                        sqlite3_errmsg(db->db));
     goto error_db_cleanup;
@@ -74,6 +71,8 @@ void db_destroy(db_t *out) {
 
 err_t db_book_insert(db_t db, struct DbBook book) {
   sqlite3_stmt *st = NULL;
+  int err;
+
   sqlite3_prepare_v2(
       db->db,
       "INSERT INTO library (title, path, max_page_number, page_number, "
@@ -81,16 +80,33 @@ err_t db_book_insert(db_t db, struct DbBook book) {
       "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);",
       -1, &st, NULL);
 
-  sqlite3_bind_text(st, 1, book.title, -1, SQLITE_TRANSIENT);
-  sqlite3_bind_text(st, 2, book.path, -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int(st, 3, book.max_page_number);
-  sqlite3_bind_int(st, 4, book.page_number);
-  sqlite3_bind_int(st, 5, book.extension);
-  sqlite3_bind_blob(st, 6, book.thumbnail.buf, book.thumbnail.len,
-                    SQLITE_TRANSIENT);
-  sqlite3_bind_int(st, 7, book.settings.x_off);
-  sqlite3_bind_int(st, 8, book.settings.y_off);
-  sqlite3_bind_double(st, 9, book.settings.scale);
+  err = sqlite3_bind_text(st, 1, book.title, -1, SQLITE_TRANSIENT);
+  assert(err == 0);
+
+  err = sqlite3_bind_text(st, 2, book.path, -1, SQLITE_TRANSIENT);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(st, 3, book.max_page_number);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(st, 4, book.page_number);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(st, 5, book.extension);
+  assert(err == 0);
+
+  err = sqlite3_bind_blob(st, 6, book.thumbnail.buf, book.thumbnail.len,
+                          SQLITE_TRANSIENT);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(st, 7, book.settings.x_off);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(st, 8, book.settings.y_off);
+  assert(err == 0);
+
+  err = sqlite3_bind_double(st, 9, book.settings.scale);
+  assert(err == 0);
 
   sqlite3_step(st);
   sqlite3_finalize(st);
@@ -196,24 +212,31 @@ err_t db_book_save(db_t db, struct DbBook *book) {
   }
 
   err = sqlite3_bind_text(stmt, 1, book->title, -1, SQLITE_TRANSIENT);
-  assert(err==0);
-  err =   sqlite3_bind_int(stmt, 2, book->max_page_number);
-  assert(err==0);
-  err =   sqlite3_bind_int(stmt, 3, book->page_number);
-  assert(err==0);
-  err =   sqlite3_bind_int(stmt, 4, book->extension);
-  assert(err==0);
-  err =   sqlite3_bind_int(stmt, 5, book->settings.x_off);
-  assert(err==0);
-  err =   sqlite3_bind_int(stmt, 6, book->settings.y_off);
-  assert(err==0);
-  err =   sqlite3_bind_double(stmt, 7, book->settings.scale);
-  assert(err==0);
-  err =   sqlite3_bind_text(stmt, 8, book->path, -1, SQLITE_TRANSIENT);
-  assert(err==0);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(stmt, 2, book->max_page_number);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(stmt, 3, book->page_number);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(stmt, 4, book->extension);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(stmt, 5, book->settings.x_off);
+  assert(err == 0);
+
+  err = sqlite3_bind_int(stmt, 6, book->settings.y_off);
+  assert(err == 0);
+
+  err = sqlite3_bind_double(stmt, 7, book->settings.scale);
+  assert(err == 0);
+
+  err = sqlite3_bind_text(stmt, 8, book->path, -1, SQLITE_TRANSIENT);
+  assert(err == 0);
 
   err = sqlite3_step(stmt);
-  if (err!=SQLITE_DONE) {
+  if (err != SQLITE_DONE) {
     err_o = err_errnof(err, "Cannot update book: %s", sqlite3_errmsg(db->db));
     goto error_sqlite_cleanup;
   }

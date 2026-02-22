@@ -253,9 +253,9 @@ static void reader_refresh(enum Events __, ref_t ___, void *sub_data) {
 
   return;
 
-error_out: 
-  log_error(err_o); 
-   // @todo: post error event  
+error_out:
+  log_error(err_o);
+  // @todo: post error event
 }
 
 static void reader_put_in_bg(enum Events __, ref_t ___, void *sub_data) {

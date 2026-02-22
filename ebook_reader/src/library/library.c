@@ -53,8 +53,6 @@ err_t library_init(library_t *out, db_t db) {
     ERR_TRY(err_o);
   }
 
-  
-
   return 0;
 
 error_out:
@@ -224,8 +222,8 @@ static void book_destroy(void *data) {
 
   assert(book->owner->interfaces[book->ext].book_destroy != NULL);
 
-    log_debug("Destroying book: %p=%s", book, book->db_data.path);
-  
+  log_debug("Destroying book: %p=%s", book, book->db_data.path);
+
   book->owner->interfaces[book->ext].book_destroy(
       book->owner->interfaces[book->ext].private, book);
 };
@@ -273,10 +271,10 @@ int book_get_y_off(book_t book) { return book->db_data.settings.y_off; }
 
 void book_set_x_off(book_t book, int value) {
   book->db_data.settings.x_off = value;
-  db_book_save(book->owner->db, &book->db_data);  
+  db_book_save(book->owner->db, &book->db_data);
 }
 
 void book_set_y_off(book_t book, int value) {
   book->db_data.settings.y_off = value;
-  db_book_save(book->owner->db, &book->db_data);  
+  db_book_save(book->owner->db, &book->db_data);
 }
