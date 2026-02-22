@@ -5,6 +5,7 @@
 #include "library/library.h"
 #include "menu/core.h"
 #include "menu/menu.h"
+#include "utils/err.h"
 #include "utils/log.h"
 #include "utils/mem.h"
 
@@ -99,6 +100,8 @@ static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
   menu_t menu = sub_data;
 
   books_list_t books = library_list_books(menu->library);
+  ERR_TRY(err_o);
+  
   err_o = menu_view_init(&menu->view, books, select_book_cb, menu);
   ERR_TRY(err_o);
 
@@ -108,6 +111,7 @@ static void menu_activate(enum Events __, ref_t ___, void *sub_data) {
 
 error_out:
   mem_deref(books);
+  log_error(err_o);
   // @todo post error event
 };
 
