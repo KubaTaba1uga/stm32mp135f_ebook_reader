@@ -6,6 +6,7 @@
 #include "db/db.h"
 #include "utils/err.h"
 #include "utils/mem.h"
+#include "utils/settings.h"
 
 struct Db {
   sqlite3 *db;
@@ -15,10 +16,10 @@ err_t db_init(db_t *out) {
   db_t db = *out = mem_malloc(sizeof(struct Db));
   *db = (struct Db){0};
 
-  int err = sqlite3_open("ebk.db", &db->db);
+  int err = sqlite3_open(settings_db_path, &db->db);
   if (err) {
-    err_o = err_errnof(err, "Cannot open connection to ebk.db: %s",
-                       sqlite3_errmsg(db->db));
+    err_o = err_errnof(err, "Cannot open connection to %s: %s",
+                       settings_db_path, sqlite3_errmsg(db->db));
     goto error_out;
   }
 
