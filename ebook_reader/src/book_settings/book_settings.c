@@ -182,6 +182,7 @@ err_t book_settings_init(book_settings_t *out, display_t display,
 };
 
 void book_settings_destroy(book_settings_t *out) {
+  puts(__func__);
   if (mem_is_null_ptr(out)) {
     return;
   }
