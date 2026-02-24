@@ -47,12 +47,12 @@ HARDWARE_SPI hardware_SPI;
 
 static uint8_t bits = 8; 
 
-#define SPI_CS_HIGH     0x04                //Chip select high  
-#define SPI_LSB_FIRST   0x08                //LSB  
-#define SPI_3WIRE       0x10                //3-wire mode SI and SO same line
-#define SPI_LOOP        0x20                //Loopback mode  
-#define SPI_NO_CS       0x40                //A single device occupies one SPI bus, so there is no chip select 
-#define SPI_READY       0x80                //Slave pull low to stop data transmission  
+#define PIN_SPI_CS_HIGH     0x04                //Chip select high  
+#define PIN_SPI_LSB_FIRST   0x08                //LSB  
+#define PIN_SPI_3WIRE       0x10                //3-wire mode SI and SO same line
+#define PIN_SPI_LOOP        0x20                //Loopback mode  
+#define PIN_SPI_NO_CS       0x40                //A single device occupies one SPI bus, so there is no chip select 
+#define PIN_SPI_READY       0x80                //Slave pull low to stop data transmission  
 
 struct spi_ioc_transfer tr;
 
@@ -211,9 +211,9 @@ Info:
 int DEV_HARDWARE_SPI_CSEN(SPICSEN EN)
 {
     if(EN == ENABLE){
-        hardware_SPI.mode |= SPI_NO_CS;
+        hardware_SPI.mode |= PIN_SPI_NO_CS;
     }else {
-        hardware_SPI.mode &= ~SPI_NO_CS;
+        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
     }
     //Write device
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
@@ -238,14 +238,14 @@ Info:
 int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode)
 {
     if(CS_Mode == SPI_CS_Mode_HIGH){
-        hardware_SPI.mode |= SPI_CS_HIGH;
-        hardware_SPI.mode &= ~SPI_NO_CS;
+        hardware_SPI.mode |= PIN_SPI_CS_HIGH;
+        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
         DEV_HARDWARE_SPI_Debug("CS HIGH \r\n");
     }else if(CS_Mode == SPI_CS_Mode_LOW){
-        hardware_SPI.mode &= ~SPI_CS_HIGH;
-        hardware_SPI.mode &= ~SPI_NO_CS;
+        hardware_SPI.mode &= ~PIN_SPI_CS_HIGH;
+        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
     }else if(CS_Mode == SPI_CS_Mode_NONE){
-        hardware_SPI.mode |= SPI_NO_CS;
+        hardware_SPI.mode |= PIN_SPI_NO_CS;
     }
     
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
@@ -269,10 +269,10 @@ Info:
 int DEV_HARDWARE_SPI_SetBitOrder(SPIBitOrder Order)
 {
     if(Order == SPI_BIT_ORDER_LSBFIRST){
-        hardware_SPI.mode |= SPI_LSB_FIRST;
-        DEV_HARDWARE_SPI_Debug("SPI_LSB_FIRST\r\n");
+        hardware_SPI.mode |= PIN_SPI_LSB_FIRST;
+        DEV_HARDWARE_SPI_Debug("PIN_SPI_LSB_FIRST\r\n");
     }else if(Order == SPI_BIT_ORDER_MSBFIRST){
-        hardware_SPI.mode &= ~SPI_LSB_FIRST;
+        hardware_SPI.mode &= ~PIN_SPI_LSB_FIRST;
         DEV_HARDWARE_SPI_Debug("SPI_MSB_FIRST\r\n");
     }
     
@@ -280,7 +280,7 @@ int DEV_HARDWARE_SPI_SetBitOrder(SPIBitOrder Order)
     int fd = ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode);
     DEV_HARDWARE_SPI_Debug("fd = %d\r\n",fd);
     if (fd == -1) {
-        DEV_HARDWARE_SPI_Debug("can't set spi SPI_LSB_FIRST\r\n"); 
+        DEV_HARDWARE_SPI_Debug("can't set spi PIN_SPI_LSB_FIRST\r\n"); 
         return -1;
     }
     return 1;
@@ -300,9 +300,9 @@ Info:
 int DEV_HARDWARE_SPI_SetBusMode(BusMode mode)
 {
     if(mode == SPI_3WIRE_Mode){
-        hardware_SPI.mode |= SPI_3WIRE;
+        hardware_SPI.mode |= PIN_SPI_3WIRE;
     }else if(mode == SPI_4WIRE_Mode){
-        hardware_SPI.mode &= ~SPI_3WIRE;
+        hardware_SPI.mode &= ~PIN_SPI_3WIRE;
     }
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
         DEV_HARDWARE_SPI_Debug("can't set spi mode\r\n"); 

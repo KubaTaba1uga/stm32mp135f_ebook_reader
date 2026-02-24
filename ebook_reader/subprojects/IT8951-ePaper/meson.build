@@ -17,11 +17,14 @@ project('it8951_epaper', 'c',
 it8951_epaper_deps = []
 
 add_global_arguments('-DGPIOD', language: ['c', 'cpp'])
+cc = meson.get_compiler('c')
 
 # add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 it8951_epaper_deps += [dependency('libgpiod',
                         required: true,
-                       ),                       
+                       ),
+                       cc.find_library('m', required: true),
+                       dependency('threads'),
 ]
 
 

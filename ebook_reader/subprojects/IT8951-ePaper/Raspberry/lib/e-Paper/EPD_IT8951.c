@@ -293,21 +293,21 @@ static void EPD_IT8951_SetVCOM(UWORD VCOM)
 
 
 
-/******************************************************************************
-function :	Cmd10 LD_IMG
-parameter:  
-******************************************************************************/
-static void EPD_IT8951_LoadImgStart( IT8951_Load_Img_Info* Load_Img_Info )
-{
-    UWORD Args;
-    Args = (\
-        Load_Img_Info->Endian_Type<<8 | \
-        Load_Img_Info->Pixel_Format<<4 | \
-        Load_Img_Info->Rotate\
-    );
-    EPD_IT8951_WriteCommand(IT8951_TCON_LD_IMG);
-    EPD_IT8951_WriteData(Args);
-}
+/* /\****************************************************************************** */
+/* function :	Cmd10 LD_IMG */
+/* parameter:   */
+/* ******************************************************************************\/ */
+/* static void EPD_IT8951_LoadImgStart( IT8951_Load_Img_Info* Load_Img_Info ) */
+/* { */
+/*     UWORD Args; */
+/*     Args = (\ */
+/*         Load_Img_Info->Endian_Type<<8 | \ */
+/*         Load_Img_Info->Pixel_Format<<4 | \ */
+/*         Load_Img_Info->Rotate\ */
+/*     ); */
+/*     EPD_IT8951_WriteCommand(IT8951_TCON_LD_IMG); */
+/*     EPD_IT8951_WriteData(Args); */
+/* } */
 
 
 /******************************************************************************
