@@ -1,0 +1,181 @@
+commit 86406933d8f22af9fd3f2152b4958610c054b9a8
+Author: shhds <1873145421@qq.com>
+Date:   Tue Jan 23 17:39:35 2024 +0800
+
+    Add LGPIO library to speed up the refresh of Pi5
+
+commit 6ad7c0729e257b750195ec54d75f34403d694fdd
+Author: shhds <1873145421@qq.com>
+Date:   Tue Jan 23 17:32:02 2024 +0800
+
+    Add LGPIO library to speed up the refresh of Pi5
+
+commit 34671ddfcb94a565c962dceac1798ffd1d95a3e3
+Author: shhds <1873145421@qq.com>
+Date:   Tue Nov 28 18:09:33 2023 +0800
+
+    Support for Pi5 and the latest Raspberry PI system
+
+commit 4c06260a661e6107d6acb24724e4327c922284d6
+Merge: e338e55 b58965b
+Author: Wilson <38880903+SSYYL@users.noreply.github.com>
+Date:   Thu Nov 24 15:58:30 2022 +0800
+
+    Merge pull request #6 from luposmi/master
+    
+    Addition of 64-bit Rasberry Pi OS support
+
+commit b58965be887928c9521b34affbe3ff22703aca43
+Author: Ben Mattes Krusekamp <ben.krause05@gmail.com>
+Date:   Sat Oct 15 18:37:07 2022 +0200
+
+    Addition of 64-bit Rasberry Pi OS support
+    
+    In the current version of the driver, the pointer length of "Source_Buffer_Addr" is hardcoded as UDOUBLE (uint32_t),
+    meaning the use of a non-32-bit OS will result in a Segmentation fault.
+    This is why I have changed the type to UBYTE* (uint8_t*).
+    As this address is used only internally, the existing code will still work.
+
+commit e338e556d393aa9af821e59c6110fba93e3d1d1e
+Merge: c0a6e75 21866e1
+Author: Wilson <38880903+SSYYL@users.noreply.github.com>
+Date:   Fri Aug 19 14:04:20 2022 +0800
+
+    Merge pull request #5 from SSYYL/master
+    
+    fix a bug: Cannot exit the program when communication fails.
+
+commit 21866e1b957f414abd4870605160da936779dc85
+Merge: 7dffd31 c0a6e75
+Author: SSYYL <1032789891@qq.com>
+Date:   Fri Aug 19 14:00:36 2022 +0800
+
+    Merge branch 'master' of https://github.com/SSYYL/IT8951-ePaper
+
+commit 7dffd316b6f69a88766b3821ecaaa1dd329fc084
+Author: SSYYL <1032789891@qq.com>
+Date:   Fri Aug 19 13:59:20 2022 +0800
+
+    fix a bug: Cannot exit the program when communication fails.
+
+commit c0a6e754b599ec476073c99049e7c84f76fefd4e
+Merge: 4700ab5 72e9795
+Author: SSYYL <38880903+SSYYL@users.noreply.github.com>
+Date:   Sat Jul 10 17:31:33 2021 +0800
+
+    Merge pull request #4 from SSYYL/master
+    
+    Auto new directory
+
+commit 72e9795f2494331b98857d7f94f8a87b672fbe41
+Author: SSYYL <1032789891@qq.com>
+Date:   Sat Jul 10 17:30:43 2021 +0800
+
+    Auto new directory
+
+commit 7f4d1d972382029ec6a29fc94493596383126219
+Author: SSYYL <1032789891@qq.com>
+Date:   Sat Jul 10 17:01:37 2021 +0800
+
+    Delete redundant files
+
+commit 9b617265bb519c294a01ad7b6ad42f1d20f0cbfc
+Author: SSYYL <1032789891@qq.com>
+Date:   Sat Jul 10 16:57:13 2021 +0800
+
+    add dir: Raspberry/bin
+
+commit 201e43ea5a929655df4d5e0ebfd7b6a4256e28e6
+Merge: c0b3630 4700ab5
+Author: SSYYL <38880903+SSYYL@users.noreply.github.com>
+Date:   Sat Jul 10 16:53:40 2021 +0800
+
+    Merge pull request #1 from waveshare/master
+    
+    Fix
+
+commit 4700ab5bb074db15a508ff5b7167cc3a141caf4f
+Merge: edfd70f 4340e90
+Author: waveshare <36142105+waveshare@users.noreply.github.com>
+Date:   Sat May 22 11:06:28 2021 +0800
+
+    Merge pull request #2 from peterableda/patch-1
+    
+    Fix # of grayscale in comment
+
+commit 4340e909da06f3efc29584c3525f71baa27954ad
+Author: Peter Ableda <peterableda@gmail.com>
+Date:   Wed May 12 23:29:49 2021 +0200
+
+    Fix # of grayscale in comment
+    
+    4 bit per pixel results in 16 grayscale, not 8.
+
+commit edfd70f5cb8364b68c8a6fcc2fe35eca75573de0
+Merge: de567d4 c0b3630
+Author: SSYYL <38880903+SSYYL@users.noreply.github.com>
+Date:   Mon Apr 26 16:13:59 2021 +0800
+
+    Merge pull request #1 from SSYYL/master
+    
+    update
+
+commit c0b3630812108a072dcb52200f3ba2d51d2d6e65
+Author: SSYYL <1032789891@qq.com>
+Date:   Mon Apr 26 16:00:54 2021 +0800
+
+    update
+
+commit de567d4fcae15925308483a49be7e93d9d9d29b9
+Author: waveshare <36142105+waveshare@users.noreply.github.com>
+Date:   Thu Mar 19 17:11:31 2020 +0800
+
+    Update main.c
+
+commit 128b9a8e83d8916c44f0b2c034c1c0b344a2e541
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 20:21:30 2019 +0800
+
+    modify README.md's Pic
+
+commit ddb74bdaae64c330427798a5743d4fc9fce3ac52
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 20:20:57 2019 +0800
+
+    modify README.md's Pic
+
+commit 02aa331838022f7aa512f8907aaaced96ffbba58
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 20:12:22 2019 +0800
+
+    modify README.md's Pic
+
+commit c72e4181f667180b6c5fc5b1e051124da536173f
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 20:03:17 2019 +0800
+
+    modify README.md's Pic
+
+commit b9511a290adb401d82e5d66630909825e734078e
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 20:00:36 2019 +0800
+
+    modify README.md's Pic
+
+commit a2d19827a1720231125342199f8cc1560bf985d1
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 19:53:05 2019 +0800
+
+    modify README.md's Pic
+
+commit c8b4921fa481bae16a2fcf907bf0f014dedabb03
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 19:38:09 2019 +0800
+
+    modify README.md
+
+commit e212ec6261eef29c6d260686a9aa9e365d5a4033
+Author: Ruimin Huang <1447364060@qq.com>
+Date:   Fri Dec 20 19:32:56 2019 +0800
+
+    first commit
