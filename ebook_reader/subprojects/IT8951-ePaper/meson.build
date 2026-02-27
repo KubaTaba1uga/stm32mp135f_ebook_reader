@@ -1,4 +1,4 @@
-# IT8951-ePaper
+z# IT8951-ePaper
 # ******************************************************************************
 # *    Project
 # ******************************************************************************
@@ -49,6 +49,16 @@ it8951_epaper_src = [files('Raspberry/lib/e-Paper/EPD_IT8951.c',
                            # Add more files here
                          )
 ]
+
+board = get_option('board')
+if board == 'stm32'
+   add_project_arguments('-DSTM32', language: 'c')
+   it8951_epaper_src += [files('Raspberry/lib/Config/STM_gpiod.c')]
+else
+   it8951_epaper_src += [files('Raspberry/lib/Config/RPI_gpiod.c')]
+endif
+
+add_project_arguments('-DGPIOD', language: 'c')		
 
 buildtype = get_option('buildtype')
 if buildtype == 'debug' or buildtype == 'debugoptimized'

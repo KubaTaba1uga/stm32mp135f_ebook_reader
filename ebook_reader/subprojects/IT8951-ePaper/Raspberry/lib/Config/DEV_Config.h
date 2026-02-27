@@ -75,11 +75,16 @@
 /**
  * GPIO
  **/
- 
+
+#if STM32
+#define EPD_RST_PIN  2
+#define EPD_CS_PIN   11
+#define EPD_BUSY_PIN 3
+#else
 #define EPD_RST_PIN  17
 #define EPD_CS_PIN   8
 #define EPD_BUSY_PIN 24
-
+#endif
 
 
 /**

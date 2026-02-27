@@ -192,10 +192,11 @@ static void DEV_GPIO_Init(void)
 
 #elif GPIOD
 	DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
-	DEV_GPIO_Mode(EPD_RST_PIN, 1);
-    DEV_GPIO_Mode(EPD_CS_PIN, 1);
-
-    DEV_Digital_Write(EPD_CS_PIN, 1);
+        DEV_GPIO_Mode(EPD_RST_PIN, 1);
+#if !STM32
+	DEV_GPIO_Mode(EPD_CS_PIN, 1);
+        DEV_Digital_Write(EPD_CS_PIN, 1);
+#endif // !STM32        
 #endif
 	
 }
@@ -274,7 +275,7 @@ UBYTE DEV_Module_Init(void)
     DEV_GPIO_Init();
 #elif GPIOD
 	printf("Write and read /dev/spidev0.0 \r\n");
-    GPIOD_Export();
+	GPIOD_Export();
 	DEV_GPIO_Init();
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
     DEV_HARDWARE_SPI_setSpeed(12500000);
@@ -305,9 +306,11 @@ void DEV_Module_Exit(void)
     // lgSpiClose(SPI_Handle);
     // lgGpiochipClose(GPIO_Handle);
 #elif GPIOD
-	DEV_HARDWARE_SPI_end();
-	DEV_Digital_Write(EPD_CS_PIN, 0);
-	DEV_Digital_Write(EPD_RST_PIN, 0);
+  DEV_HARDWARE_SPI_end();
+#if !STM32
+  DEV_Digital_Write(EPD_CS_PIN, 0);
+#endif // !STM32  
+    DEV_Digital_Write(EPD_RST_PIN, 0);
     GPIOD_Unexport(EPD_RST_PIN);
     GPIOD_Unexport(EPD_BUSY_PIN);
     GPIOD_Unexport_GPIO();

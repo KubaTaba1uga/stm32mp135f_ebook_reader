@@ -1237,9 +1237,9 @@
 &pinctrl{
   spi5_pins: spi5-pins {
       pins {
-	  pinmux = <STM32_PINMUX('H', 7, AF6)>,  /* SCK  */
-		   <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
-		   <STM32_PINMUX('A', 8, AF5)>;  /* MISO */
+	  pinmux = <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
+	           <STM32_PINMUX('A', 8, AF5)>,  /* MISO */
+		   <STM32_PINMUX('H', 7, AF6)>;  /* SCK  */
 	  bias-disable;
 	  slew-rate = <0>;
       };
@@ -1254,7 +1254,6 @@
 	  bias-disable;	  
       };
   };
-
 };
 
 &spi5 {
@@ -1267,7 +1266,7 @@
     spidev@0 {
       compatible = "dh,dhcom-board";
       reg = <0>;
-      spi-max-frequency = <20000000>; // 20MHz      
-      // spi-max-frequency = <10000000>; // 10MHz
+      // spi-max-frequency = <20000000>; // 20MHz      
+      spi-max-frequency = <10000000>; // 10MHz
     };    
 };
