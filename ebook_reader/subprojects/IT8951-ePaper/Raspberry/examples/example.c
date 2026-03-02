@@ -53,7 +53,9 @@ parameter:
     Panel_Height: Height of the panel
     Init_Target_Memory_Addr: Memory address of IT8951 target memory address
 ******************************************************************************/
-UBYTE Display_ColorPalette_Example(UWORD Panel_Width, UWORD Panel_Height, UDOUBLE Init_Target_Memory_Addr){
+UBYTE Display_ColorPalette_Example(UWORD Panel_Width, UWORD Panel_Height,
+                                   UDOUBLE Init_Target_Memory_Addr) {
+puts(__func__);  
     UWORD In_4bp_Refresh_Area_Width;
     if(Four_Byte_Align == true){
         In_4bp_Refresh_Area_Width = Panel_Width - (Panel_Width % 32);

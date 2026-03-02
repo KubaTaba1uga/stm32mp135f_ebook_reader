@@ -1,0 +1,21 @@
+taba1uga@raspberrypi:~/IT8951-ePaper $ sudo ./build/it8951_epaper -1.40 0
+../Raspberry/lib/Config/DEV_Config.c[214]:/***********************************/
+Write and read /dev/spidev0.0
+open : /dev/spidev0.0
+../Raspberry/lib/Config/DEV_Config.c[286]:/***********************************/
+../Raspberry/examples/main2.c[91]:VCOM value:1400
+../Raspberry/examples/main2.c[93]:Display mode:0
+EPD_IT8951_Reset
+EPD_IT8951_Reset DONE
+EPD_IT8951_SystemRun
+EPD_IT8951_GetSystemInfo
+../Raspberry/lib/e-Paper/EPD_IT8951.c[379]:Panel(W,H) = (1872,1404)
+../Raspberry/lib/e-Paper/EPD_IT8951.c[380]:Memory Address = 124850
+../Raspberry/lib/e-Paper/EPD_IT8951.c[381]:FW Version = .v.0
+../Raspberry/lib/e-Paper/EPD_IT8951.c[382]:LUT Version = M841
+EPD_IT8951_WriteReg
+EPD_IT8951_GetVCOM
+EPD_IT8951_GetVCOM
+../Raspberry/lib/e-Paper/EPD_IT8951.c[710]:VCOM = -1.40V
+EPD_IT8951_Init done
+taba1uga@raspberrypi:~/IT8951-ePaper $

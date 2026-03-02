@@ -1241,7 +1241,7 @@
 	           <STM32_PINMUX('A', 8, AF5)>,  /* MISO */
 		   <STM32_PINMUX('H', 7, AF6)>;  /* SCK  */
 	  bias-disable;
-	  slew-rate = <0>;
+	  slew-rate = <1>;
       };
   };
 
@@ -1250,6 +1250,7 @@
 	  pinmux = <STM32_PINMUX('G', 3, GPIO)>,  /* Busy */
                    <STM32_PINMUX('I', 0, GPIO)>,  /* Data / Command (DC) */
 		   <STM32_PINMUX('C', 2, GPIO)>,  /* Reset */
+   		   <STM32_PINMUX('H', 11, GPIO)>,  /* CS */	
 		   <STM32_PINMUX('A', 4, GPIO)>;  /* Power */
 	  bias-disable;	  
       };
@@ -1261,12 +1262,13 @@
     pinctrl-names = "default";
     pinctrl-0 = <&spi5_pins>;
 
-    cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>; /* Chip Select (CS) */
+    // cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>; /* Chip Select (CS) */
+    cs-gpios = <0>; 
 
     spidev@0 {
       compatible = "dh,dhcom-board";
       reg = <0>;
-      // spi-max-frequency = <20000000>; // 20MHz      
-      spi-max-frequency = <10000000>; // 10MHz
+      spi-max-frequency = <20000000>; // 20MHz      
+      // spi-max-frequency = <10000000>; // 10MHz
     };    
 };

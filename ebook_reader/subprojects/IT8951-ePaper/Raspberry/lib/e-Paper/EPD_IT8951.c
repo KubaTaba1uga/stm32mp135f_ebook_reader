@@ -29,7 +29,11 @@
 #
 ******************************************************************************/
 #include "EPD_IT8951.h"
+#include <assert.h>
+#include <stdio.h>
 #include <time.h>
+#include <string.h>
+
 
 //basic mode definition
 UBYTE INIT_Mode = 0;
@@ -41,14 +45,15 @@ UBYTE A2_Mode = 6;
 function :	Software reset
 parameter:
 ******************************************************************************/
-static void EPD_IT8951_Reset(void)
-{
+static void EPD_IT8951_Reset(void) {
+  puts(__func__)  ;
     DEV_Digital_Write(EPD_RST_PIN, HIGH);
     DEV_Delay_ms(200);
     DEV_Digital_Write(EPD_RST_PIN, LOW);
     DEV_Delay_ms(10);
     DEV_Digital_Write(EPD_RST_PIN, HIGH);
     DEV_Delay_ms(200);
+  puts("EPD_IT8951_Reset DONE")  ;    
 }
 
 
@@ -58,13 +63,13 @@ parameter:
 ******************************************************************************/
 static void EPD_IT8951_ReadBusy(void)
 {
-	// Debug("Busy ------\r\n");
+	/* Debug("Busy ------\r\n"); */
     UBYTE Busy_State = DEV_Digital_Read(EPD_BUSY_PIN);
-    //0: busy, 1: idle
+	   /* 0: busy, 1: idle */
     while(Busy_State == 0) {
         Busy_State = DEV_Digital_Read(EPD_BUSY_PIN);
     }
-	// Debug("Busy Release ------\r\n");
+	/* Debug("Busy Release ------\r\n"); */
 }
 
 
@@ -76,11 +81,12 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 {
 	//Set Preamble for Write Command
 	UWORD Write_Preamble = 0x6000;
-	
-	EPD_IT8951_ReadBusy();
 
+        EPD_IT8951_ReadBusy();
+        
+#if RPI
     DEV_Digital_Write(EPD_CS_PIN, LOW);
-	
+#endif	
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
 	
@@ -88,8 +94,9 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 	
 	DEV_SPI_WriteByte(Command>>8);
 	DEV_SPI_WriteByte(Command);
-	
-	DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#if RPI
+        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#endif        
 }
 
 
@@ -104,7 +111,9 @@ static void EPD_IT8951_WriteData(UWORD Data)
 
     EPD_IT8951_ReadBusy();
 
+#if RPI
     DEV_Digital_Write(EPD_CS_PIN, LOW);
+#endif	
 
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
@@ -114,7 +123,9 @@ static void EPD_IT8951_WriteData(UWORD Data)
 	DEV_SPI_WriteByte(Data>>8);
 	DEV_SPI_WriteByte(Data);
 
-    DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#if RPI
+        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#endif        
 }
 
 
@@ -129,7 +140,9 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
 
     EPD_IT8951_ReadBusy();
 
+#if RPI
     DEV_Digital_Write(EPD_CS_PIN, LOW);
+#endif	
 
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
@@ -141,7 +154,10 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
 	    DEV_SPI_WriteByte(Data_Buf[i]>>8);
 	    DEV_SPI_WriteByte(Data_Buf[i]);
     }
-    DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#if RPI
+        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#endif        
+
 }
 
 
@@ -155,13 +171,15 @@ static UWORD EPD_IT8951_ReadData()
     UWORD ReadData;
 	UWORD Write_Preamble = 0x1000;
     UWORD Read_Dummy;
-
+    (void)Read_Dummy;
     EPD_IT8951_ReadBusy();
 
+#if RPI
     DEV_Digital_Write(EPD_CS_PIN, LOW);
+#endif	
 
-	DEV_SPI_WriteByte(Write_Preamble>>8);
-	DEV_SPI_WriteByte(Write_Preamble);
+    DEV_SPI_WriteByte(Write_Preamble>>8);
+    DEV_SPI_WriteByte(Write_Preamble);
 
     EPD_IT8951_ReadBusy();
 
@@ -174,7 +192,10 @@ static UWORD EPD_IT8951_ReadData()
     ReadData = DEV_SPI_ReadByte()<<8;
     ReadData |= DEV_SPI_ReadByte();
 
-    DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#if RPI
+        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#endif        
+
 
     return ReadData;
 }
@@ -190,10 +211,12 @@ static void EPD_IT8951_ReadMultiData(UWORD* Data_Buf, UDOUBLE Length)
 {
 	UWORD Write_Preamble = 0x1000;
     UWORD Read_Dummy;
-
+    (void)Read_Dummy;
     EPD_IT8951_ReadBusy();
 
+#if RPI
     DEV_Digital_Write(EPD_CS_PIN, LOW);
+#endif	
 
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
@@ -209,10 +232,15 @@ static void EPD_IT8951_ReadMultiData(UWORD* Data_Buf, UDOUBLE Length)
     for(UDOUBLE i = 0; i<Length; i++)
     {
 	    Data_Buf[i] = DEV_SPI_ReadByte()<<8;
-	    Data_Buf[i] |= DEV_SPI_ReadByte();
+            Data_Buf[i] |= DEV_SPI_ReadByte();
+	    printf("Data_Buf[%d]=0x%x\n",i,            Data_Buf[i]);
     }
 
-    DEV_Digital_Write(EPD_CS_PIN, HIGH);
+
+#if RPI
+        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+#endif        
+
 }
 
 
@@ -225,8 +253,9 @@ description:	some situation like this:
 * 1 commander     1    argument
 * 1 commander   multi  argument
 ******************************************************************************/
-static void EPD_IT8951_WriteMultiArg(UWORD Arg_Cmd, UWORD* Arg_Buf, UWORD Arg_Num)
-{
+static void EPD_IT8951_WriteMultiArg(UWORD Arg_Cmd, UWORD *Arg_Buf,
+                                     UWORD Arg_Num) {
+puts(__func__);    
      //Send Cmd code
      EPD_IT8951_WriteCommand(Arg_Cmd);
      //Send Data
@@ -256,8 +285,8 @@ static UWORD EPD_IT8951_ReadReg(UWORD Reg_Address)
 function :	Cmd5 WriteReg
 parameter:  
 ******************************************************************************/
-static void EPD_IT8951_WriteReg(UWORD Reg_Address,UWORD Reg_Value)
-{
+static void EPD_IT8951_WriteReg(UWORD Reg_Address, UWORD Reg_Value) {
+puts(__func__);  
     EPD_IT8951_WriteCommand(IT8951_TCON_REG_WR);
     EPD_IT8951_WriteData(Reg_Address);
     EPD_IT8951_WriteData(Reg_Value);
@@ -269,8 +298,8 @@ static void EPD_IT8951_WriteReg(UWORD Reg_Address,UWORD Reg_Value)
 function :	get VCOM
 parameter:  
 ******************************************************************************/
-static UWORD EPD_IT8951_GetVCOM(void)
-{
+static UWORD EPD_IT8951_GetVCOM(void) {
+puts(__func__);  
     UWORD VCOM;
     EPD_IT8951_WriteCommand(USDEF_I80_CMD_VCOM);
     EPD_IT8951_WriteData(0x0000);
@@ -314,8 +343,9 @@ static void EPD_IT8951_SetVCOM(UWORD VCOM)
 function :	Cmd11 LD_IMG_Area
 parameter:  
 ******************************************************************************/
-static void EPD_IT8951_LoadImgAreaStart( IT8951_Load_Img_Info* Load_Img_Info, IT8951_Area_Img_Info* Area_Img_Info )
-{
+static void EPD_IT8951_LoadImgAreaStart(IT8951_Load_Img_Info *Load_Img_Info,
+                                        IT8951_Area_Img_Info *Area_Img_Info) {
+  
     UWORD Args[5];
     Args[0] = (\
         Load_Img_Info->Endian_Type<<8 | \
@@ -344,18 +374,22 @@ function :	EPD_IT8951_Get_System_Info
 parameter:  
 ******************************************************************************/
 static void EPD_IT8951_GetSystemInfo(void* Buf)
-{
+{puts(__func__);
     IT8951_Dev_Info* Dev_Info; 
 
     EPD_IT8951_WriteCommand(USDEF_I80_CMD_GET_DEV_INFO);
 
     EPD_IT8951_ReadMultiData((UWORD*)Buf, sizeof(IT8951_Dev_Info)/2);
 
-    Dev_Info = (IT8951_Dev_Info*)Buf;
+    Dev_Info = (IT8951_Dev_Info *)Buf;
+    
 	Debug("Panel(W,H) = (%d,%d)\r\n",Dev_Info->Panel_W, Dev_Info->Panel_H );
 	Debug("Memory Address = %X\r\n",Dev_Info->Memory_Addr_L | (Dev_Info->Memory_Addr_H << 16));
 	Debug("FW Version = %s\r\n", (UBYTE*)Dev_Info->FW_Version);
-	Debug("LUT Version = %s\r\n", (UBYTE*)Dev_Info->LUT_Version);
+        Debug("LUT Version = %s\r\n", (UBYTE *)Dev_Info->LUT_Version);
+
+        assert(strlen((char *)Dev_Info->FW_Version) != 0);
+        assert(strlen((char *)Dev_Info->LUT_Version) != 0);
 }
 
 
@@ -477,8 +511,11 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_2bp(IT8951_Load_Img_Info*Load_Im
 function :	EPD_IT8951_HostAreaPackedPixelWrite_4bp
 parameter:  
 ******************************************************************************/
-static void EPD_IT8951_HostAreaPackedPixelWrite_4bp(IT8951_Load_Img_Info*Load_Img_Info, IT8951_Area_Img_Info*Area_Img_Info, bool Packed_Write)
-{
+static void
+EPD_IT8951_HostAreaPackedPixelWrite_4bp(IT8951_Load_Img_Info *Load_Img_Info,
+                                        IT8951_Area_Img_Info *Area_Img_Info,
+                                        bool Packed_Write) {
+  puts(__func__)  ;
     UWORD Source_Buffer_Width, Source_Buffer_Height;
     UWORD Source_Buffer_Length;
 	
@@ -508,6 +545,7 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_4bp(IT8951_Load_Img_Info*Load_Im
     }
 
     EPD_IT8951_LoadImgEnd();
+    printf("%s DONE\n", __func__)  ;    
 }
 
 
@@ -635,8 +673,8 @@ void Enhance_Driving_Capability(void)
 function :	Cmd1 SYS_RUN
 parameter:  Run the system
 ******************************************************************************/
-void EPD_IT8951_SystemRun(void)
-{
+void EPD_IT8951_SystemRun(void) {
+  puts(__func__)  ;
     EPD_IT8951_WriteCommand(IT8951_TCON_SYS_RUN);
 }
 
@@ -669,6 +707,7 @@ IT8951_Dev_Info EPD_IT8951_Init(UWORD VCOM)
 {
     IT8951_Dev_Info Dev_Info;
 
+    
     EPD_IT8951_Reset();
 
     EPD_IT8951_SystemRun();
@@ -684,6 +723,8 @@ IT8951_Dev_Info EPD_IT8951_Init(UWORD VCOM)
         EPD_IT8951_SetVCOM(VCOM);
         Debug("VCOM = -%.02fV\n",(float)EPD_IT8951_GetVCOM()/1000);
     }
+
+    puts("EPD_IT8951_Init done");
     return Dev_Info;
 }
 
@@ -693,7 +734,7 @@ function :	EPD_IT8951_Clear_Refresh
 parameter:  
 ******************************************************************************/
 void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Addr, UWORD Mode)
-{
+{puts(__func__);
 
     UDOUBLE ImageSize = ((Dev_Info.Panel_W * 4 % 8 == 0)? (Dev_Info.Panel_W * 4 / 8 ): (Dev_Info.Panel_W * 4 / 8 + 1)) * Dev_Info.Panel_H;
     UBYTE* Frame_Buf = malloc (ImageSize);
@@ -919,3 +960,4 @@ void EPD_IT8951_8bp_Refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
         EPD_IT8951_Display_AreaBuf(X, Y, W, H, GC16_Mode, Target_Memory_Addr);
     }
 }
+

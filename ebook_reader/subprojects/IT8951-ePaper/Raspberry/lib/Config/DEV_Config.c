@@ -28,6 +28,7 @@
 #
 ******************************************************************************/
 #include "DEV_Config.h"
+#include "Raspberry/lib/Config/dev_hardware_SPI.h"
 #include <fcntl.h>
 
 #if LGPIO
@@ -193,10 +194,11 @@ static void DEV_GPIO_Init(void)
 #elif GPIOD
 	DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
         DEV_GPIO_Mode(EPD_RST_PIN, 1);
-#if !STM32
-	DEV_GPIO_Mode(EPD_CS_PIN, 1);
-        DEV_Digital_Write(EPD_CS_PIN, 1);
-#endif // !STM32        
+#if RPI
+        DEV_GPIO_Mode(EPD_CS_PIN, 1);
+	DEV_Digital_Write(EPD_CS_PIN, 1);        
+#endif
+
 #endif
 	
 }
@@ -256,7 +258,7 @@ UBYTE DEV_Module_Init(void)
     if(fgets(buffer, sizeof(buffer), fp) != NULL)
     {
         GPIO_Handle = lgGpiochipOpen(4);
-        if (GPIO_Handle < 0)
+        If (GPIO_Handle < 0)
         {
             Debug( "gpiochip4 Export Failed\n");
             return -1;
@@ -278,7 +280,9 @@ UBYTE DEV_Module_Init(void)
 	GPIOD_Export();
 	DEV_GPIO_Init();
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
-    DEV_HARDWARE_SPI_setSpeed(12500000);
+	DEV_HARDWARE_SPI_setSpeed(12500000);
+	DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
+	/* DEV_HARDWARE_SPI_setSpeed(1000000); // 1MB */
 #endif
 
     Debug("/***********************************/ \r\n");
@@ -307,9 +311,9 @@ void DEV_Module_Exit(void)
     // lgGpiochipClose(GPIO_Handle);
 #elif GPIOD
   DEV_HARDWARE_SPI_end();
-#if !STM32
+#if RPI
   DEV_Digital_Write(EPD_CS_PIN, 0);
-#endif // !STM32  
+#endif  
     DEV_Digital_Write(EPD_RST_PIN, 0);
     GPIOD_Unexport(EPD_RST_PIN);
     GPIOD_Unexport(EPD_BUSY_PIN);
