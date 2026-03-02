@@ -104,8 +104,8 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 function :	write data
 parameter:  data
 ******************************************************************************/
-static void EPD_IT8951_WriteData(UWORD Data)
-{
+static void EPD_IT8951_WriteData(UWORD Data) {
+  puts(__func__);
     //Set Preamble for Write Command
 	UWORD Write_Preamble = 0x0000;
 
@@ -134,7 +134,7 @@ function :	write multi data
 parameter:  data
 ******************************************************************************/
 static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
-{
+{puts(__func__);
     //Set Preamble for Write Command
 	UWORD Write_Preamble = 0x0000;
 
@@ -255,10 +255,11 @@ description:	some situation like this:
 ******************************************************************************/
 static void EPD_IT8951_WriteMultiArg(UWORD Arg_Cmd, UWORD *Arg_Buf,
                                      UWORD Arg_Num) {
-puts(__func__);    
+  puts(__func__);    
      //Send Cmd code
-     EPD_IT8951_WriteCommand(Arg_Cmd);
-     //Send Data
+  EPD_IT8951_WriteCommand(Arg_Cmd);
+  /* EPD_IT8951_WriteMuitiData(Arg_Buf, Arg_Num); */
+     // Send Data
      for(UWORD i=0; i<Arg_Num; i++)
      {
          EPD_IT8951_WriteData(Arg_Buf[i]);
@@ -757,7 +758,7 @@ void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Add
     Area_Img_Info.Area_W = Dev_Info.Panel_W;
     Area_Img_Info.Area_H = Dev_Info.Panel_H;
 
-    EPD_IT8951_HostAreaPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info, false);
+    EPD_IT8951_HostAreaPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info, true);
 
     EPD_IT8951_Display_Area(0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H, Mode);
 

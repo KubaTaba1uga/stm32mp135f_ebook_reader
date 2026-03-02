@@ -83,7 +83,7 @@ puts(__func__);
 
     for(int i=0; i < 16; i++){
         memset(Refresh_Frame_Buf, SixteenColorPattern[i], Imagesize);
-        EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, i * In_4bp_Refresh_Area_Height, In_4bp_Refresh_Area_Width, In_4bp_Refresh_Area_Height, false, Init_Target_Memory_Addr, false);
+        EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, i * In_4bp_Refresh_Area_Height, In_4bp_Refresh_Area_Width, In_4bp_Refresh_Area_Height, false, Init_Target_Memory_Addr, true);
     }
 
     In_4bp_Refresh_Finish = clock();

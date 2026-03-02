@@ -66,7 +66,7 @@ Info:
     /dev/spidev0.1
 ******************************************************************************/
 void DEV_HARDWARE_SPI_begin(char *SPI_device)
-{puts(__func__);
+{
     //device
     int ret = 0; 
     if((hardware_SPI.fd = open(SPI_device, O_RDWR )) < 0)  {
@@ -102,7 +102,7 @@ void DEV_HARDWARE_SPI_begin(char *SPI_device)
 }
 
 void DEV_HARDWARE_SPI_beginSet(char *SPI_device, SPIMode mode, uint32_t speed)
-{puts(__func__);
+{
     //device
     int ret = 0; 
     hardware_SPI.mode = 0;
@@ -134,7 +134,7 @@ parameter:
 Info:
 ******************************************************************************/
 void DEV_HARDWARE_SPI_end(void)
-{puts(__func__);
+{
     hardware_SPI.mode = 0;
     if (close(hardware_SPI.fd) != 0){
         DEV_HARDWARE_SPI_Debug("Failed to close SPI device\r\n");
@@ -149,7 +149,7 @@ Info:   Return 1 success
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_setSpeed(uint32_t speed)
-{puts(__func__);
+{
     uint32_t speed1 = hardware_SPI.speed;
     
     hardware_SPI.speed = speed;
@@ -187,7 +187,7 @@ Info:
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_Mode(SPIMode mode)
-{puts(__func__);
+{
     hardware_SPI.mode &= 0xfC;//Clear low 2 digits
     hardware_SPI.mode |= mode;//Setting mode
     
@@ -211,7 +211,7 @@ Info:
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_CSEN(SPICSEN EN)
-{puts(__func__);
+{
     if(EN == ENABLE){
         hardware_SPI.mode |= PIN_SPI_NO_CS;
     }else {
@@ -238,7 +238,7 @@ Info:
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode)
-{puts(__func__);
+{
     if(CS_Mode == SPI_CS_Mode_HIGH){
         hardware_SPI.mode |= PIN_SPI_CS_HIGH;
         hardware_SPI.mode &= ~PIN_SPI_NO_CS;
@@ -269,7 +269,7 @@ Info:
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_SetBitOrder(SPIBitOrder Order)
-{puts(__func__);
+{
     if(Order == SPI_BIT_ORDER_LSBFIRST){
         hardware_SPI.mode |= PIN_SPI_LSB_FIRST;
         DEV_HARDWARE_SPI_Debug("PIN_SPI_LSB_FIRST\r\n");
@@ -300,7 +300,7 @@ Info:
         Return -1 failed
 ******************************************************************************/
 int DEV_HARDWARE_SPI_SetBusMode(BusMode mode)
-{puts(__func__);
+{
     if(mode == SPI_3WIRE_Mode){
         hardware_SPI.mode |= PIN_SPI_3WIRE;
     }else if(mode == SPI_4WIRE_Mode){
@@ -321,7 +321,7 @@ parameter:
 Info:
 ******************************************************************************/
 void DEV_HARDWARE_SPI_SetDataInterval(uint16_t us)
-{puts(__func__);
+{
     hardware_SPI.delay = us;
     tr.delay_usecs  = hardware_SPI.delay;
 }
@@ -358,7 +358,7 @@ uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t byte)
 }
 
 /* uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t buf) */
-/* {   printf("%s: byte=0x%x\n",__func__, buf); */
+/* {    */
 /*     uint8_t rbuf[1]; */
 /*     tr.len = 1; */
 /*     tr.tx_buf =  (unsigned long)&buf; */
@@ -368,7 +368,7 @@ uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t byte)
 /*     if ( ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr) < 1 )  { */
 /*       DEV_HARDWARE_SPI_Debug("can't send spi message\r\n"); */
 /*       perror(__func__); */
-/*     }       */
+/*     } */
 /*     return rbuf[0]; */
 /* } */
 
@@ -378,7 +378,7 @@ parameter:
 Info: Return read data
 ******************************************************************************/
 int DEV_HARDWARE_SPI_Transfer(uint8_t *buf, uint32_t len) {
-  /* puts(__func__); */
+  /*  */
     tr.len = len;
     tr.tx_buf =  (unsigned long)buf;
     tr.rx_buf =  (unsigned long)buf;
