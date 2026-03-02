@@ -7,7 +7,7 @@ ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 BUILD_PATH = os.path.join(ROOT_PATH, "build")
 DOCS_PATH = os.path.join(ROOT_PATH, "docs")
 EBOOK_READER_PATH = os.path.join(ROOT_PATH, "ebook_reader")
-DISPLAY_DRIVER_PATH = os.path.join(ROOT_PATH, "display_driver")
+DISPLAY_DRIVER_PATH = os.path.join(EBOOK_READER_PATH, "subprojects", "IT8951-ePaper")
 
 C_FORMATER = "clang-format-19"
 C_LINTER = "clang-tidy-19"
@@ -31,11 +31,11 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
             "tag": "v6.6-stm32mp-r2",
             "url": "https://github.com/STMicroelectronics/linux.git",
         },
-        "uboot": {
+        "u-boot": {
             "tag": "v2023.10-stm32mp-r2",
             "url": "https://github.com/STMicroelectronics/u-boot.git",
         },
-        "optee": {
+        "optee-os": {
             "tag": "4.0.0-stm32mp-r2",
             "url": "https://github.com/STMicroelectronics/optee_os.git",
         },
@@ -61,26 +61,6 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
         c.run("make BR2_DL_DIR=../../build/third_party")
 
     _pr_info(f"Building BSP completed")
-
-
-@task
-def add_repo(c, name, tag, url):
-    _pr_info("Adding repo...")
-
-    c.run("mkdir -p third_party")
-    c.run("git status")
-    c.run("git add . || true")
-    c.run('git commit -m "WIP" || true')
-
-    if c.run(f'git remote get-url "{name}"', warn=True, echo=False) == 0:
-        _pr_error(f"{name} already exists")
-        return 1
-
-    c.run(f'git remote add "{name}" "{url}"')
-    c.run(f'git subtree add --prefix="third_party/{name}" "{name}" "{tag}" --squash')
-
-    _pr_info("Adding repo completed")
-
 
 @task
 def install(c):
@@ -359,7 +339,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
                 f" -Ddisplay={display} "
                 if not local
                 else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
-                # else " -Ddisplay=x11 "                
+                # else " -Ddisplay=x11 "
             )
         )
 
@@ -384,7 +364,6 @@ def fbuild_ebook_reader_test(c):
         build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
         c.run(
             f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
-            
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
@@ -411,7 +390,7 @@ def fbuild_display_driver(c):
 
     build_dir = os.path.join(BUILD_PATH, os.path.basename(driver_path))
     c.run(f"mkdir -p {build_dir}")
-    
+
     with c.cd(driver_path):
         root = os.path.abspath(ROOT_PATH)
         with open(cross_tpl_path, "r", encoding="utf-8") as f:
@@ -423,7 +402,7 @@ def fbuild_display_driver(c):
             f.write(cross_txt)
 
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dexamples=stm -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
         )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"

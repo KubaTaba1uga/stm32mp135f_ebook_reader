@@ -20,13 +20,6 @@ The display we choose is https://www.waveshare.com/product/displays/e-paper/7.8i
      - —
      - —
      - Ground
-   * - 19
-     - H
-     - 3
-     - T
-     - SPI5_MOSI
-     - Output, Active high
-     - DIN (SPI data to hat)
    * - 21
      - A
      - 8
@@ -34,6 +27,13 @@ The display we choose is https://www.waveshare.com/product/displays/e-paper/7.8i
      - SPI5_MISO
      - Output, Active high
      - DOUT (SPI data from hat)       
+   * - 19
+     - H
+     - 3
+     - T
+     - SPI5_MOSI
+     - Output, Active high
+     - DIN (SPI data to hat)
    * - 23
      - H
      - 7
