@@ -30,6 +30,7 @@
 ******************************************************************************/
 #include "EPD_IT8951.h"
 #include "Raspberry/lib/Config/DEV_Config.h"
+#include "Raspberry/lib/Config/dev_hardware_SPI.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -147,12 +148,24 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
 
         EPD_IT8951_ReadBusy();
 
-	/* uint8_t buf */
-	for(UDOUBLE i = 0; i<Length; i++)
-	  {
-	    DEV_SPI_WriteByte(Data_Buf[i]>>8);
-	    DEV_SPI_WriteByte(Data_Buf[i]);
-	  }
+        /* uint8_t buf */
+
+        for (UDOUBLE i = 0; i < Length; i += 512) {
+	uint8_t buf[1024] = {0};          
+	for (int k = 0; k < 512; k++) {
+	  UWORD w = Data_Buf[i + k];
+	  buf[2*k]   = w >> 8;
+	  buf[2*k+1] = w & 0xFF;
+	}
+	DEV_HARDWARE_SPI_Transfer(buf, sizeof(buf));          
+	    /* DEV_SPI_WriteByte(Data_Buf[i]>>8); */
+	    /* DEV_SPI_WriteByte(Data_Buf[i]); */
+	  }        
+	/* for(UDOUBLE i = 0; i<Length; i+=1) */
+	/*   { */
+	/*     /\* DEV_SPI_WriteByte(Data_Buf[i]>>8); *\/ */
+	/*     /\* DEV_SPI_WriteByte(Data_Buf[i]); *\/ */
+	/*   } */
         
         DEV_Digital_Write(EPD_CS_PIN, HIGH);
 
@@ -558,7 +571,7 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_8bp(IT8951_Load_Img_Info*Load_Im
     Source_Buffer_Width = (Area_Img_Info->Area_W*8/8)/2;
     Source_Buffer_Height = Area_Img_Info->Area_H;
 
-    EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Width *Source_Buffer_Height);
+    EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Width * Source_Buffer_Height);
     
     /* for(UDOUBLE i=0; i<Source_Buffer_Height; i++) */
     /* { */
@@ -985,4 +998,3 @@ void EPD_IT8951_Black_Full(IT8951_Dev_Info Dev_Info, UDOUBLE Target_Memory_Addr,
 
     free(Frame_Buf);
 }
-
