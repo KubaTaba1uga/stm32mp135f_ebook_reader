@@ -31,7 +31,9 @@ it8951_epaper_deps += [dependency('libgpiod',
 
 # it8951_epaper_inc = include_directories(['src'])
 
-it8951_epaper_src = [files('Raspberry/lib/e-Paper/EPD_IT8951.c',
+it8951_epaper_src = [files(
+                           # 'Raspberry/lib/e-Paper/EPD_IT8951.c',
+                           'Raspberry/lib/e-Paper/EPD_IT8951_v2.c',
 			   'Raspberry/lib/Fonts/font12.c',
 			   'Raspberry/lib/Fonts/font20.c',
 			   'Raspberry/lib/Fonts/font16.c',
@@ -45,7 +47,7 @@ it8951_epaper_src = [files('Raspberry/lib/e-Paper/EPD_IT8951.c',
 			   'Raspberry/lib/GUI/GUI_BMPfile.c',
 			   # 'Raspberry/examples/main.c',
                            # 'Raspberry/examples/main2.c',
-			   'Raspberry/examples/example.c',
+			   # 'Raspberry/examples/example.c',
 			   # 'Raspberry/examples/main3.c',			   
                            # Add more files here
                          )
@@ -71,32 +73,38 @@ endif
 # ******************************************************************************
 # *    Exec
 # ******************************************************************************
-executable('it8951_refresh',
-  sources: it8951_epaper_src + ['Raspberry/examples/refresh.c'],
-  # include_directories: it8951_epaper_inc,
-  dependencies: it8951_epaper_deps,
-)
+# executable('it8951_refresh',
+#   sources: it8951_epaper_src + ['Raspberry/examples/refresh.c'],
+#   # include_directories: it8951_epaper_inc,
+#   dependencies: it8951_epaper_deps,
+# )
 
-executable('it8951_display_1bpp_img',
-  sources: it8951_epaper_src + ['Raspberry/examples/display_1bpp_img.c'],
-  # include_directories: it8951_epaper_inc,
-  dependencies: it8951_epaper_deps,
-)
+# executable('it8951_display_1bpp_img',
+#   sources: it8951_epaper_src + ['Raspberry/examples/display_1bpp_img.c'],
+#   # include_directories: it8951_epaper_inc,
+#   dependencies: it8951_epaper_deps,
+# )
 
-executable('it8951_main2',
-  sources: it8951_epaper_src + ['Raspberry/examples/main2.c'],
-  # include_directories: it8951_epaper_inc,
-  dependencies: it8951_epaper_deps,
-)
+# executable('it8951_main2',
+#   sources: it8951_epaper_src + ['Raspberry/examples/main2.c'],
+#   # include_directories: it8951_epaper_inc,
+#   dependencies: it8951_epaper_deps,
+# )
 
-executable('it8951_init',
-  sources: it8951_epaper_src + ['Raspberry/examples/init.c'],
-  # include_directories: it8951_epaper_inc,
-  dependencies: it8951_epaper_deps,
-)
+# executable('it8951_init',
+#   sources: it8951_epaper_src + ['Raspberry/examples/init.c'],
+#   # include_directories: it8951_epaper_inc,
+#   dependencies: it8951_epaper_deps,
+# )
 
-executable('it8951_main',
-  sources: it8951_epaper_src + ['Raspberry/examples/main.c'],
+# executable('it8951_main',
+#   sources: it8951_epaper_src + ['Raspberry/examples/main.c'],
+#   # include_directories: it8951_epaper_inc,
+#   dependencies: it8951_epaper_deps,
+# )
+
+executable('it8951_refresh_v2',
+  sources: it8951_epaper_src + ['Raspberry/examples/refresh2.c'],
   # include_directories: it8951_epaper_inc,
   dependencies: it8951_epaper_deps,
 )

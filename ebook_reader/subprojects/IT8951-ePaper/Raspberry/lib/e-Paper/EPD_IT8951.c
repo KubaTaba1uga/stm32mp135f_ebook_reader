@@ -802,53 +802,6 @@ void EPD_IT8951_1bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
 
 
 /******************************************************************************
-function :	EPD_IT8951_1bp_Refresh
-parameter:
-******************************************************************************/
-void EPD_IT8951_1bp_RefreshFull(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, UBYTE Mode, UDOUBLE Target_Memory_Addr, bool Packed_Write)
-{
-    IT8951_Load_Img_Info Load_Img_Info;
-    IT8951_Area_Img_Info Area_Img_Info;
-    (void)(EPD_IT8951_LoadImgStart);
-
-    EPD_IT8951_WaitForDisplayReady();
-
-    Load_Img_Info.Source_Buffer_Addr = Frame_Buf;
-    Load_Img_Info.Endian_Type = IT8951_LDIMG_L_ENDIAN;
-    //Use 8bpp to set 1bpp
-    Load_Img_Info.Pixel_Format = IT8951_8BPP;
-    Load_Img_Info.Rotate =  IT8951_ROTATE_0;
-    Load_Img_Info.Target_Memory_Addr = Target_Memory_Addr;
-
-    Area_Img_Info.Area_X = X/8;
-    Area_Img_Info.Area_Y = Y;
-    Area_Img_Info.Area_W = W/8;
-    Area_Img_Info.Area_H = H;
-
-
-    //clock_t start, finish;
-    //double duration;
-
-    //start = clock();
-
-    EPD_IT8951_HostAreaPackedPixelWrite_1bp(&Load_Img_Info, &Area_Img_Info, Packed_Write);
-
-    //finish = clock();
-    //duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	//Debug( "Write occupy %f second\n", duration );
-
-    //start = clock();
-
-    EPD_IT8951_Display_1bp(X,Y,W,H,Mode,Target_Memory_Addr,0xF0,0x00);
-
-    //finish = clock();
-    //duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	//Debug( "Show occupy %f second\n", duration );
-}
-
-
-
-/******************************************************************************
 function :	EPD_IT8951_1bp_Multi_Frame_Write
 parameter:  
 ******************************************************************************/

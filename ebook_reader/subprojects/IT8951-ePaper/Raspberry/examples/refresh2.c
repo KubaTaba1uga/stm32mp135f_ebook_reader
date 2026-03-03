@@ -1,5 +1,5 @@
 #include "../lib/Config/DEV_Config.h"
-#include "Raspberry/lib/e-Paper/EPD_IT8951.h"
+#include "Raspberry/lib/e-Paper/EPD_IT8951_v2.h"
 #include "example.h"
 #include "../lib/GUI/GUI_BMPfile.h"
 #include "unistd.h"
@@ -30,34 +30,9 @@ int epd_mode = 0;	//0: no rotate, no mirror
         		//3: no rotate, no mirror, isColor, for 6inch color				
 void  Handler(int signo){
     Debug("\r\nHandler:exit\r\n");
-    if(Refresh_Frame_Buf != NULL){
-        free(Refresh_Frame_Buf);
-        Debug("free Refresh_Frame_Buf\r\n");
-        Refresh_Frame_Buf = NULL;
-    }
-    if(Panel_Frame_Buf != NULL){
-        free(Panel_Frame_Buf);
-        Debug("free Panel_Frame_Buf\r\n");
-        Panel_Frame_Buf = NULL;
-    }
-    if(Panel_Area_Frame_Buf != NULL){
-        free(Panel_Area_Frame_Buf);
-        Debug("free Panel_Area_Frame_Buf\r\n");
-        Panel_Area_Frame_Buf = NULL;
-    }
-    if(bmp_src_buf != NULL){
-        free(bmp_src_buf);
-        Debug("free bmp_src_buf\r\n");
-        bmp_src_buf = NULL;
-    }
-    if(bmp_dst_buf != NULL){
-        free(bmp_dst_buf);
-        Debug("free bmp_dst_buf\r\n");
-        bmp_dst_buf = NULL;
-    }
 	if(Dev_Info.Panel_W != 0){
 		Debug("Going to sleep\r\n");
-		EPD_IT8951_Sleep();
+		V2_EPD_IT8951_Sleep();
 	}
     DEV_Module_Exit();
     exit(0);
@@ -93,30 +68,28 @@ int main(int argc, char *argv[])
     Debug("VCOM value:%d\r\n", VCOM);
 	sscanf(argv[2],"%d",&epd_mode);
     Debug("Display mode:%d\r\n", epd_mode);
-    Dev_Info = EPD_IT8951_Init(VCOM);
+    Dev_Info = V2_EPD_IT8951_Init(VCOM);
 
     Panel_Width = Dev_Info.Panel_W;
     Panel_Height = Dev_Info.Panel_H;
     Init_Target_Memory_Addr = Dev_Info.Memory_Addr_L | (Dev_Info.Memory_Addr_H << 16);
 
+    /* V2_EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode); */
+    /* puts("INIT MODE DONE"); */
+    /* sleep(1); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
+    /* puts("GC16 MODE DONE"); */
+    /* sleep(1); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode); */
+    /* puts("A2 MODE DONE"); */
+    /* sleep(1); */
     
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
-    puts("INIT MODE DONE");
-    sleep(1);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
-    puts("GC16 MODE DONE");
-    sleep(1);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    puts("A2 MODE DONE");
-    sleep(1);
-    
-    Dynamic_Refresh_Example(Dev_Info,Init_Target_Memory_Addr);
+    /* Dynamic_Refresh_Example(Dev_Info,Init_Target_Memory_Addr); */
     
     /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode); */
     
     //EPD_IT8951_Standby();
-    EPD_IT8951_Sleep();
-
+    V2_EPD_IT8951_Sleep();
     
     DEV_Module_Exit();
     
