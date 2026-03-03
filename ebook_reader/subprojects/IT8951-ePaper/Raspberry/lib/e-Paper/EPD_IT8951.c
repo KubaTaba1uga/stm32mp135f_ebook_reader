@@ -151,24 +151,16 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
         /* uint8_t buf */
 
         for (UDOUBLE i = 0; i < Length; i += 512) {
-	uint8_t buf[1024] = {0};        
-	for (int k = 0; k < 512; k++) {
-	  UWORD w = Data_Buf[i + k];
-	  buf[2*k]   = w >> 8;
-	  buf[2*k+1] = w & 0xFF;
-	}
-	DEV_HARDWARE_SPI_Transfer(buf, sizeof(buf));          
-	    /* DEV_SPI_WriteByte(Data_Buf[i]>>8); */
-	    /* DEV_SPI_WriteByte(Data_Buf[i]); */
-	  }        
-	/* for(UDOUBLE i = 0; i<Length; i+=1) */
-	/*   { */
-	/*     /\* DEV_SPI_WriteByte(Data_Buf[i]>>8); *\/ */
-	/*     /\* DEV_SPI_WriteByte(Data_Buf[i]); *\/ */
-	/*   } */
+	  uint8_t buf[1024] = {0};        
+	  for (int k = 0; k < 512; k++) {
+	    UWORD w = Data_Buf[i + k];
+	    buf[2*k]   = w >> 8;
+	    buf[2*k+1] = w & 0xFF;
+	  }
+	  DEV_HARDWARE_SPI_Transfer(buf, sizeof(buf));          
+	}        
         
         DEV_Digital_Write(EPD_CS_PIN, HIGH);
-
 }
 
 
