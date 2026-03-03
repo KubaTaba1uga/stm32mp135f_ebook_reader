@@ -87,6 +87,19 @@ void DEV_SPI_WriteByte(UBYTE Value)
 }
 
 /******************************************************************************
+function:	SPI Write
+parameter:
+Info:
+******************************************************************************/
+void DEV_SPI_WriteBytes(UBYTE * Value, UDOUBLE Length)
+{
+#if GPIOD
+  DEV_HARDWARE_SPI_Transfer(Value, Length);
+#endif
+}
+
+
+/******************************************************************************
 function:	SPI Read
 parameter:
 Info:
@@ -194,11 +207,8 @@ static void DEV_GPIO_Init(void)
 #elif GPIOD
 	DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
         DEV_GPIO_Mode(EPD_RST_PIN, 1);
-#if RPI
         DEV_GPIO_Mode(EPD_CS_PIN, 1);
-	DEV_Digital_Write(EPD_CS_PIN, 1);        
-#endif
-
+        DEV_Digital_Write(EPD_CS_PIN, 1);
 #endif
 	
 }
@@ -280,9 +290,9 @@ UBYTE DEV_Module_Init(void)
 	GPIOD_Export();
 	DEV_GPIO_Init();
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
-	DEV_HARDWARE_SPI_setSpeed(20000000);
-	/* DEV_HARDWARE_SPI_setSpeed(12500000); */
+	DEV_HARDWARE_SPI_setSpeed(1000000); // 1MHz
 	DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
+	/* DEV_HARDWARE_SPI_setSpeed(12500000); */
 	/* DEV_HARDWARE_SPI_setSpeed(1000000); // 1MB */
 #endif
 
@@ -311,10 +321,8 @@ void DEV_Module_Exit(void)
     // lgSpiClose(SPI_Handle);
     // lgGpiochipClose(GPIO_Handle);
 #elif GPIOD
-  DEV_HARDWARE_SPI_end();
-#if RPI
-  DEV_Digital_Write(EPD_CS_PIN, 0);
-#endif  
+    DEV_HARDWARE_SPI_end();
+    DEV_Digital_Write(EPD_CS_PIN, 0);
     DEV_Digital_Write(EPD_RST_PIN, 0);
     GPIOD_Unexport(EPD_RST_PIN);
     GPIOD_Unexport(EPD_BUSY_PIN);

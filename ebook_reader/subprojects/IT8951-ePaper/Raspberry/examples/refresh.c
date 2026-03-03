@@ -1,4 +1,5 @@
 #include "../lib/Config/DEV_Config.h"
+#include "Raspberry/lib/GUI/GUI_Paint.h"
 #include "example.h"
 #include "../lib/GUI/GUI_BMPfile.h"
 
@@ -25,7 +26,10 @@ int epd_mode = 0;	//0: no rotate, no mirror
 					//1: no rotate, horizontal mirror, for 10.3inch
 					//2: no totate, horizontal mirror, for 5.17inch
 					//3: no rotate, no mirror, isColor, for 6inch color
-					
+
+UBYTE Display_Black(UWORD Panel_Width, UWORD Panel_Height,
+		    UDOUBLE Init_Target_Memory_Addr);
+
 void  Handler(int signo){
     Debug("\r\nHandler:exit\r\n");
     if(Refresh_Frame_Buf != NULL){
@@ -128,58 +132,33 @@ int main(int argc, char *argv[])
 
     EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
 
-#if(USE_Factory_Test)
-	if(epd_mode == 3) 	// Color Test
-		Color_Test(Dev_Info, Init_Target_Memory_Addr);
-    else				// Normal Test
-		Factory_Test_Only(Dev_Info, Init_Target_Memory_Addr);
-#endif
-
-
-#if(USE_Normal_Demo)
-    //Show 16 grayscale
-    Display_ColorPalette_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr);
-	EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
-
-    //Show some character and pattern
-    Display_CharacterPattern_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_4);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
-
-    //Show a bmp file
-    //1bp use A2 mode by default, before used it, refresh the screen with WHITE
-    Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_1);
-    Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_2);
-    Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_4);
+    Display_Black(Panel_Width, Panel_Height, Init_Target_Memory_Addr);
     EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
     
+    //Show 16 grayscale
+    /* Display_ColorPalette_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
+
+    //Show some character and pattern
+    /* Display_CharacterPattern_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_4); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
+
+    // Show a bmp file
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);      */
+    //1bp use A2 mode by default, before used it, refresh the screen with WHITE
+    /* Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_1); */
+    /* Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_2); */
+    /* Display_BMP_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr, BitsPerPixel_4); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
+    
     //Show A2 mode refresh effect
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    Dynamic_Refresh_Example(Dev_Info,Init_Target_Memory_Addr);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode); */
+    /* Dynamic_Refresh_Example(Dev_Info,Init_Target_Memory_Addr); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode); */
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
 	
-    //Show how to display a gif, not works well on 6inch e-Paper HAT, 9.7inch e-Paper HAT, others work well
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    Dynamic_GIF_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
-
-    //Show how to test frame rate, test it individually,which is related to refresh area size and refresh mode
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    Check_FrameRate_Example(800, 600, Init_Target_Memory_Addr, BitsPerPixel_1);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode);
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
-#endif
-
-
-#if(USE_Touch_Panel)
-    //show a simple demo for hand-painted tablet, only support for <6inch HD touch e-Paper> at present
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
-    TouchPanel_ePaper_Example(Panel_Width, Panel_Height, Init_Target_Memory_Addr);
-#endif
-
     //We recommended refresh the panel to white color before storing in the warehouse.
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
+    /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode); */
 
     //EPD_IT8951_Standby();
     EPD_IT8951_Sleep();
@@ -188,5 +167,63 @@ int main(int argc, char *argv[])
     DEV_Delay_ms(5000);
 
     DEV_Module_Exit();
+    return 0;
+}
+
+
+UBYTE Display_Black(UWORD Panel_Width, UWORD Panel_Height,
+		    UDOUBLE Init_Target_Memory_Addr) {
+  puts(__func__);  
+    UWORD In_4bp_Refresh_Area_Width;
+    if(Four_Byte_Align == true){
+        In_4bp_Refresh_Area_Width = Panel_Width - (Panel_Width % 32);
+    }else{
+        In_4bp_Refresh_Area_Width = Panel_Width;
+    }
+    UWORD In_4bp_Refresh_Area_Height = Panel_Height / 16;
+
+    UDOUBLE Imagesize;
+
+    clock_t In_4bp_Refresh_Start, In_4bp_Refresh_Finish;
+    double In_4bp_Refresh_Duration;
+
+    Imagesize  = ((In_4bp_Refresh_Area_Width*4 % 8 == 0)? (In_4bp_Refresh_Area_Width*4 / 8 ): (In_4bp_Refresh_Area_Width*4 / 8 + 1)) * In_4bp_Refresh_Area_Height;
+
+    if((Refresh_Frame_Buf = (UBYTE *)malloc(Imagesize)) == NULL) {
+        Debug("Failed to apply for black memory...\r\n");
+        return -1;
+    }
+
+    Debug("Start to demostrate 4bpp palette example\r\n");
+    In_4bp_Refresh_Start = clock();
+
+    /* UBYTE SixteenColorPattern[16] = {0xFF,0xEE,0xDD,0xCC,0xBB,0xAA,0x99,0x88,0x77,0x66,0x55,0x44,0x33,0x22,0x11,0x00}; */
+
+    /* Paint_NewImage(Refresh_Frame_Buf, In_4bp_Refresh_Area_Width, In_4bp_Refresh_Area_Height, 0, BLACK); */
+    /* Paint_SelectImage(Refresh_Frame_Buf); */
+    /* /\* Epd_Mode(epd_mode); *\/ */
+    /* Paint_SetBitsPerPixel(4); */
+    /* Paint_Clear(BLACK); */
+
+        for(int i=0; i < 16; i++){
+        memset(Refresh_Frame_Buf, 0x00, Imagesize);
+        EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, i * In_4bp_Refresh_Area_Height, In_4bp_Refresh_Area_Width, In_4bp_Refresh_Area_Height, false, Init_Target_Memory_Addr, true);
+    }
+
+    /* memset(Refresh_Frame_Buf, 0x00, Imagesize); */
+    /* EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, 0, In_4bp_Refresh_Area_Width, In_4bp_Refresh_Area_Height, false, Init_Target_Memory_Addr, true); */
+    /* EPD_IT8951_ */
+    
+    In_4bp_Refresh_Finish = clock();
+    In_4bp_Refresh_Duration = (double)(In_4bp_Refresh_Finish - In_4bp_Refresh_Start) / CLOCKS_PER_SEC;
+    Debug( "Write and Show 4bp occupy %f second\n", In_4bp_Refresh_Duration );
+
+    if(Refresh_Frame_Buf != NULL){
+        free(Refresh_Frame_Buf);
+        Refresh_Frame_Buf = NULL;
+    }
+
+    DEV_Delay_ms(5000);
+    
     return 0;
 }

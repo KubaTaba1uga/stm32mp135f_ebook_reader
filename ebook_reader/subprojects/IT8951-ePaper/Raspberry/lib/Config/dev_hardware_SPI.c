@@ -32,8 +32,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <errno.h>
 #include <stdint.h> 
+#include <string.h>
 #include <unistd.h> 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -97,7 +98,7 @@ void DEV_HARDWARE_SPI_begin(char *SPI_device)
     DEV_HARDWARE_SPI_ChipSelect(SPI_CS_Mode_LOW);
     /* DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_LSBFIRST);     */
     DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
-    DEV_HARDWARE_SPI_setSpeed(20000000);
+    DEV_HARDWARE_SPI_setSpeed(12500000);
     DEV_HARDWARE_SPI_SetDataInterval(5);
 }
 
@@ -237,8 +238,7 @@ Info:
         Return 1 success 
         Return -1 failed
 ******************************************************************************/
-int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode)
-{
+int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode) {  
     if(CS_Mode == SPI_CS_Mode_HIGH){
         hardware_SPI.mode |= PIN_SPI_CS_HIGH;
         hardware_SPI.mode &= ~PIN_SPI_NO_CS;
@@ -246,12 +246,23 @@ int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode)
     }else if(CS_Mode == SPI_CS_Mode_LOW){
         hardware_SPI.mode &= ~PIN_SPI_CS_HIGH;
         hardware_SPI.mode &= ~PIN_SPI_NO_CS;
-    }else if(CS_Mode == SPI_CS_Mode_NONE){
-        hardware_SPI.mode |= PIN_SPI_NO_CS;
+    } else if (CS_Mode == SPI_CS_Mode_NONE) {
+        hardware_SPI.mode |= SPI_NO_CS;
     }
-    
+
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
-        DEV_HARDWARE_SPI_Debug("can't set spi mode\r\n"); 
+    DEV_HARDWARE_SPI_Debug(
+        "SPI_IOC_WR_MODE failed!\r\n"
+        "  fd: %d\r\n"
+        "  mode: 0x%02X\r\n"
+        "  errno: %d\r\n"
+        "  error: %s\r\n",
+        hardware_SPI.fd,
+        hardware_SPI.mode,
+        errno,
+        strerror(errno)
+    );      
+        /* DEV_HARDWARE_SPI_Debug("can't set spi mode: %s\r\n", strerror(errno));  */
         return -1;
     }
     return 1;

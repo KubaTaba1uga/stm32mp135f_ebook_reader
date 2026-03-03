@@ -104,6 +104,7 @@ UBYTE DEV_Digital_Read(UWORD Pin);
 
 void DEV_SPI_WriteByte(UBYTE Value);
 UBYTE DEV_SPI_ReadByte();
+void DEV_SPI_WriteBytes(UBYTE * Value, UDOUBLE Length);
 
 void DEV_Delay_ms(UDOUBLE xms);
 void DEV_Delay_us(UDOUBLE xus);
