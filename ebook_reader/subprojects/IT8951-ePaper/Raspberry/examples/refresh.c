@@ -71,6 +71,26 @@ void Handler(int signo) {
   exit(0);
 }
 
+#include <time.h>
+#include <stdio.h>
+
+static inline long long now_ns(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
+static inline void print_ms(const char *name, long long dt_ns) {
+    printf("%s: %.3f ms\n", name, (double)dt_ns / 1e6);
+}
+
+#define TIME_CALL(label, expr) do {                 \
+    long long t0 = now_ns();                        \
+    (expr);                                         \
+    long long t1 = now_ns();                        \
+    print_ms((label), (t1 - t0));                   \
+} while (0)
+
 int main(int argc, char *argv[]) {
   // Exception handling:ctrl + c
   signal(SIGINT, Handler);
@@ -141,17 +161,33 @@ int main(int argc, char *argv[]) {
     puts(argv[3]);
   }
 
-  EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
-  puts("INIT MODE DONE");
-  sleep(1);
+TIME_CALL("Clear_Refresh INIT",
+    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode));
+puts("INIT MODE DONE");
+sleep(1);
 
-  EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
+TIME_CALL("Clear_Refresh A2",
+    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode));
 
-  EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, GC16_Mode, false);
-  puts("Black/White DONE");
-  sleep(3);
+TIME_CALL("Black_Full A2 (false)",
+    EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, false));
+puts("Black/White DONE");
+sleep(3);
+
+ TIME_CALL("Black_Full A2 (true)",
+    EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, true));
   
-  EPD_IT8951_Black_Full( Dev_Info, Init_Target_Memory_Addr, GC16_Mode, true);
+  /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode); */
+  /* puts("INIT MODE DONE"); */
+  /* sleep(1); */
+
+  /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode); */
+
+  /* EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, false); */
+  /* puts("Black/White DONE"); */
+  /* sleep(3); */
+  
+  /* EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, true); */
   
   EPD_IT8951_Sleep();
 
