@@ -983,3 +983,4 @@ void EPD_IT8951_Black_Full(IT8951_Dev_Info Dev_Info, UDOUBLE Target_Memory_Addr,
 
     free(Frame_Buf);
 }
+

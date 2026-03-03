@@ -1,8 +1,8 @@
 /*****************************************************************************
-* | File      	:   EPD_IT8951.h
-* | Author      :   Waveshare team
+* | File      	:   EPD_IT8951_v2.h
+* | Author      :   Jakub Buczynski
 * | Function    :   IT8951 Common driver
-* | Info        :
+* | Info        :   V2 version of driver is meant to support A2 full refresh.
 *----------------
 * |	This version:   V1.0
 * | Date        :   2019-09-17
@@ -35,6 +35,8 @@
 
 IT8951_Dev_Info V2_EPD_IT8951_Init(UWORD VCOM);
 void V2_EPD_IT8951_Sleep(void);
+void V2_EPD_IT8951_Clear_Init(IT8951_Dev_Info Dev_Info,
+                              UDOUBLE Target_Memory_Addr);
 
 #endif
 

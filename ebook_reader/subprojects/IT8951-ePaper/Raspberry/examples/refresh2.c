@@ -73,10 +73,10 @@ int main(int argc, char *argv[])
     Panel_Width = Dev_Info.Panel_W;
     Panel_Height = Dev_Info.Panel_H;
     Init_Target_Memory_Addr = Dev_Info.Memory_Addr_L | (Dev_Info.Memory_Addr_H << 16);
-
-    /* V2_EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode); */
-    /* puts("INIT MODE DONE"); */
-    /* sleep(1); */
+    
+    V2_EPD_IT8951_Clear_Init(Dev_Info, Init_Target_Memory_Addr);
+    puts("INIT MODE DONE");
+    sleep(1);
     /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
     /* puts("GC16 MODE DONE"); */
     /* sleep(1); */

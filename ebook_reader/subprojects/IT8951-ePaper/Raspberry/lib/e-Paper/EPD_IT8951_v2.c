@@ -41,6 +41,12 @@ UBYTE GC16_Mode = 2;
 // A2_Mode's value is not fixed, is decide by firmware's LUT
 UBYTE A2_Mode = 6;
 
+static void
+V2_EPD_IT8951_HostPackedPixelWrite_4bp(IT8951_Load_Img_Info *Load_Img_Info,
+                                       IT8951_Area_Img_Info *Area_Img_Info);
+static void V2_EPD_IT8951_Display_Area(UWORD X, UWORD Y, UWORD W, UWORD H,
+                                    UWORD Mode);
+
 /******************************************************************************
 function :	Software reset
 parameter:
@@ -218,7 +224,6 @@ static void V2_EPD_IT8951_SetVCOM(UWORD VCOM) {
   V2_EPD_IT8951_WriteData(VCOM);
 }
 
-
 /******************************************************************************
 function :	EPD_IT8951_Get_System_Info
 parameter:
@@ -282,7 +287,166 @@ IT8951_Dev_Info V2_EPD_IT8951_Init(UWORD VCOM) {
 function :	Cmd3 SLEEP
 parameter:  Sleep
 ******************************************************************************/
-void V2_EPD_IT8951_Sleep(void)
-{
-    V2_EPD_IT8951_WriteCommand(IT8951_TCON_SLEEP);
+void V2_EPD_IT8951_Sleep(void) {
+  V2_EPD_IT8951_WriteCommand(IT8951_TCON_SLEEP);
+}
+
+/******************************************************************************
+function :	EPD_IT8951_Clear_Init
+parameter:
+info:           Clear screen for the first time after power on.
+******************************************************************************/
+void V2_EPD_IT8951_Clear_Init(IT8951_Dev_Info Dev_Info,
+                              UDOUBLE Target_Memory_Addr) {
+  puts(__func__);
+  UDOUBLE ImageSize =
+      ((Dev_Info.Panel_W * 4 % 8 == 0) ? (Dev_Info.Panel_W * 4 / 8)
+                                       : (Dev_Info.Panel_W * 4 / 8 + 1)) *
+      Dev_Info.Panel_H;
+  UBYTE *Frame_Buf = malloc(ImageSize);
+  memset(Frame_Buf, 0xFF, ImageSize);
+
+  IT8951_Load_Img_Info Load_Img_Info;
+  IT8951_Area_Img_Info Area_Img_Info;
+
+  /* EPD_IT8951_WaitForDisplayReady(); */
+
+  Load_Img_Info.Source_Buffer_Addr = Frame_Buf;
+  Load_Img_Info.Endian_Type = IT8951_LDIMG_L_ENDIAN;
+  Load_Img_Info.Pixel_Format = IT8951_4BPP;
+  Load_Img_Info.Rotate = IT8951_ROTATE_0;
+  Load_Img_Info.Target_Memory_Addr = Target_Memory_Addr;
+
+  Area_Img_Info.Area_X = 0;
+  Area_Img_Info.Area_Y = 0;
+  Area_Img_Info.Area_W = Dev_Info.Panel_W;
+  Area_Img_Info.Area_H = Dev_Info.Panel_H;
+
+  V2_EPD_IT8951_HostPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info);
+
+  V2_EPD_IT8951_Display_Area(0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H,
+                             INIT_Mode);
+
+  free(Frame_Buf);
+  Frame_Buf = NULL;
+}
+
+/******************************************************************************
+function :	V2_EPD_IT8951_Set_Target_Memory_Addr
+parameter:
+******************************************************************************/
+static void V2_EPD_IT8951_SetTargetMemoryAddr(UDOUBLE Target_Memory_Addr) {
+  UWORD WordH = (UWORD)((Target_Memory_Addr >> 16) & 0x0000FFFF);
+  UWORD WordL = (UWORD)(Target_Memory_Addr & 0x0000FFFF);
+
+  V2_EPD_IT8951_WriteReg(LISAR + 2, WordH);
+  V2_EPD_IT8951_WriteReg(LISAR, WordL);
+}
+
+/******************************************************************************
+function :	Cmd10 LD_IMG
+parameter:
+******************************************************************************/
+static void V2_EPD_IT8951_LoadImgStart(IT8951_Load_Img_Info *Load_Img_Info) {
+  (void)V2_EPD_IT8951_LoadImgStart;
+  UWORD Args;
+  Args = (Load_Img_Info->Endian_Type << 8 | Load_Img_Info->Pixel_Format << 4 |
+          Load_Img_Info->Rotate);
+  V2_EPD_IT8951_WriteCommand(IT8951_TCON_LD_IMG);
+  V2_EPD_IT8951_WriteData(Args);
+}
+
+/******************************************************************************
+function :	Cmd12 LD_IMG_End
+parameter:
+******************************************************************************/
+static void V2_EPD_IT8951_LoadImgEnd(void) {
+  V2_EPD_IT8951_WriteCommand(IT8951_TCON_LD_IMG_END);
+}
+
+/******************************************************************************
+function :	write multi data
+parameter:  data
+******************************************************************************/
+static void V2_EPD_IT8951_WriteMuitiData(UWORD *Data_Buf, UDOUBLE Length) {
+  puts(__func__);
+  // Set Preamble for Write Command
+  UWORD Write_Preamble = 0x0000;
+
+  V2_EPD_IT8951_ReadBusy();
+
+  DEV_Digital_Write(EPD_CS_PIN, LOW);
+
+  DEV_SPI_WriteByte(Write_Preamble >> 8);
+  DEV_SPI_WriteByte(Write_Preamble);
+
+  V2_EPD_IT8951_ReadBusy();
+
+  /* uint8_t buf */
+  for (UDOUBLE i = 0; i < Length; i++) {
+    DEV_SPI_WriteByte(Data_Buf[i] >> 8);
+    DEV_SPI_WriteByte(Data_Buf[i]);
+  }
+
+  DEV_Digital_Write(EPD_CS_PIN, HIGH);
+}
+
+/******************************************************************************
+function :	V2_EPD_IT8951_HostAreaPackedPixelWrite_4bp
+parameter:
+******************************************************************************/
+static void
+V2_EPD_IT8951_HostPackedPixelWrite_4bp(IT8951_Load_Img_Info *Load_Img_Info,
+                                       IT8951_Area_Img_Info *Area_Img_Info) {
+  puts(__func__);
+  UWORD Source_Buffer_Width, Source_Buffer_Height;
+  UWORD Source_Buffer_Length;
+
+  UWORD *Source_Buffer = (UWORD *)Load_Img_Info->Source_Buffer_Addr;
+  V2_EPD_IT8951_SetTargetMemoryAddr(Load_Img_Info->Target_Memory_Addr);
+  V2_EPD_IT8951_LoadImgStart(Load_Img_Info);
+
+  // from byte to word
+  Source_Buffer_Width = (Area_Img_Info->Area_W * 4 / 8) / 2;
+  Source_Buffer_Height = Area_Img_Info->Area_H;
+  Source_Buffer_Length = Source_Buffer_Width * Source_Buffer_Height;
+
+  V2_EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Length);
+
+  V2_EPD_IT8951_LoadImgEnd();
+  printf("%s DONE\n", __func__);
+}
+
+
+/******************************************************************************
+function:	write multi arg
+parameter:	data
+description:	some situation like this:
+* 1 commander     0    argument
+* 1 commander     1    argument
+* 1 commander   multi  argument
+******************************************************************************/
+static void V2_EPD_IT8951_WriteMultiArg(UWORD Arg_Cmd, UWORD *Arg_Buf,
+                                     UWORD Arg_Num) {
+  puts(__func__);    
+  //Send Cmd code
+  V2_EPD_IT8951_WriteCommand(Arg_Cmd);
+  // Send Data
+  for(UWORD i=0; i<Arg_Num; i++)
+    {
+      V2_EPD_IT8951_WriteData(Arg_Buf[i]);
+    }
+}
+
+static void V2_EPD_IT8951_Display_Area(UWORD X, UWORD Y, UWORD W, UWORD H,
+                                    UWORD Mode) {
+  UWORD Args[5];
+  Args[0] = X;
+  Args[1] = Y;
+  Args[2] = W;
+  Args[3] = H;
+  Args[4] = Mode;
+  // 0x0034
+  
+  V2_EPD_IT8951_WriteMultiArg(USDEF_I80_CMD_DPY_AREA, Args, 5);
 }
