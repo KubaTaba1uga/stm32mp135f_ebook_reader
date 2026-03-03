@@ -151,7 +151,7 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
         /* uint8_t buf */
 
         for (UDOUBLE i = 0; i < Length; i += 512) {
-	uint8_t buf[1024] = {0};          
+	uint8_t buf[1024] = {0};        
 	for (int k = 0; k < 512; k++) {
 	  UWORD w = Data_Buf[i + k];
 	  buf[2*k]   = w >> 8;

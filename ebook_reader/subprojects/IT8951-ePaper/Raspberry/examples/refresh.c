@@ -142,12 +142,14 @@ int main(int argc, char *argv[]) {
   }
 
   EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
+    puts("INIT MODE DONE");
+    sleep(1);
 
   EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode);
 
   EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, GC16_Mode, false);
-
-  sleep(1);
+    puts("Black/White DONE");
+    sleep(3);
   
   EPD_IT8951_Black_Full( Dev_Info, Init_Target_Memory_Addr, GC16_Mode, true);
   
