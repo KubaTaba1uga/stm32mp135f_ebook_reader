@@ -77,6 +77,14 @@ int main(int argc, char *argv[])
     V2_EPD_IT8951_Clear_Init(Dev_Info, Init_Target_Memory_Addr);
     puts("INIT MODE DONE");
     sleep(1);
+    V2_EPD_IT8951_Clear_BW(Dev_Info, Init_Target_Memory_Addr, false);
+    puts("Black/White DONE");
+    sleep(3);
+    V2_EPD_IT8951_Clear_BW(Dev_Info, Init_Target_Memory_Addr, true);
+    puts("Black/White DONE");
+    sleep(3);
+
+    
     /* EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, GC16_Mode); */
     /* puts("GC16 MODE DONE"); */
     /* sleep(1); */

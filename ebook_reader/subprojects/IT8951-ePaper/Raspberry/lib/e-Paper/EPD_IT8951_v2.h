@@ -37,6 +37,7 @@ IT8951_Dev_Info V2_EPD_IT8951_Init(UWORD VCOM);
 void V2_EPD_IT8951_Sleep(void);
 void V2_EPD_IT8951_Clear_Init(IT8951_Dev_Info Dev_Info,
                               UDOUBLE Target_Memory_Addr);
-
+void V2_EPD_IT8951_Clear_BW(IT8951_Dev_Info Dev_Info,
+			    UDOUBLE Target_Memory_Addr, bool is_black);
 #endif
 

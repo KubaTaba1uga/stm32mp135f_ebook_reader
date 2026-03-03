@@ -558,14 +558,16 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_8bp(IT8951_Load_Img_Info*Load_Im
     Source_Buffer_Width = (Area_Img_Info->Area_W*8/8)/2;
     Source_Buffer_Height = Area_Img_Info->Area_H;
 
-    for(UDOUBLE i=0; i<Source_Buffer_Height; i++)
-    {
-        for(UDOUBLE j=0; j<Source_Buffer_Width; j++)
-        {
-            EPD_IT8951_WriteData(*Source_Buffer);
-            Source_Buffer++;
-        }
-    }
+    EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Width *Source_Buffer_Height);
+    
+    /* for(UDOUBLE i=0; i<Source_Buffer_Height; i++) */
+    /* { */
+    /*     for(UDOUBLE j=0; j<Source_Buffer_Width; j++) */
+    /*     { */
+    /*         EPD_IT8951_WriteData(*Source_Buffer); */
+    /*         Source_Buffer++; */
+    /*     } */
+    /* } */
     EPD_IT8951_LoadImgEnd();
 }
 

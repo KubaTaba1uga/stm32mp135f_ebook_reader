@@ -34,12 +34,9 @@
 
 #include "EPD_IT8951.h"
 #include "Raspberry/lib/Config/DEV_Config.h"
+#include "unistd.h"
+/* #include "STM32/Project/6-IT8951/IT8951.h" */
 
-// basic mode definition
-UBYTE INIT_Mode = 0;
-UBYTE GC16_Mode = 2;
-// A2_Mode's value is not fixed, is decide by firmware's LUT
-UBYTE A2_Mode = 6;
 
 static void
 V2_EPD_IT8951_HostPackedPixelWrite_4bp(IT8951_Load_Img_Info *Load_Img_Info,
@@ -291,6 +288,32 @@ void V2_EPD_IT8951_Sleep(void) {
   V2_EPD_IT8951_WriteCommand(IT8951_TCON_SLEEP);
 }
 
+
+/******************************************************************************
+function :	Cmd4 ReadReg
+parameter:  
+******************************************************************************/
+static UWORD V2_EPD_IT8951_ReadReg(UWORD Reg_Address)
+{
+    UWORD Reg_Value;
+    V2_EPD_IT8951_WriteCommand(IT8951_TCON_REG_RD);
+    V2_EPD_IT8951_WriteData(Reg_Address);
+    Reg_Value =  V2_EPD_IT8951_ReadData();
+    return Reg_Value;
+}
+
+/******************************************************************************
+function :	V2_EPD_IT8951_WaitForDisplayReady
+parameter:  
+******************************************************************************/
+static void V2_EPD_IT8951_WaitForDisplayReady(void)
+{
+    //Check IT8951 Register LUTAFSR => NonZero Busy, Zero - Free
+    while( V2_EPD_IT8951_ReadReg(LUTAFSR) )
+    {
+        //wait in idle state
+    }
+}
 /******************************************************************************
 function :	EPD_IT8951_Clear_Init
 parameter:
@@ -306,23 +329,23 @@ void V2_EPD_IT8951_Clear_Init(IT8951_Dev_Info Dev_Info,
   UBYTE *Frame_Buf = malloc(ImageSize);
   memset(Frame_Buf, 0xFF, ImageSize);
 
-  IT8951_Load_Img_Info Load_Img_Info;
-  IT8951_Area_Img_Info Area_Img_Info;
+  /* IT8951_Load_Img_Info Load_Img_Info; */
+  /* IT8951_Area_Img_Info Area_Img_Info; */
 
-  /* EPD_IT8951_WaitForDisplayReady(); */
+  V2_EPD_IT8951_WaitForDisplayReady();
 
-  Load_Img_Info.Source_Buffer_Addr = Frame_Buf;
-  Load_Img_Info.Endian_Type = IT8951_LDIMG_L_ENDIAN;
-  Load_Img_Info.Pixel_Format = IT8951_4BPP;
-  Load_Img_Info.Rotate = IT8951_ROTATE_0;
-  Load_Img_Info.Target_Memory_Addr = Target_Memory_Addr;
+  /* Load_Img_Info.Source_Buffer_Addr = Frame_Buf; */
+  /* Load_Img_Info.Endian_Type = IT8951_LDIMG_L_ENDIAN; */
+  /* Load_Img_Info.Pixel_Format = IT8951_4BPP; */
+  /* Load_Img_Info.Rotate = IT8951_ROTATE_0; */
+  /* Load_Img_Info.Target_Memory_Addr = Target_Memory_Addr; */
 
-  Area_Img_Info.Area_X = 0;
-  Area_Img_Info.Area_Y = 0;
-  Area_Img_Info.Area_W = Dev_Info.Panel_W;
-  Area_Img_Info.Area_H = Dev_Info.Panel_H;
+  /* Area_Img_Info.Area_X = 0; */
+  /* Area_Img_Info.Area_Y = 0; */
+  /* Area_Img_Info.Area_W = Dev_Info.Panel_W; */
+  /* Area_Img_Info.Area_H = Dev_Info.Panel_H; */
 
-  V2_EPD_IT8951_HostPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info);
+  /* V2_EPD_IT8951_HostPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info); */
 
   V2_EPD_IT8951_Display_Area(0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H,
                              INIT_Mode);
@@ -389,6 +412,7 @@ static void V2_EPD_IT8951_WriteMuitiData(UWORD *Data_Buf, UDOUBLE Length) {
   }
 
   DEV_Digital_Write(EPD_CS_PIN, HIGH);
+  (void)V2_EPD_IT8951_HostPackedPixelWrite_4bp;
 }
 
 /******************************************************************************
@@ -413,6 +437,34 @@ V2_EPD_IT8951_HostPackedPixelWrite_4bp(IT8951_Load_Img_Info *Load_Img_Info,
 
   V2_EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Length);
 
+  V2_EPD_IT8951_LoadImgEnd();
+  printf("%s DONE\n", __func__);
+}
+
+/******************************************************************************
+function :	V2_EPD_IT8951_HostAreaPackedPixelWrite_4bp
+parameter:
+******************************************************************************/
+static void
+V2_EPD_IT8951_HostPackedPixelWrite_8bp(IT8951_Load_Img_Info *Load_Img_Info,
+                                       IT8951_Area_Img_Info *Area_Img_Info) {
+  puts(__func__);
+  UWORD Source_Buffer_Width, Source_Buffer_Height;
+  UWORD Source_Buffer_Length;
+
+  UWORD *Source_Buffer = (UWORD *)Load_Img_Info->Source_Buffer_Addr;
+  V2_EPD_IT8951_SetTargetMemoryAddr(Load_Img_Info->Target_Memory_Addr);
+  V2_EPD_IT8951_LoadImgStart(Load_Img_Info);
+
+  // from byte to word
+  Source_Buffer_Width = (Area_Img_Info->Area_W * 8 / 8) / 2;
+  Source_Buffer_Height = Area_Img_Info->Area_H;
+  Source_Buffer_Length = Source_Buffer_Width * Source_Buffer_Height;
+
+  V2_EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Length);
+
+  sleep(1);
+  
   V2_EPD_IT8951_LoadImgEnd();
   printf("%s DONE\n", __func__);
 }
@@ -449,4 +501,51 @@ static void V2_EPD_IT8951_Display_Area(UWORD X, UWORD Y, UWORD W, UWORD H,
   // 0x0034
   
   V2_EPD_IT8951_WriteMultiArg(USDEF_I80_CMD_DPY_AREA, Args, 5);
+}
+
+static void V2_EPD_IT8951_Display_AreaBuf(UWORD X,UWORD Y,UWORD W,UWORD H,UWORD Mode, UDOUBLE Addr)
+{
+    UWORD Args[7] = { X, Y, W, H, Mode, (UWORD)Addr, (UWORD)(Addr >> 16) };
+    V2_EPD_IT8951_WriteMultiArg(USDEF_I80_CMD_DPY_BUF_AREA, Args, 7); // 0x0037
+}
+
+/******************************************************************************
+function :	EPD_IT8951_Clear_Init
+parameter:
+info:           Clear screen for the first time after power on.
+******************************************************************************/
+void V2_EPD_IT8951_Clear_BW(IT8951_Dev_Info Dev_Info,
+			    UDOUBLE Target_Memory_Addr, bool is_black) {
+  puts(__func__);
+  UDOUBLE ImageSize =
+      ((Dev_Info.Panel_W * 16 % 8 == 0) ? (Dev_Info.Panel_W * 16 / 8)
+                                       : (Dev_Info.Panel_W * 16 / 8 + 1)) *
+      Dev_Info.Panel_H;
+  UBYTE *Frame_Buf = malloc(ImageSize);
+  memset(Frame_Buf, is_black ? 0x00: 0xFF , ImageSize);
+
+  IT8951_Load_Img_Info Load_Img_Info;
+  IT8951_Area_Img_Info Area_Img_Info;
+
+  V2_EPD_IT8951_WaitForDisplayReady();
+
+  Load_Img_Info.Source_Buffer_Addr = Frame_Buf;
+  /* Load_Img_Info.Endian_Type = IT8951_LDIMG_L_ENDIAN; */
+  Load_Img_Info.Endian_Type = IT8951_LDIMG_B_ENDIAN;  
+  Load_Img_Info.Pixel_Format = IT8951_8BPP;
+  Load_Img_Info.Rotate = IT8951_ROTATE_0;
+  Load_Img_Info.Target_Memory_Addr = Target_Memory_Addr;
+
+  Area_Img_Info.Area_X = 0;
+  Area_Img_Info.Area_Y = 0;
+  Area_Img_Info.Area_W = Dev_Info.Panel_W;
+  Area_Img_Info.Area_H = Dev_Info.Panel_H;
+
+  V2_EPD_IT8951_HostPackedPixelWrite_8bp(&Load_Img_Info, &Area_Img_Info);
+  V2_EPD_IT8951_Display_AreaBuf(0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H,
+				GC16_Mode, Target_Memory_Addr);  
+  V2_EPD_IT8951_WaitForDisplayReady();
+  
+  free(Frame_Buf);
+  Frame_Buf = NULL;
 }

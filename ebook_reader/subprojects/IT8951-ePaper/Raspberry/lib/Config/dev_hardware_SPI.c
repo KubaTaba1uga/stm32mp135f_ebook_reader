@@ -96,8 +96,7 @@ void DEV_HARDWARE_SPI_begin(char *SPI_device)
     
     DEV_HARDWARE_SPI_Mode(SPI_MODE_0);
     DEV_HARDWARE_SPI_ChipSelect(SPI_CS_Mode_LOW);
-    /* DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_LSBFIRST);     */
-    DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
+    DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_LSBFIRST);
     DEV_HARDWARE_SPI_setSpeed(12500000);
     DEV_HARDWARE_SPI_SetDataInterval(5);
 }
@@ -343,45 +342,45 @@ parameter:
     buf :   Sent data
 Info:
 ******************************************************************************/
-uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t byte)
-{
-    /* printf("%s: byte=0x%02x\n", __func__, byte); */
+/* uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t byte) */
+/* { */
+/*     /\* printf("%s: byte=0x%02x\n", __func__, byte); *\/ */
 
-    uint8_t tx = byte;
-    uint8_t rx = 0;
+/*     uint8_t tx = byte; */
+/*     uint8_t rx = 0; */
 
-    struct spi_ioc_transfer tr = {0};
+/*     struct spi_ioc_transfer tr = {0}; */
 
-    tr.tx_buf = (uintptr_t)&tx;     // IMPORTANT: uintptr_t
-    tr.rx_buf = (uintptr_t)&rx;
-    tr.len    = 1;
-    tr.speed_hz = 1000000;          // set something valid (1 MHz example)
-    tr.bits_per_word = 8;           // typical
+/*     tr.tx_buf = (uintptr_t)&tx;     // IMPORTANT: uintptr_t */
+/*     tr.rx_buf = (uintptr_t)&rx; */
+/*     tr.len    = 1; */
+/*     tr.speed_hz = 1000000;          // set something valid (1 MHz example) */
+/*     tr.bits_per_word = 8;           // typical */
 
-    int ret = ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr);
-    if (ret < 1) {
-        printf("Debug: can't send spi message, ret=%d\n",
-               ret);
-        perror(__func__);
-    }
-
-    return rx;
-}
-
-/* uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t buf) */
-/* {    */
-/*     uint8_t rbuf[1]; */
-/*     tr.len = 1; */
-/*     tr.tx_buf =  (unsigned long)&buf; */
-/*     tr.rx_buf =  (unsigned long)rbuf; */
-    
-/*     //ioctl Operation, transmission of data */
-/*     if ( ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr) < 1 )  { */
-/*       DEV_HARDWARE_SPI_Debug("can't send spi message\r\n"); */
-/*       perror(__func__); */
+/*     int ret = ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr); */
+/*     if (ret < 1) { */
+/*         printf("Debug: can't send spi message, ret=%d\n", */
+/*                ret); */
+/*         perror(__func__); */
 /*     } */
-/*     return rbuf[0]; */
+
+/*     return rx; */
 /* } */
+
+uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t buf)
+{
+    uint8_t rbuf[1];
+    tr.len = 1;
+    tr.tx_buf =  (unsigned long)&buf;
+    tr.rx_buf =  (unsigned long)rbuf;
+    
+    //ioctl Operation, transmission of data
+    if ( ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr) < 1 )  {
+      DEV_HARDWARE_SPI_Debug("can't send spi message\r\n");
+      perror(__func__);
+    }
+    return rbuf[0];
+}
 
 /******************************************************************************
 function: The SPI port reads a byte

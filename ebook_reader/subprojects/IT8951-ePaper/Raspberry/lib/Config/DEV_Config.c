@@ -290,10 +290,9 @@ UBYTE DEV_Module_Init(void)
 	GPIOD_Export();
 	DEV_GPIO_Init();
 	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
-	DEV_HARDWARE_SPI_setSpeed(1000000); // 1MHz
+	/* DEV_HARDWARE_SPI_setSpeed(1000000); // 1MHz */
 	DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
-	/* DEV_HARDWARE_SPI_setSpeed(12500000); */
-	/* DEV_HARDWARE_SPI_setSpeed(1000000); // 1MB */
+	DEV_HARDWARE_SPI_setSpeed(12500000);
 #endif
 
     Debug("/***********************************/ \r\n");
