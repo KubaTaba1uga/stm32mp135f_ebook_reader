@@ -203,7 +203,7 @@ void EPD_IT8951_2bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
 void EPD_IT8951_4bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, bool Hold, UDOUBLE Target_Memory_Addr, bool Packed_Write);
 
 void EPD_IT8951_8bp_Refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, bool Hold, UDOUBLE Target_Memory_Addr);
-
+void EPD_IT8951_Black_Full(IT8951_Dev_Info Dev_Info, UDOUBLE Target_Memory_Addr, UWORD Mode, bool is_white);
 
 
 #endif

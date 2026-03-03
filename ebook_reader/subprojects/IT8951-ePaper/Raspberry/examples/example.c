@@ -893,3 +893,112 @@ void Color_Test(IT8951_Dev_Info Dev_Info, UDOUBLE Init_Target_Memory_Addr)
 		break;
 	}
 }
+
+
+UBYTE Display_Black_Example(UWORD Panel_Width, UWORD Panel_Height, UDOUBLE Init_Target_Memory_Addr, UBYTE BitsPerPixel){
+    UWORD WIDTH;
+    if(Four_Byte_Align == true){
+        WIDTH  = Panel_Width - (Panel_Width % 32);
+    }else{
+        WIDTH = Panel_Width;
+    }
+    UWORD HEIGHT = Panel_Height;
+
+    UDOUBLE Imagesize;
+
+    Imagesize = ((WIDTH * BitsPerPixel % 8 == 0)? (WIDTH * BitsPerPixel / 8 ): (WIDTH * BitsPerPixel / 8 + 1)) * HEIGHT;
+    if((Refresh_Frame_Buf = (UBYTE *)malloc(Imagesize)) == NULL) {
+        Debug("Failed to apply for black memory...\r\n");
+        return -1;
+    }
+
+    Paint_NewImage(Refresh_Frame_Buf, WIDTH, HEIGHT, 0, BLACK);
+    Paint_SelectImage(Refresh_Frame_Buf);
+    Epd_Mode(epd_mode);
+    Paint_SetBitsPerPixel(BitsPerPixel);
+    Paint_Clear(BLACK);
+
+
+    switch(BitsPerPixel){
+        case BitsPerPixel_8:{
+            EPD_IT8951_8bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr);
+            break;
+        }
+        case BitsPerPixel_4:{
+            EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr,false);
+            break;
+        }
+        case BitsPerPixel_2:{
+            EPD_IT8951_2bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr,false);
+            break;
+        }
+        case BitsPerPixel_1:{
+            EPD_IT8951_1bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, A2_Mode, Init_Target_Memory_Addr,false);
+            break;
+        }
+    }
+
+    if(Refresh_Frame_Buf != NULL){
+        free(Refresh_Frame_Buf);
+        Refresh_Frame_Buf = NULL;
+    }
+
+    DEV_Delay_ms(5000);
+
+    return 0;
+}
+
+
+
+UBYTE Display_BlackFull_Example(UWORD Panel_Width, UWORD Panel_Height, UDOUBLE Init_Target_Memory_Addr, UBYTE BitsPerPixel){
+    UWORD WIDTH;
+    if(Four_Byte_Align == true){
+        WIDTH  = Panel_Width - (Panel_Width % 32);
+    }else{
+        WIDTH = Panel_Width;
+    }
+    UWORD HEIGHT = Panel_Height;
+
+    UDOUBLE Imagesize;
+
+    Imagesize = ((WIDTH * BitsPerPixel % 8 == 0)? (WIDTH * BitsPerPixel / 8 ): (WIDTH * BitsPerPixel / 8 + 1)) * HEIGHT;
+    if((Refresh_Frame_Buf = (UBYTE *)malloc(Imagesize)) == NULL) {
+        Debug("Failed to apply for black memory...\r\n");
+        return -1;
+    }
+
+    Paint_NewImage(Refresh_Frame_Buf, WIDTH, HEIGHT, 0, BLACK);
+    Paint_SelectImage(Refresh_Frame_Buf);
+    Epd_Mode(epd_mode);
+    Paint_SetBitsPerPixel(BitsPerPixel);
+    Paint_Clear(BLACK);
+
+
+    switch(BitsPerPixel){
+        case BitsPerPixel_8:{
+            EPD_IT8951_8bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr);
+            break;
+        }
+        case BitsPerPixel_4:{
+            EPD_IT8951_4bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr,false);
+            break;
+        }
+        case BitsPerPixel_2:{
+            EPD_IT8951_2bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, false, Init_Target_Memory_Addr,false);
+            break;
+        }
+        case BitsPerPixel_1:{
+            EPD_IT8951_1bp_Refresh(Refresh_Frame_Buf, 0, 0, WIDTH,  HEIGHT, A2_Mode, Init_Target_Memory_Addr,true);
+            break;
+        }
+    }
+
+    if(Refresh_Frame_Buf != NULL){
+        free(Refresh_Frame_Buf);
+        Refresh_Frame_Buf = NULL;
+    }
+
+    DEV_Delay_ms(5000);
+
+    return 0;
+}

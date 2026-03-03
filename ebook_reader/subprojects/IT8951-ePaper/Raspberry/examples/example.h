@@ -40,5 +40,5 @@ UBYTE TouchPanel_ePaper_Example(UWORD Panel_Width, UWORD Panel_Height, UDOUBLE I
 
 void Factory_Test_Only(IT8951_Dev_Info Dev_Info, UDOUBLE Init_Target_Memory_Addr);
 void Color_Test(IT8951_Dev_Info Dev_Info, UDOUBLE Init_Target_Memory_Addr);
-
+UBYTE Display_Black_Example(UWORD Panel_Width, UWORD Panel_Height, UDOUBLE Init_Target_Memory_Addr, UBYTE BitsPerPixel);
 #endif
