@@ -134,6 +134,62 @@ static void EPD_IT8951_WriteData(UWORD Data) {
 function :	write multi data
 parameter:  data
 ******************************************************************************/
+static void EPD_IT8951_WriteMuitiData2(UWORD *Data_Buf, UDOUBLE WIDTH,
+                                       UDOUBLE HEIGTH) {
+    const UWORD Write_Preamble = 0x0000;
+
+    EPD_IT8951_ReadBusy();
+    DEV_Digital_Write(EPD_CS_PIN, LOW);
+
+    DEV_SPI_WriteByte(Write_Preamble >> 8);
+    DEV_SPI_WriteByte(Write_Preamble);
+
+    EPD_IT8951_ReadBusy();
+
+    uint8_t buf[1024];
+    for (UDOUBLE i = 0; i < HEIGTH * WIDTH; i+=512) { 
+	  for (int k = 0; k < 512; k++) {
+	    UWORD w = Data_Buf[i + k];
+	    buf[2*k]   = w >> 8;
+	    buf[2*k+1] = w & 0xFF;
+	  }
+
+	  DEV_SPI_WriteBytes(buf, 1024);
+	  /* EPD_IT8951_WriteData(*Data_Buf); */
+	  /* Data_Buf++; */
+    }
+    /* for (UDOUBLE i = 0; i < HEIGTH * WIDTH; i+=1) {  */     
+    /* 	  EPD_IT8951_WriteData(*Data_Buf); */
+    /* 	  Data_Buf++; */
+    /* } */
+    
+  /* for(UDOUBLE i=0; i<HEIGTH; i++) */
+  /*   { */
+  /*     for(UDOUBLE j=0; j<WIDTH; j++) */
+  /* 	{ */
+  /* 	  EPD_IT8951_WriteData(*Data_Buf); */
+  /* 	  Data_Buf++; */
+  /* 	} */
+  /*   } */
+    /* const UWORD Write_Preamble = 0x0000; */
+
+    /* EPD_IT8951_ReadBusy(); */
+    /* DEV_Digital_Write(EPD_CS_PIN, LOW); */
+
+    /* DEV_SPI_WriteByte(Write_Preamble >> 8); */
+    /* DEV_SPI_WriteByte(Write_Preamble); */
+
+    /* EPD_IT8951_ReadBusy();     */
+    /* for (UDOUBLE i = 0; i < LengthWords; i++) */
+    /* { */
+
+    /*     DEV_SPI_WriteByte(Data_Buf[i] >> 8); */
+    /*     DEV_SPI_WriteByte(Data_Buf[i] & 0xFF); */
+    /* } */
+
+    /* DEV_Digital_Write(EPD_CS_PIN, HIGH); */
+}
+
 static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
 {
     const UWORD Write_Preamble = 0x0000;
@@ -144,15 +200,17 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
     DEV_SPI_WriteByte(Write_Preamble >> 8);
     DEV_SPI_WriteByte(Write_Preamble);
 
+    EPD_IT8951_ReadBusy();
     for (UDOUBLE i = 0; i < LengthWords; i++)
     {
-        EPD_IT8951_ReadBusy();
+
         DEV_SPI_WriteByte(Data_Buf[i] >> 8);
         DEV_SPI_WriteByte(Data_Buf[i] & 0xFF);
     }
 
     DEV_Digital_Write(EPD_CS_PIN, HIGH);
 }
+
 
 /* static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length) */
 /* {puts(__func__); */
@@ -444,26 +502,23 @@ parameter:
 static void EPD_IT8951_HostAreaPackedPixelWrite_1bp(IT8951_Load_Img_Info*Load_Img_Info,IT8951_Area_Img_Info*Area_Img_Info, bool Packed_Write)
 {
     UWORD Source_Buffer_Width, Source_Buffer_Height;
-    UWORD Source_Buffer_Length;
+    /* UWORD Source_Buffer_Length; */
 
     UWORD* Source_Buffer = (UWORD*)Load_Img_Info->Source_Buffer_Addr;
     EPD_IT8951_SetTargetMemoryAddr(Load_Img_Info->Target_Memory_Addr);
 
     EPD_IT8951_LoadImgAreaStart(Load_Img_Info,Area_Img_Info);
-    /* EPD_IT8951_LoadImgStart(Load_Img_Info); */
 
     //from byte to word
     //use 8bp to display 1bp, so here, divide by 2, because every byte has full bit.
     Source_Buffer_Width = Area_Img_Info->Area_W/2;
     Source_Buffer_Height = Area_Img_Info->Area_H;
-    Source_Buffer_Length = Source_Buffer_Width * Source_Buffer_Height;
+    /* Source_Buffer_Length = Source_Buffer_Width * Source_Buffer_Height; */
     
     if(Packed_Write == true)
     {
-        EPD_IT8951_WriteMuitiData(Source_Buffer, Source_Buffer_Length);
-    }
-    else
-    {
+      EPD_IT8951_WriteMuitiData2(Source_Buffer,Source_Buffer_Height, Source_Buffer_Width);
+    } else {
         for(UDOUBLE i=0; i<Source_Buffer_Height; i++)
         {
             for(UDOUBLE j=0; j<Source_Buffer_Width; j++)
@@ -731,7 +786,7 @@ IT8951_Dev_Info EPD_IT8951_Init(UWORD VCOM)
     EPD_IT8951_GetSystemInfo(&Dev_Info);
     
     //Enable Pack write
-    EPD_IT8951_WriteReg(I80CPCR,0x0001);
+    /* EPD_IT8951_WriteReg(I80CPCR,0x0001); */
 
     //Set VCOM by handle
     if(VCOM != EPD_IT8951_GetVCOM())
@@ -822,7 +877,8 @@ void EPD_IT8951_1bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
 
     //start = clock();
 
-    EPD_IT8951_Display_1bp(X,Y,W,H,Mode,Target_Memory_Addr,0xF0,0x00);
+    /* EPD_IT8951_Display_1bp(X, Y, W, H, Mode, Target_Memory_Addr, 0xF0, 0x00); */
+    EPD_IT8951_Display_1bp(X,Y,W,H,Mode,Target_Memory_Addr,0xFF,0x00);    
 
     //finish = clock();
     //duration = (double)(finish - start) / CLOCKS_PER_SEC;

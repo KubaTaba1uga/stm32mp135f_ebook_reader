@@ -172,18 +172,18 @@ int main(int argc, char *argv[]) {
   uint8_t *buf = malloc(buf_len);
   memset(buf, 0x00, buf_len);
   
-  TIME_CALL("1bp_Refresh A2 - Black",
+  TIME_CALL("1bp_Refresh GC16 - Black",
             EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
                                    Dev_Info.Panel_H - 4, GC16_Mode,
-                                   Init_Target_Memory_Addr, false));
+                                   Init_Target_Memory_Addr, true));
 
   sleep(5);
 
   memset(buf, 0xFF, buf_len);  
-  TIME_CALL("1bp_Refresh A2 - White",
+  TIME_CALL("1bp_Refresh GC16 - White",
             EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
                                    Dev_Info.Panel_H - 4, GC16_Mode,
-                                   Init_Target_Memory_Addr, false));
+                                   Init_Target_Memory_Addr, true));
 
   sleep(5);
 
