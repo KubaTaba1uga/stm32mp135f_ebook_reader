@@ -115,16 +115,16 @@ static void EPD_IT8951_WriteData(UWORD Data) {
   
   DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-  /* uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Data>>8, Data}; */
-  /* DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t)); */
+  uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Data>>8, Data};
+  DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t));
     
-  DEV_SPI_WriteByte(Write_Preamble>>8);
-  DEV_SPI_WriteByte(Write_Preamble);
+  /* DEV_SPI_WriteByte(Write_Preamble>>8); */
+  /* DEV_SPI_WriteByte(Write_Preamble); */
 
-  EPD_IT8951_ReadBusy();
+  /* EPD_IT8951_ReadBusy(); */
 
-  DEV_SPI_WriteByte(Data>>8);
-  DEV_SPI_WriteByte(Data);
+  /* DEV_SPI_WriteByte(Data>>8); */
+  /* DEV_SPI_WriteByte(Data); */
 
   DEV_Digital_Write(EPD_CS_PIN, HIGH);
 }
@@ -134,34 +134,66 @@ static void EPD_IT8951_WriteData(UWORD Data) {
 function :	write multi data
 parameter:  data
 ******************************************************************************/
-static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
-{puts(__func__);
-    //Set Preamble for Write Command
-	UWORD Write_Preamble = 0x0000;
+static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
+{
+    const UWORD Write_Preamble = 0x0000;
 
-	EPD_IT8951_ReadBusy();
+    EPD_IT8951_ReadBusy();
+    DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-	DEV_Digital_Write(EPD_CS_PIN, LOW);
+    DEV_SPI_WriteByte(Write_Preamble >> 8);
+    DEV_SPI_WriteByte(Write_Preamble);
 
-	DEV_SPI_WriteByte(Write_Preamble>>8);
-	DEV_SPI_WriteByte(Write_Preamble);
+    uint8_t buf[1024];
 
-        /* EPD_IT8951_ReadBusy(); */
+    for (UDOUBLE i = 0; i < LengthWords; )
+    {
+        UDOUBLE remaining = LengthWords - i;
+        UDOUBLE chunkWords = (remaining > 512) ? 512 : remaining; // 512 words = 1024 bytes
 
-        /* uint8_t buf */
-	  uint8_t buf[1024] = {0};        
-        for (UDOUBLE i = 0; i < Length; i += 512) {
-	  EPD_IT8951_ReadBusy();
-	  for (int k = 0; k < 512; k++) {
-	    UWORD w = Data_Buf[i + k];
-	    buf[2*k]   = w >> 8;
-	    buf[2*k+1] = w & 0xFF;
-	  }
-	  DEV_HARDWARE_SPI_Transfer(buf, sizeof(buf));          
-	}        
-        
-        DEV_Digital_Write(EPD_CS_PIN, HIGH);
+        EPD_IT8951_ReadBusy();
+
+        for (UDOUBLE k = 0; k < chunkWords; k++) {
+            UWORD w = Data_Buf[i + k];
+            buf[2*k]   = (uint8_t)(w >> 8);
+            buf[2*k+1] = (uint8_t)(w & 0xFF);
+        }
+
+        DEV_HARDWARE_SPI_Transfer(buf, (uint32_t)(chunkWords * 2));
+        i += chunkWords;
+    }
+
+    DEV_Digital_Write(EPD_CS_PIN, HIGH);
 }
+
+/* static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length) */
+/* {puts(__func__); */
+/*     //Set Preamble for Write Command */
+/* 	UWORD Write_Preamble = 0x0000; */
+
+/* 	EPD_IT8951_ReadBusy(); */
+
+/* 	DEV_Digital_Write(EPD_CS_PIN, LOW); */
+
+/* 	DEV_SPI_WriteByte(Write_Preamble>>8); */
+/* 	DEV_SPI_WriteByte(Write_Preamble); */
+
+/*         /\* EPD_IT8951_ReadBusy(); *\/ */
+
+/*         /\* uint8_t buf *\/ */
+/* 	  uint8_t buf[1024] = {0};         */
+/*         for (UDOUBLE i = 0; i < Length; i += 512) { */
+/* 	  EPD_IT8951_ReadBusy(); */
+/* 	  for (int k = 0; k < 512; k++) { */
+/* 	    UWORD w = Data_Buf[i + k]; */
+/* 	    buf[2*k]   = w >> 8; */
+/* 	    buf[2*k+1] = w & 0xFF; */
+/* 	  } */
+/* 	  DEV_HARDWARE_SPI_Transfer(buf, sizeof(buf));           */
+/* 	}         */
+        
+/*         DEV_Digital_Write(EPD_CS_PIN, HIGH); */
+/* } */
 
 
 /******************************************************************************
