@@ -144,23 +144,11 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
     DEV_SPI_WriteByte(Write_Preamble >> 8);
     DEV_SPI_WriteByte(Write_Preamble);
 
-    uint8_t buf[1024];
-
-    for (UDOUBLE i = 0; i < LengthWords; )
+    for (UDOUBLE i = 0; i < LengthWords; i++)
     {
-        UDOUBLE remaining = LengthWords - i;
-        UDOUBLE chunkWords = (remaining > 512) ? 512 : remaining; // 512 words = 1024 bytes
-
         EPD_IT8951_ReadBusy();
-
-        for (UDOUBLE k = 0; k < chunkWords; k++) {
-            UWORD w = Data_Buf[i + k];
-            buf[2*k]   = (uint8_t)(w >> 8);
-            buf[2*k+1] = (uint8_t)(w & 0xFF);
-        }
-
-        DEV_HARDWARE_SPI_Transfer(buf, (uint32_t)(chunkWords * 2));
-        i += chunkWords;
+        DEV_SPI_WriteByte(Data_Buf[i] >> 8);
+        DEV_SPI_WriteByte(Data_Buf[i] & 0xFF);
     }
 
     DEV_Digital_Write(EPD_CS_PIN, HIGH);
