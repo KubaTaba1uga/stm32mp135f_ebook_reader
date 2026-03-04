@@ -31,6 +31,7 @@
 #include "EPD_IT8951.h"
 #include "Raspberry/lib/Config/DEV_Config.h"
 #include "Raspberry/lib/Config/dev_hardware_SPI.h"
+#include "unistd.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -107,7 +108,7 @@ function :	write data
 parameter:  data
 ******************************************************************************/
 static void EPD_IT8951_WriteData(UWORD Data) {
-  /* puts(__func__); */
+  puts(__func__);
   //Set Preamble for Write Command
   UWORD Write_Preamble = 0x0000;
   
@@ -136,58 +137,27 @@ parameter:  data
 ******************************************************************************/
 static void EPD_IT8951_WriteMuitiData2(UWORD *Data_Buf, UDOUBLE WIDTH,
                                        UDOUBLE HEIGTH) {
-    const UWORD Write_Preamble = 0x0000;
+  puts(__func__)  ;
+  const UWORD Write_Preamble = 0x0000;
 
-    EPD_IT8951_ReadBusy();
-    DEV_Digital_Write(EPD_CS_PIN, LOW);
+  EPD_IT8951_ReadBusy();
+  DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-    DEV_SPI_WriteByte(Write_Preamble >> 8);
-    DEV_SPI_WriteByte(Write_Preamble);
+  DEV_SPI_WriteByte(Write_Preamble >> 8);
+  DEV_SPI_WriteByte(Write_Preamble);
 
-    EPD_IT8951_ReadBusy();
+  EPD_IT8951_ReadBusy();
 
-    uint8_t buf[1024];
-    for (UDOUBLE i = 0; i < HEIGTH * WIDTH; i+=512) { 
-	  for (int k = 0; k < 512; k++) {
-	    UWORD w = Data_Buf[i + k];
-	    buf[2*k]   = w >> 8;
-	    buf[2*k+1] = w & 0xFF;
-	  }
-
-	  DEV_SPI_WriteBytes(buf, 1024);
-	  /* EPD_IT8951_WriteData(*Data_Buf); */
-	  /* Data_Buf++; */
+  uint8_t buf[2048]; // IT8951 has 2k internal buffer so we want to use it all
+  for (UDOUBLE i = 0; i < HEIGTH * WIDTH; i += 1024) {
+    for (int k = 0; k < 1024; k++) {
+      UWORD w = Data_Buf[i + k];
+      buf[2 * k] = w >> 8;
+      buf[2 * k + 1] = w & 0xFF;
     }
-    /* for (UDOUBLE i = 0; i < HEIGTH * WIDTH; i+=1) {  */     
-    /* 	  EPD_IT8951_WriteData(*Data_Buf); */
-    /* 	  Data_Buf++; */
-    /* } */
-    
-  /* for(UDOUBLE i=0; i<HEIGTH; i++) */
-  /*   { */
-  /*     for(UDOUBLE j=0; j<WIDTH; j++) */
-  /* 	{ */
-  /* 	  EPD_IT8951_WriteData(*Data_Buf); */
-  /* 	  Data_Buf++; */
-  /* 	} */
-  /*   } */
-    /* const UWORD Write_Preamble = 0x0000; */
 
-    /* EPD_IT8951_ReadBusy(); */
-    /* DEV_Digital_Write(EPD_CS_PIN, LOW); */
-
-    /* DEV_SPI_WriteByte(Write_Preamble >> 8); */
-    /* DEV_SPI_WriteByte(Write_Preamble); */
-
-    /* EPD_IT8951_ReadBusy();     */
-    /* for (UDOUBLE i = 0; i < LengthWords; i++) */
-    /* { */
-
-    /*     DEV_SPI_WriteByte(Data_Buf[i] >> 8); */
-    /*     DEV_SPI_WriteByte(Data_Buf[i] & 0xFF); */
-    /* } */
-
-    /* DEV_Digital_Write(EPD_CS_PIN, HIGH); */
+    DEV_SPI_WriteBytes(buf, 2048);
+  }
 }
 
 static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
@@ -517,7 +487,8 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_1bp(IT8951_Load_Img_Info*Load_Im
     
     if(Packed_Write == true)
     {
-      EPD_IT8951_WriteMuitiData2(Source_Buffer,Source_Buffer_Height, Source_Buffer_Width);
+      EPD_IT8951_WriteMuitiData2(Source_Buffer, Source_Buffer_Height,
+                                 Source_Buffer_Width);
     } else {
         for(UDOUBLE i=0; i<Source_Buffer_Height; i++)
         {
@@ -714,12 +685,9 @@ static void EPD_IT8951_Display_1bp(UWORD X, UWORD Y, UWORD W, UWORD H, UWORD Mod
         EPD_IT8951_Display_AreaBuf(X,Y,W,H,Mode,Target_Memory_Addr);
     }
 
-    /* EPD_IT8951_Display_1bp( X,  Y,  W,  H,  Mode,  Target_Memory_Addr,  Back_Gray_Val,  Front_Gray_Val); */
-    
-    
     EPD_IT8951_WaitForDisplayReady();
-
-    EPD_IT8951_WriteReg(UP1SR+2, EPD_IT8951_ReadReg(UP1SR+2) & ~(1<<2) );
+    
+    EPD_IT8951_WriteReg(UP1SR + 2, EPD_IT8951_ReadReg(UP1SR + 2) & ~(1 << 2));    
 }
 
 
@@ -786,7 +754,7 @@ IT8951_Dev_Info EPD_IT8951_Init(UWORD VCOM)
     EPD_IT8951_GetSystemInfo(&Dev_Info);
     
     //Enable Pack write
-    /* EPD_IT8951_WriteReg(I80CPCR,0x0001); */
+    EPD_IT8951_WriteReg(I80CPCR,0x0001);
 
     //Set VCOM by handle
     if(VCOM != EPD_IT8951_GetVCOM())
