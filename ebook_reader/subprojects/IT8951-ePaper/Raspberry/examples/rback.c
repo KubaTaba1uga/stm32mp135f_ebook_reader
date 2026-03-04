@@ -167,25 +167,20 @@ int main(int argc, char *argv[]) {
       EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode));
   puts("INIT MODE DONE");
   sleep(1);
-  
-  int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 4;
-  uint8_t *buf = malloc(buf_len);
-  memset(buf, 0x00, buf_len);
-  
-  TIME_CALL("1bp_Refresh A2 - Black",
-            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, true,
-                                   Init_Target_Memory_Addr, false));
 
-  sleep(5);
+  TIME_CALL(
+      "Clear_Refresh A2",
+      EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, A2_Mode));
 
-  memset(buf, 0xFF, buf_len);  
-  TIME_CALL("1bp_Refresh A2 - White",
-            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, true,
-                                   Init_Target_Memory_Addr, false));
+  TIME_CALL(
+      "Black_Full A2 (false)",
+      EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, false));
+  puts("Black/White DONE");
+  sleep(3);
 
-  sleep(5);
+  TIME_CALL(
+      "Black_Full A2 (true)",
+      EPD_IT8951_Black_Full(Dev_Info, Init_Target_Memory_Addr, A2_Mode, true));
 
   EPD_IT8951_Sleep();
 

@@ -107,7 +107,7 @@ function :	write data
 parameter:  data
 ******************************************************************************/
 static void EPD_IT8951_WriteData(UWORD Data) {
-  puts(__func__);
+  /* puts(__func__); */
   //Set Preamble for Write Command
   UWORD Write_Preamble = 0x0000;
   
@@ -146,12 +146,12 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length)
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
 
-        EPD_IT8951_ReadBusy();
+        /* EPD_IT8951_ReadBusy(); */
 
         /* uint8_t buf */
 	  uint8_t buf[1024] = {0};        
         for (UDOUBLE i = 0; i < Length; i += 512) {
-
+	  EPD_IT8951_ReadBusy();
 	  for (int k = 0; k < 512; k++) {
 	    UWORD w = Data_Buf[i + k];
 	    buf[2*k]   = w >> 8;
@@ -429,8 +429,8 @@ static void EPD_IT8951_HostAreaPackedPixelWrite_1bp(IT8951_Load_Img_Info*Load_Im
     UWORD* Source_Buffer = (UWORD*)Load_Img_Info->Source_Buffer_Addr;
     EPD_IT8951_SetTargetMemoryAddr(Load_Img_Info->Target_Memory_Addr);
 
-    /* EPD_IT8951_LoadImgAreaStart(Load_Img_Info,Area_Img_Info); */
-    EPD_IT8951_LoadImgStart(Load_Img_Info);
+    EPD_IT8951_LoadImgAreaStart(Load_Img_Info,Area_Img_Info);
+    /* EPD_IT8951_LoadImgStart(Load_Img_Info); */
 
     //from byte to word
     //use 8bp to display 1bp, so here, divide by 2, because every byte has full bit.
@@ -731,7 +731,6 @@ parameter:
 ******************************************************************************/
 void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Addr, UWORD Mode)
 {puts(__func__);
-
     UDOUBLE ImageSize = ((Dev_Info.Panel_W * 4 % 8 == 0)? (Dev_Info.Panel_W * 4 / 8 ): (Dev_Info.Panel_W * 4 / 8 + 1)) * Dev_Info.Panel_H;
     UBYTE* Frame_Buf = malloc (ImageSize);
     memset(Frame_Buf, 0xFF, ImageSize);
@@ -755,6 +754,9 @@ void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Add
 
     EPD_IT8951_HostAreaPackedPixelWrite_4bp(&Load_Img_Info, &Area_Img_Info, true);
 
+    printf("Dev_Info.Panel_W(%d) %% 8 = %d\n", Dev_Info.Panel_W,
+           Dev_Info.Panel_W % 8);
+    printf("Dev_Info.Panel_H(%d) %% 8 = %d\n", Dev_Info.Panel_H, Dev_Info.Panel_H%8);
     EPD_IT8951_Display_Area(0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H, Mode);
 
     free(Frame_Buf);
@@ -883,8 +885,9 @@ void EPD_IT8951_2bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
     {
         EPD_IT8951_Display_AreaBuf(X,Y,W,H, GC16_Mode,Target_Memory_Addr);
     }
-}
 
+    EPD_IT8951_WaitForDisplayReady();    
+}
 
 
 
