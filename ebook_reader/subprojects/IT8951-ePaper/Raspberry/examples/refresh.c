@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
   
   TIME_CALL("1bp_Refresh A2 - Black",
             EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, true,
+                                   Dev_Info.Panel_H - 4, GC16_Mode,
                                    Init_Target_Memory_Addr, false));
 
   sleep(5);
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
   memset(buf, 0xFF, buf_len);  
   TIME_CALL("1bp_Refresh A2 - White",
             EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, true,
+                                   Dev_Info.Panel_H - 4, GC16_Mode,
                                    Init_Target_Memory_Addr, false));
 
   sleep(5);
