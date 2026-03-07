@@ -41,6 +41,7 @@
 
 //basic mode definition
 UBYTE INIT_Mode = 0;
+UBYTE DU_Mode = 1;
 UBYTE GC16_Mode = 2;
 //A2_Mode's value is not fixed, is decide by firmware's LUT 
 UBYTE A2_Mode = 6;
@@ -87,16 +88,20 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 	UWORD Write_Preamble = 0x6000;
 
         EPD_IT8951_ReadBusy();
-        
-	DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-	DEV_SPI_WriteByte(Write_Preamble>>8);
-	DEV_SPI_WriteByte(Write_Preamble);
+	DEV_Digital_Write(EPD_CS_PIN, LOW);
+        
+	uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Command>>8, Command};
+	DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t));
+        
+
+	/* DEV_SPI_WriteByte(Write_Preamble>>8); */
+	/* DEV_SPI_WriteByte(Write_Preamble); */
 	
-	EPD_IT8951_ReadBusy();	
+	/* EPD_IT8951_ReadBusy();	 */
 	
-	DEV_SPI_WriteByte(Command>>8);
-	DEV_SPI_WriteByte(Command);
+	/* DEV_SPI_WriteByte(Command>>8); */
+	/* DEV_SPI_WriteByte(Command); */
 
         DEV_Digital_Write(EPD_CS_PIN, HIGH);
 
@@ -108,7 +113,7 @@ function :	write data
 parameter:  data
 ******************************************************************************/
 static void EPD_IT8951_WriteData(UWORD Data) {
-  puts(__func__);
+  
   //Set Preamble for Write Command
   UWORD Write_Preamble = 0x0000;
   
@@ -183,7 +188,7 @@ static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE LengthWords)
 
 
 /* static void EPD_IT8951_WriteMuitiData(UWORD* Data_Buf, UDOUBLE Length) */
-/* {puts(__func__); */
+/* { */
 /*     //Set Preamble for Write Command */
 /* 	UWORD Write_Preamble = 0x0000; */
 
@@ -296,7 +301,7 @@ description:	some situation like this:
 ******************************************************************************/
 static void EPD_IT8951_WriteMultiArg(UWORD Arg_Cmd, UWORD *Arg_Buf,
                                      UWORD Arg_Num) {
-  puts(__func__);    
+      
   //Send Cmd code
   EPD_IT8951_WriteCommand(Arg_Cmd);
   // Send Data
@@ -327,7 +332,7 @@ function :	Cmd5 WriteReg
 parameter:  
 ******************************************************************************/
 static void EPD_IT8951_WriteReg(UWORD Reg_Address, UWORD Reg_Value) {
-puts(__func__);  
+    
     EPD_IT8951_WriteCommand(IT8951_TCON_REG_WR);
     EPD_IT8951_WriteData(Reg_Address);
     EPD_IT8951_WriteData(Reg_Value);
@@ -340,7 +345,7 @@ function :	get VCOM
 parameter:  
 ******************************************************************************/
 static UWORD EPD_IT8951_GetVCOM(void) {
-puts(__func__);  
+  
     UWORD VCOM;
     EPD_IT8951_WriteCommand(USDEF_I80_CMD_VCOM);
     EPD_IT8951_WriteData(0x0000);
@@ -415,7 +420,7 @@ function :	EPD_IT8951_Get_System_Info
 parameter:  
 ******************************************************************************/
 static void EPD_IT8951_GetSystemInfo(void* Buf)
-{puts(__func__);
+{
     IT8951_Dev_Info* Dev_Info; 
 
     EPD_IT8951_WriteCommand(USDEF_I80_CMD_GET_DEV_INFO);
@@ -773,7 +778,7 @@ function :	EPD_IT8951_Clear_Refresh
 parameter:  
 ******************************************************************************/
 void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Addr, UWORD Mode)
-{puts(__func__);
+{
     UDOUBLE ImageSize = ((Dev_Info.Panel_W * 4 % 8 == 0)? (Dev_Info.Panel_W * 4 / 8 ): (Dev_Info.Panel_W * 4 / 8 + 1)) * Dev_Info.Panel_H;
     UBYTE* Frame_Buf = malloc (ImageSize);
     memset(Frame_Buf, 0xFF, ImageSize);

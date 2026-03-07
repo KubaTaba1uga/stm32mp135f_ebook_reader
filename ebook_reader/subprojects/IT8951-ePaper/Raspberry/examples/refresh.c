@@ -2,6 +2,7 @@
 #include "../lib/GUI/GUI_BMPfile.h"
 #include "Raspberry/lib/GUI/GUI_Paint.h"
 #include "Raspberry/lib/e-Paper/EPD_IT8951.h"
+#include "cat_big.c"
 #include "example.h"
 #include "unistd.h"
 
@@ -167,28 +168,39 @@ int main(int argc, char *argv[]) {
       EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode));
   puts("INIT MODE DONE");
   sleep(1);
-  
-  int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 4;
+
+  int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 2;
   uint8_t *buf = malloc(buf_len);
-  memset(buf, 0x00, buf_len);
-  
-  TIME_CALL("1bp_Refresh GC16 - Black",
-            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, GC16_Mode,
-                                   Init_Target_Memory_Addr, true));
 
-  sleep(5);
+  for (int i = 0; i < 16; i++) {
+    memset(buf, 0x00, buf_len);
+    TIME_CALL("1bp_Refresh GC16 - Black",
+              EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
+                                     Dev_Info.Panel_H - 4, GC16_Mode,
+                                     Init_Target_Memory_Addr, true));
 
-  memset(buf, 0xFF, buf_len);  
-  TIME_CALL("1bp_Refresh GC16 - White",
-            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                   Dev_Info.Panel_H - 4, GC16_Mode,
-                                   Init_Target_Memory_Addr, true));
+    sleep(5);
 
-  sleep(5);
+    TIME_CALL("1bp_Refresh GC16 - Cat",
+              EPD_IT8951_1bp_Refresh(big_cat, 0, 0, Dev_Info.Panel_W,
+                                     Dev_Info.Panel_H - 4, GC16_Mode,
+                                     Init_Target_Memory_Addr, true));
+
+    sleep(5);
+
+    memset(buf, 0xFF, buf_len);
+    TIME_CALL("1bp_Refresh GC16 - White",
+              EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
+                                     Dev_Info.Panel_H - 4, GC16_Mode,
+                                     Init_Target_Memory_Addr, true));
+
+    sleep(5);
+  }
 
   EPD_IT8951_Sleep();
 
   DEV_Module_Exit();
+
+  free(buf);
   return 0;
 }

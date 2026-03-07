@@ -40,9 +40,10 @@
 extern UBYTE INIT_Mode;
 // GC16 mode, for every time to display 16 grayscale image
 extern UBYTE GC16_Mode;
+// Monochrome menu, text input, and touch screen/pen input
+extern UBYTE DU_Mode;
 // A2 mode, for fast refresh without flash
 extern UBYTE A2_Mode;
-
 
 typedef struct IT8951_Load_Img_Info
 {
