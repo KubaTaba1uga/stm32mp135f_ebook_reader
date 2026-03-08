@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <cairo/cairo.h>
 #include <ctype.h>
 #include <errno.h>
 #include <libgen.h>
@@ -12,6 +13,7 @@
 #include "library/core.h"
 #include "library/library.h"
 #include "utils/err.h"
+#include "utils/graphic.h"
 #include "utils/log.h"
 #include "utils/mem.h"
 
@@ -24,7 +26,7 @@ struct Pdf {
 };
 
 struct PdfBook {
-  cairo_surface_t *thumbnail;
+  unsigned char *thumbnail;
   cairo_surface_t *page;
 };
 
@@ -115,14 +117,14 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
               {
                   .buf = book_interface_pdf_book_get_thumbnail(
                       pdf, pdf_book, path, book_thumbnail_x, book_thumbnail_y),
-                  .len = book_thumbnail_x * book_thumbnail_y * 4 // ARGB
+                  .len = book_thumbnail_x * book_thumbnail_y / 8 // I1
               },
           .settings = {
               .scale = 1.0,
           }});
   ERR_TRY_CATCH(err_o, error_pages_cleanup);
 
-  cairo_surface_destroy(pdf_book->thumbnail);
+  mem_free(pdf_book->thumbnail);
   pdf_book->thumbnail = NULL;
   mem_free(title);
   mem_free(pages);
@@ -135,7 +137,7 @@ out:
   return 0;
 
 error_pages_cleanup:
-  cairo_surface_destroy(pdf_book->thumbnail);
+  mem_free(pdf_book->thumbnail);
   mem_free(pages);
 error_title_cleanup:
   mem_free(title);
@@ -166,14 +168,20 @@ book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
     goto error_out;
   }
 
-  pdf_book->thumbnail =
+  cairo_surface_t *thumb_surf =
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
-  unsigned char *thumbnail = cairo_image_surface_get_data(pdf_book->thumbnail);
+  unsigned char *thumbnail = cairo_image_surface_get_data(thumb_surf);
+  pdf_book->thumbnail = mem_malloc(x * y / 8);
 
+  graphic_argb32_to_i1(pdf_book->thumbnail, x, y, thumbnail,
+                       x * 4 // ARGB
+  );
+
+  cairo_surface_destroy(thumb_surf);
   pclose(pdfinfo);
 
-  return thumbnail;
+  return pdf_book->thumbnail;
 
 error_out:
   return NULL;
@@ -223,7 +231,7 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
   pdf_t pdf = private;
 
   if (pdf_book->thumbnail) {
-    cairo_surface_destroy(pdf_book->thumbnail);
+    mem_free(pdf_book->thumbnail);
   }
 
   if (pdf_book->page) {

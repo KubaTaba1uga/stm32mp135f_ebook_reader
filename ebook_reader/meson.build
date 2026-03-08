@@ -16,6 +16,10 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 
+# We use `EBK` macro to compile code paths wich are meant especially for ebook.
+# For example it is used in it8951 driver.
+add_global_arguments('-DEBK', language: ['c', 'cpp'])
+
 # Beautify logs, without these directives every log start with `../../`
 add_global_arguments('-ffile-prefix-map=../../=', language: ['c', 'cpp'])
 add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
