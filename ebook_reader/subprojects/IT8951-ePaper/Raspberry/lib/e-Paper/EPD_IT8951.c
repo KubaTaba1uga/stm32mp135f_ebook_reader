@@ -91,17 +91,17 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 
 	DEV_Digital_Write(EPD_CS_PIN, LOW);
         
-	uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Command>>8, Command};
-	DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t));
+	/* uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Command>>8, Command}; */
+	/* DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t)); */
         
 
-	/* DEV_SPI_WriteByte(Write_Preamble>>8); */
-	/* DEV_SPI_WriteByte(Write_Preamble); */
+	DEV_SPI_WriteByte(Write_Preamble>>8);
+	DEV_SPI_WriteByte(Write_Preamble);
 	
-	/* EPD_IT8951_ReadBusy();	 */
+	EPD_IT8951_ReadBusy();
 	
-	/* DEV_SPI_WriteByte(Command>>8); */
-	/* DEV_SPI_WriteByte(Command); */
+	DEV_SPI_WriteByte(Command>>8);
+	DEV_SPI_WriteByte(Command);
 
         DEV_Digital_Write(EPD_CS_PIN, HIGH);
 
@@ -121,16 +121,16 @@ static void EPD_IT8951_WriteData(UWORD Data) {
   
   DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-  uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Data>>8, Data};
-  DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t));
+  /* uint8_t buf[] = {Write_Preamble>>8, Write_Preamble, Data>>8, Data}; */
+  /* DEV_SPI_WriteBytes(buf, sizeof(buf)/sizeof(uint8_t)); */
     
-  /* DEV_SPI_WriteByte(Write_Preamble>>8); */
-  /* DEV_SPI_WriteByte(Write_Preamble); */
+  DEV_SPI_WriteByte(Write_Preamble>>8);
+  DEV_SPI_WriteByte(Write_Preamble);
 
-  /* EPD_IT8951_ReadBusy(); */
+  EPD_IT8951_ReadBusy();
 
-  /* DEV_SPI_WriteByte(Data>>8); */
-  /* DEV_SPI_WriteByte(Data); */
+  DEV_SPI_WriteByte(Data>>8);
+  DEV_SPI_WriteByte(Data);
 
   DEV_Digital_Write(EPD_CS_PIN, HIGH);
 }
