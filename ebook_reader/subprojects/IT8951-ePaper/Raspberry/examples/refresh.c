@@ -178,14 +178,13 @@ int main(int argc, char *argv[]) {
               EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
                                      Dev_Info.Panel_H - 4, GC16_Mode,
                                      Init_Target_Memory_Addr, true));
-
     sleep(5);
 
+    
     TIME_CALL("1bp_Refresh GC16 - Cat",
               EPD_IT8951_1bp_Refresh(big_cat, 0, 0, Dev_Info.Panel_W,
                                      Dev_Info.Panel_H - 4, GC16_Mode,
                                      Init_Target_Memory_Addr, true));
-
     sleep(5);
 
     memset(buf, 0xFF, buf_len);
@@ -193,7 +192,6 @@ int main(int argc, char *argv[]) {
               EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
                                      Dev_Info.Panel_H - 4, GC16_Mode,
                                      Init_Target_Memory_Addr, true));
-
     sleep(5);
   }
 
