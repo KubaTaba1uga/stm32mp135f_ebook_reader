@@ -3,6 +3,7 @@
 #include "Raspberry/lib/GUI/GUI_Paint.h"
 #include "Raspberry/lib/e-Paper/EPD_IT8951.h"
 #include "cat_big.c"
+#include "cat_big_not_rot.c"
 #include "example.h"
 #include "unistd.h"
 
@@ -32,10 +33,8 @@ int epd_mode = 0; // 0: no rotate, no mirror
                   // 2: no totate, horizontal mirror, for 5.17inch
                   // 3: no rotate, no mirror, isColor, for 6inch color
 
-UBYTE Display_Colour(UWORD Panel_Width, UWORD Panel_Height,
-                     UDOUBLE Init_Target_Memory_Addr, int colour);
-UBYTE Display_A2(UWORD Panel_Width, UWORD Panel_Height,
-                 UDOUBLE Init_Target_Memory_Addr, int colour);
+static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
+                                         unsigned char *buf, int buf_len);
 
 void Handler(int signo) {
   Debug("\r\nHandler:exit\r\n");
@@ -172,28 +171,41 @@ int main(int argc, char *argv[]) {
   int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 2;
   uint8_t *buf = malloc(buf_len);
 
-  for (int i = 0; i < 16; i++) {
-    memset(buf, 0x00, buf_len);
-    TIME_CALL("1bp_Refresh GC16 - Black",
-              EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                     Dev_Info.Panel_H - 4, GC16_Mode,
-                                     Init_Target_Memory_Addr, true));
-    sleep(5);
+  /* for (int i = 0; i < 16; i++) { */
+  memset(buf, 0x00, buf_len);
+  TIME_CALL("1bp_Refresh GC16 - Black",
+            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
+                                   Dev_Info.Panel_H - 4, GC16_Mode,
+                                   Init_Target_Memory_Addr, true));
+  sleep(5);
 
-    
-    TIME_CALL("1bp_Refresh GC16 - Cat",
-              EPD_IT8951_1bp_Refresh(big_cat, 0, 0, Dev_Info.Panel_W,
-                                     Dev_Info.Panel_H - 4, GC16_Mode,
-                                     Init_Target_Memory_Addr, true));
-    sleep(5);
+  TIME_CALL("1bp_Refresh GC16 - Cat",
+            EPD_IT8951_1bp_Refresh(
+                                   big_cat,
+                0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H - 4, GC16_Mode,
+                Init_Target_Memory_Addr, true));
+  sleep(5);
 
-    memset(buf, 0xFF, buf_len);
-    TIME_CALL("1bp_Refresh GC16 - White",
-              EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
-                                     Dev_Info.Panel_H - 4, GC16_Mode,
-                                     Init_Target_Memory_Addr, true));
-    sleep(5);
-  }
+
+  memset(buf, 0xFF, buf_len);
+  TIME_CALL("1bp_Refresh GC16 - White",
+            EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
+                                   Dev_Info.Panel_H - 4, GC16_Mode,
+                                   Init_Target_Memory_Addr, true));
+  sleep(5);
+
+  
+  TIME_CALL("1bp_Refresh GC16 - Cat rotated",
+            EPD_IT8951_1bp_Refresh(
+                dd_wvs75v2b_rotate(Dev_Info.Panel_H, Dev_Info.Panel_W, 
+                                   big_cat_not_rot, sizeof(big_cat_not_rot)),
+                0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H, GC16_Mode,
+                Init_Target_Memory_Addr, true));
+  sleep(5);
+
+
+  
+  /* } */
 
   EPD_IT8951_Sleep();
 
@@ -201,4 +213,58 @@ int main(int argc, char *argv[]) {
 
   free(buf);
   return 0;
+}
+
+#include <stdint.h>
+
+int dd_graphic_get_bit(int i, unsigned char *buf, uint32_t buf_len) {
+  if (i < 0 || (uint32_t)i >= buf_len * 8) {
+    return -1;
+  }
+  int byte = i / 8;
+  /* int bit = 7 - (i % 8); */
+  int bit = (i % 8);  
+  return (buf[byte] >> bit) & 1;
+}
+
+void dd_graphic_set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) {
+  if (i < 0 || (uint32_t)i >= buf_len * 8) {
+    return;
+  }
+  int byte = i / 8;
+  /* int bit = 7 - (i % 8); */
+  int bit = (i % 8);
+  
+  if (val) {
+    buf[byte] |= (1u << bit);
+  } else {
+    buf[byte] &= ~(1u << bit);
+  }
+}
+
+int dd_graphic_get_pixel(int x, int y, int width, unsigned char *buf,
+                         uint32_t buf_len) {
+  if (x < 0 || y < 0) {
+    return -1;
+  }
+
+  int bit = width * y + x;
+
+  return dd_graphic_get_bit(bit, buf, buf_len);
+}
+
+static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
+                                         unsigned char *buf, int buf_len) {
+  int dst_i = 0;
+  int v;
+
+  unsigned char *dst = malloc(buf_len);
+  for (int x = width - 1; x >= 0; --x) {
+    for (int y = 0; y < heigth; ++y) {
+      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
+      dd_graphic_set_bit(dst_i++, v, dst, buf_len);
+    }
+  }
+
+  return dst;
 }
