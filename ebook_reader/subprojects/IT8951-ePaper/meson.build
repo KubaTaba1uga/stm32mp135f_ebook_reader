@@ -89,3 +89,9 @@ executable('it8951_main',
   include_directories: it8951_epaper_inc,
   dependencies: it8951_epaper_deps + [it8951_epaper_dep],
 )
+
+executable('it8951_rotate',
+  sources: ['Raspberry/examples/rotate.c'],
+  include_directories: it8951_epaper_inc,
+  dependencies: it8951_epaper_deps + [it8951_epaper_dep],
+)
