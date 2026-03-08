@@ -502,8 +502,8 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         ):
             c.run(f"sudo cp lib*san* {directory}/lib")
 
-    with c.cd("build/display_driver"):
-        c.run(f"sudo cp *example {directory}/root/")
+    with c.cd("build/IT8951-ePaper"):
+        c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
     with c.cd("build/ebook_reader"):
         c.run(f"sudo cp ebook_reader {directory}/root/")
         c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")

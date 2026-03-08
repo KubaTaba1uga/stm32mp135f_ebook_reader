@@ -63,7 +63,7 @@ add_project_arguments('-DEBK', language: 'c')
 # ******************************************************************************
 # *    Lib
 # ******************************************************************************
-it8951_epaper_lib = library('it8951_epaper',
+it8951_epaper_lib = static_library('it8951_epaper',
      sources: it8951_epaper_src,
      include_directories: it8951_epaper_inc,
      dependencies: it8951_epaper_deps,
