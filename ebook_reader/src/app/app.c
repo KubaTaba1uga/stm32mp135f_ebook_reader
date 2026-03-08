@@ -1,4 +1,5 @@
 #include <lvgl.h>
+#include <stdio.h>
 
 #include "app/app.h"
 #include "book_settings/book_settings.h"
@@ -105,3 +106,14 @@ err_t app_main(app_t app) {
     time_sleep_ms(ms);
   }
 };
+
+void app_panic(app_t out) {
+  puts(__func__)  ;
+  if (!out) {
+    return;
+  }
+
+  if (out->display) {
+    display_panic(out->display);
+  }
+}

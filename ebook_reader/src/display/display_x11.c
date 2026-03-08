@@ -63,3 +63,7 @@ int display_get_x(display_t display) {
 int display_get_y(display_t display) {
   return lv_display_get_vertical_resolution(NULL);
 }
+
+void display_panic(display_t display){
+  
+  }

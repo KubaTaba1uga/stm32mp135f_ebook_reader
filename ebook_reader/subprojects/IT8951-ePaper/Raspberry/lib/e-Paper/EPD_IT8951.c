@@ -42,7 +42,11 @@ UBYTE A2_Mode = 6;
 function :	Software reset
 parameter:
 ******************************************************************************/
+#ifndef EBK
 static void EPD_IT8951_Reset(void)
+#else
+void EPD_IT8951_Reset(void)
+#endif
 {
     DEV_Digital_Write(EPD_RST_PIN, HIGH);
     DEV_Delay_ms(200);

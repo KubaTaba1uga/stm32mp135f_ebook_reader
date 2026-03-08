@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <lvgl.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "display/display.h"
 #include "utils/err.h"
@@ -20,8 +21,10 @@ struct Display {
   } render;
 };
 
-static const int ui_display_x11_heigth = 1872;
-static const int ui_display_x11_width = 1404;
+static const int ui_display_it8951_heigth = 1872;
+static const int ui_display_it8951_width = 1400; // Display is 1404 but lvgl in
+                                                 // i1 needs byte aligned values
+                                                 // 1404 % 8 != 0
 
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map);
@@ -31,7 +34,7 @@ err_t display_init(display_t *out) {
   *display = (struct Display){0};
 
   display->lv_disp =
-      lv_display_create(ui_display_x11_width, ui_display_x11_heigth);
+      lv_display_create(ui_display_it8951_width, ui_display_it8951_heigth);
   if (!display->lv_disp) {
     goto error_out;
   }
@@ -46,8 +49,16 @@ err_t display_init(display_t *out) {
   display->dev_info = EPD_IT8951_Init(VCOM);
   display->init_mem_addr =
       display->dev_info.Memory_Addr_L | (display->dev_info.Memory_Addr_H << 16);
-  assert(display->dev_info.Panel_W == ui_display_x11_width);
-  assert(display->dev_info.Panel_H == ui_display_x11_heigth);
+
+  printf("display->dev_info.Panel_W=%d\n",display->dev_info.Panel_W);
+  printf("display->dev_info.Panel_H=%d\n",display->dev_info.Panel_H);
+  printf("ui_display_it8951_width=%d\n",ui_display_it8951_width);
+  printf("ui_display_it8951_heigth=%d\n",ui_display_it8951_heigth);
+
+  assert(display->dev_info.Panel_W == ui_display_it8951_heigth); // The screen is in horizontal position  
+  assert(display->dev_info.Panel_H == ui_display_it8951_width + 4);  //  so we need to reverse width and heigth.
+  display->dev_info.Panel_H = ui_display_it8951_width;
+  
   EPD_IT8951_Clear_Refresh(display->dev_info, display->init_mem_addr,
                            INIT_Mode);
 
@@ -67,7 +78,6 @@ err_t display_init(display_t *out) {
   lv_display_set_flush_cb(display->lv_disp, display_flush_callback);
   lv_display_set_buffers(display->lv_disp, display->render.buf, NULL,
                          display->render.len, LV_DISPLAY_RENDER_MODE_FULL);
-
   return 0;
 
 error_disp_cleanup:
@@ -107,6 +117,7 @@ int display_get_y(display_t display) {
 
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map) {
+  puts(__func__);
   struct Display *mydisp = lv_display_get_user_data(display);
 
   EPD_IT8951_1bp_Refresh(px_map + 8, 0, 0, mydisp->dev_info.Panel_W,
@@ -114,4 +125,11 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                          mydisp->init_mem_addr, true);
 
   lv_display_flush_ready(display);
+  printf("%s done\n", __func__);  
+}
+
+void display_panic(display_t display) {
+  puts(__func__);
+  EPD_IT8951_Reset();
+  EPD_IT8951_Sleep();
 }
