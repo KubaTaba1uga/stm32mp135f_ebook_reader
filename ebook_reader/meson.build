@@ -34,7 +34,6 @@ if display == 'x11'
 else
    add_global_arguments('-DEBK_DISPLAY_IT8951', language: ['c', 'cpp'])      
    ebook_reader_deps += [dependency('it8951_epaper', fallback: ['it8951_epaper', 'it8951_epaper_dep'], required: true, static: true)]
-
    ebook_reader_src += [files('src/display/display_it8951.c')]
 endif
 
