@@ -14,17 +14,7 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 # *    Config
 # ******************************************************************************
-ebook_reader_deps = []
-
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
-if get_option('display') == 'x11'
-   ebook_reader_deps += [dependency('x11', required: true)]
-   add_global_arguments('-DEBK_DISPLAY_X11=1', language: ['c', 'cpp'])
-elif get_option('display') == 'wvs7in5v2b'
-   add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2B=1', language: ['c', 'cpp'])
-elif get_option('display') == 'wvs7in5v2'
-   add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2=1', language: ['c', 'cpp'])
-endif
 
 # Beautify logs, without these directives every log start with `../../`
 add_global_arguments('-ffile-prefix-map=../../=', language: ['c', 'cpp'])
@@ -33,12 +23,22 @@ add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
 # ******************************************************************************
 # *    Libraries
 # ******************************************************************************
-ebook_reader_deps += [dependency('display_driver',
-                       fallback: ['display_driver', 'display_driver_dep'],
-                       required: true,
-                       static: true,
-                      ),
-                      dependency('lvgl',
+ebook_reader_deps = []
+ebook_reader_src = []
+
+display = get_option('display')
+if display == 'x11'
+   add_global_arguments('-DEBK_DISPLAY_X11', language: ['c', 'cpp'])   
+   ebook_reader_deps += [dependency('x11', required: true)]
+   ebook_reader_src += [files('src/display/display_x11.c')]
+else
+   add_global_arguments('-DEBK_DISPLAY_IT8951', language: ['c', 'cpp'])      
+   ebook_reader_deps += [dependency('it8951_epaper', fallback: ['it8951_epaper', 'it8951_epaper_dep'], required: true, static: true)]
+
+   ebook_reader_src += [files('src/display/display_it8951.c')]
+endif
+
+ebook_reader_deps += [dependency('lvgl',
                        fallback: ['lvgl', 'lvgl_dep'],
                        required: true,
                        static: true,
@@ -69,13 +69,12 @@ ebook_reader_deps += [dependency('display_driver',
 
 ebook_reader_inc = include_directories(['src'])
 
-ebook_reader_src = [files('src/main.c',
+ebook_reader_src += [files('src/main.c',
                           'src/app/app.c',
                           'src/book_settings/book_settings.c',
                           'src/book_settings/view.c',
                           'src/book_settings/widgets.c',
 	  		  'src/db/db.c',
-                          'src/display/display.c',			  
                           'src/event_queue/event_queue.c',			  
                           'src/library/library.c',
                           'src/library/pdf.c',
@@ -95,6 +94,7 @@ ebook_reader_src = [files('src/main.c',
                           # Add more files here
                          )
 ]
+
 
 buildtype = get_option('buildtype')
 if buildtype == 'debug' or buildtype == 'debugoptimized'
