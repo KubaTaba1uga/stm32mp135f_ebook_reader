@@ -28,7 +28,6 @@ FROM, # GPIOD_OUT OF OR GPIOD_IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS GPIOD_IN # THE SOFTWARE.
 #
 ******************************************************************************/
-#include "RPI_gpiod.h"
 #include <fcntl.h>
 #include <gpiod.h>
 #include <stdio.h>
@@ -37,6 +36,9 @@ OTHER DEALINGS GPIOD_IN # THE SOFTWARE.
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "DEV_Config.h"
+
 
 struct gpiod_chip *gpiochip2;
 struct gpiod_chip *gpiochip6;
@@ -68,13 +70,13 @@ int GPIOD_Export() {
 }
 
 static struct gpiod_chip *GPIOD_Chip(int Pin) {
-  if (Pin == GPIO_PIN_RST) {
+  if (Pin == EPD_RST_PIN) {
     return gpiochip2;
   }
-  if (Pin == GPIO_PIN_BUSY) {
+  if (Pin == EPD_BUSY_PIN) {
     return gpiochip6;
   }
-  if (Pin == GPIO_PIN_CS) {
+  if (Pin == EPD_CS_PIN) {
     return gpiochip7;
   }  
   puts("INVALID GPIOCHIP");

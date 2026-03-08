@@ -76,16 +76,26 @@
  * GPIO
  **/
 
+#ifndef EBK
+#define EPD_RST_PIN  17
+#define EPD_CS_PIN   8
+#define EPD_BUSY_PIN 24
+
+#else
+
+#if RPI
+#define EPD_RST_PIN  17
+#define EPD_CS_PIN   8
+#define EPD_BUSY_PIN 24
+#endif // if RPI
+
 #if STM32
 #define EPD_RST_PIN  2
 #define EPD_CS_PIN   11
 #define EPD_BUSY_PIN 3
-#else
-#define EPD_RST_PIN  17
-#define EPD_CS_PIN   8
-#define EPD_BUSY_PIN 24
-#endif
+#endif // if STM32
 
+#endif // ifndef EBK
 
 /**
  * data
@@ -94,17 +104,12 @@
 #define UWORD   uint16_t
 #define UDOUBLE uint32_t
 
-
-
-
-
 /*------------------------------------------------------------------------------------------------------*/
 void DEV_Digital_Write(UWORD Pin, UBYTE Value);
 UBYTE DEV_Digital_Read(UWORD Pin);
 
 void DEV_SPI_WriteByte(UBYTE Value);
 UBYTE DEV_SPI_ReadByte();
-void DEV_SPI_WriteBytes(UBYTE * Value, UDOUBLE Length);
 
 void DEV_Delay_ms(UDOUBLE xms);
 void DEV_Delay_us(UDOUBLE xus);
@@ -112,5 +117,8 @@ void DEV_Delay_us(UDOUBLE xus);
 UBYTE DEV_Module_Init(void);
 void DEV_Module_Exit(void);
 
+#ifdef EBK
+void DEV_SPI_WriteBytes(UBYTE *Value, UDOUBLE Length);
+#endif // ifdef EBK
 
 #endif

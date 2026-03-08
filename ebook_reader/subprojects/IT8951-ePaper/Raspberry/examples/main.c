@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     }
     Debug("A2 Mode:%d\r\n", A2_Mode);
 
-    EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
+	EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode);
 
 #if(USE_Factory_Test)
 	if(epd_mode == 3) 	// Color Test

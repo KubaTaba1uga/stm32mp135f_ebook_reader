@@ -9,3 +9,7 @@ e-Paper IT8951 Driver HAT通用驱动代码，适用于IT8951驱动的并口墨�
 
 ## English ## 
 e-Paper IT8951 Driver HAT universal Driver code, suitable for IT8951 Driver parallel ink screen, support Raspberry Pi and STM32
+
+## Ebook reader
+
+Look into GIT.md for info about updating the mainline driver.

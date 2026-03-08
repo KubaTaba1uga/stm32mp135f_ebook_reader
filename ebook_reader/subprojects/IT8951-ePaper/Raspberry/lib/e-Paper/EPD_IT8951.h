@@ -40,10 +40,9 @@
 extern UBYTE INIT_Mode;
 // GC16 mode, for every time to display 16 grayscale image
 extern UBYTE GC16_Mode;
-// Monochrome menu, text input, and touch screen/pen input
-extern UBYTE DU_Mode;
 // A2 mode, for fast refresh without flash
 extern UBYTE A2_Mode;
+
 
 typedef struct IT8951_Load_Img_Info
 {
@@ -204,7 +203,7 @@ void EPD_IT8951_2bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H
 void EPD_IT8951_4bp_Refresh(UBYTE* Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, bool Hold, UDOUBLE Target_Memory_Addr, bool Packed_Write);
 
 void EPD_IT8951_8bp_Refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H, bool Hold, UDOUBLE Target_Memory_Addr);
-void EPD_IT8951_Black_Full(IT8951_Dev_Info Dev_Info, UDOUBLE Target_Memory_Addr, UWORD Mode, bool is_white);
+
 
 
 #endif

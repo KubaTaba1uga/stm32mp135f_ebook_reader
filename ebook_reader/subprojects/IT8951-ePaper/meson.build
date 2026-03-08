@@ -16,24 +16,16 @@ project('it8951_epaper', 'c',
 # ******************************************************************************
 it8951_epaper_deps = []
 
-add_global_arguments('-DGPIOD', language: ['c', 'cpp'])
 cc = meson.get_compiler('c')
-
-# add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 it8951_epaper_deps += [dependency('libgpiod',
                         required: true,
                        ),
                        cc.find_library('m', required: true),
-                       dependency('threads'),
 ]
 
+it8951_epaper_inc = include_directories(['Raspberry/lib/e-Paper'])
 
-
-# it8951_epaper_inc = include_directories(['src'])
-
-it8951_epaper_src = [files(
-                           'Raspberry/lib/e-Paper/EPD_IT8951.c',
-                           'Raspberry/lib/e-Paper/EPD_IT8951_v2.c',
+it8951_epaper_src = [files('Raspberry/lib/e-Paper/EPD_IT8951.c',
 			   'Raspberry/lib/Fonts/font12.c',
 			   'Raspberry/lib/Fonts/font20.c',
 			   'Raspberry/lib/Fonts/font16.c',
@@ -45,10 +37,7 @@ it8951_epaper_src = [files(
 			   'Raspberry/lib/Config/dev_hardware_SPI.c',
 			   'Raspberry/lib/GUI/GUI_Paint.c',
 			   'Raspberry/lib/GUI/GUI_BMPfile.c',
-			   # 'Raspberry/examples/main.c',
-                           # 'Raspberry/examples/main2.c',
 			   'Raspberry/examples/example.c',
-			   # 'Raspberry/examples/main3.c',			   
                            # Add more files here
                          )
 ]
@@ -56,55 +45,33 @@ it8951_epaper_src = [files(
 board = get_option('board')
 if board == 'stm32'
    add_project_arguments('-DSTM32', language: 'c')
-   add_project_arguments('-DRPI', language: 'c')	
    it8951_epaper_src += [files('Raspberry/lib/Config/STM_gpiod.c')]
-else
-   add_project_arguments('-DRPI', language: 'c')
+endif
+if board == 'rpi'
+   add_project_arguments('-DRPI', language: 'c')		
    it8951_epaper_src += [files('Raspberry/lib/Config/RPI_gpiod.c')]
 endif
 
-add_project_arguments('-DGPIOD', language: 'c')		
 
 buildtype = get_option('buildtype')
 if buildtype == 'debug' or buildtype == 'debugoptimized'
   add_project_arguments('-DDEBUG', language: 'c')
 endif
 
+add_project_arguments('-DGPIOD', language: 'c')
+add_project_arguments('-DEBK', language: 'c')
+
 # ******************************************************************************
 # *    Exec
 # ******************************************************************************
 executable('it8951_refresh',
   sources: it8951_epaper_src + ['Raspberry/examples/refresh.c'],
-  # include_directories: it8951_epaper_inc,
+  include_directories: it8951_epaper_inc,
   dependencies: it8951_epaper_deps,
 )
 
-# executable('it8951_display_1bpp_img',
-#   sources: it8951_epaper_src + ['Raspberry/examples/display_1bpp_img.c'],
-#   # include_directories: it8951_epaper_inc,
-#   dependencies: it8951_epaper_deps,
-# )
-
-# executable('it8951_main2',
-#   sources: it8951_epaper_src + ['Raspberry/examples/main2.c'],
-#   # include_directories: it8951_epaper_inc,
-#   dependencies: it8951_epaper_deps,
-# )
-
-# executable('it8951_init',
-#   sources: it8951_epaper_src + ['Raspberry/examples/init.c'],
-#   # include_directories: it8951_epaper_inc,
-#   dependencies: it8951_epaper_deps,
-# )
-
-# executable('it8951_main',
-#   sources: it8951_epaper_src + ['Raspberry/examples/main.c'],
-#   # include_directories: it8951_epaper_inc,
-#   dependencies: it8951_epaper_deps,
-# )
-
-executable('it8951_refresh_v2',
-  sources: it8951_epaper_src + ['Raspberry/examples/refresh2.c'],
-  # include_directories: it8951_epaper_inc,
+executable('it8951_main',
+  sources: it8951_epaper_src + ['Raspberry/examples/main.c'],
+  include_directories: it8951_epaper_inc,
   dependencies: it8951_epaper_deps,
 )

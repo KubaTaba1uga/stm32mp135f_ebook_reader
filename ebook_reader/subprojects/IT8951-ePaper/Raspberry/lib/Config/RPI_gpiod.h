@@ -74,11 +74,6 @@
 #define GPIO20 20 // 38, 20
 #define GPIO21 21 // 40, 21
 
-// Stm32
-#define GPIO_PIN_BUSY 3
-#define GPIO_PIN_RST  2
-#define GPIO_PIN_CS  11
-
 extern struct gpiod_chip *gpiochip;
 extern struct gpiod_line *gpioline;
 extern int ret;

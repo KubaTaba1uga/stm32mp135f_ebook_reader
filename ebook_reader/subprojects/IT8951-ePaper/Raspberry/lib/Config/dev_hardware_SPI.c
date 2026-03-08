@@ -30,11 +30,11 @@
 ******************************************************************************/
 #include "dev_hardware_SPI.h"
 
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
+
 #include <stdint.h> 
-#include <string.h>
 #include <unistd.h> 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -42,21 +42,45 @@
 #include <fcntl.h> 
 #include <sys/ioctl.h> 
 #include <linux/types.h> 
-#include <linux/spi/spidev.h>
+#include <linux/spi/spidev.h> 
 
 HARDWARE_SPI hardware_SPI;
 
-static uint8_t bits = 8; 
+static uint8_t bits = 8;
 
-#define PIN_SPI_CS_HIGH     0x04                //Chip select high  
-#define PIN_SPI_LSB_FIRST   0x08                //LSB  
-#define PIN_SPI_3WIRE       0x10                //3-wire mode SI and SO same line
-#define PIN_SPI_LOOP        0x20                //Loopback mode  
-#define PIN_SPI_NO_CS       0x40                //A single device occupies one SPI bus, so there is no chip select 
-#define PIN_SPI_READY       0x80                //Slave pull low to stop data transmission  
+#ifdef EBK
+#ifdef SPI_CS_HIGH
+#undef SPI_CS_HIGH
+#endif // ifdef SPI_CS_HIGH
+#ifdef SPI_LSB_FIRST
+#undef SPI_LSB_FIRST
+#endif // ifdef SPI_LSB_FIRST
+#ifdef SPI_3WIRE
+#undef SPI_3WIRE
+#endif // ifdef SPI_3WIRE
+#ifdef SPI_LOOP
+#undef SPI_LOOP
+#endif // ifdef SPI_LOOP
+#ifdef SPI_NO_CS
+#undef SPI_NO_CS
+#endif // ifdef SPI_NO_CS
+#ifdef SPI_READY
+#undef SPI_READY
+#endif // ifdef SPI_READY
+#endif // ifdef EBK
 
+#define SPI_CS_HIGH     0x04                //Chip select high  
+#define SPI_LSB_FIRST   0x08                //LSB  
+#define SPI_3WIRE       0x10                //3-wire mode SI and SO same line
+#define SPI_LOOP        0x20                //Loopback mode  
+#define SPI_NO_CS       0x40                //A single device occupies one SPI bus, so there is no chip select 
+#define SPI_READY       0x80                //Slave pull low to stop data transmission
+
+#ifndef EBK
+struct spi_ioc_transfer tr;
+#else
 struct spi_ioc_transfer tr = {0};
-
+#endif
 
 /******************************************************************************
 function:   SPI port initialization
@@ -97,7 +121,7 @@ void DEV_HARDWARE_SPI_begin(char *SPI_device)
     DEV_HARDWARE_SPI_Mode(SPI_MODE_0);
     DEV_HARDWARE_SPI_ChipSelect(SPI_CS_Mode_LOW);
     DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_LSBFIRST);
-    DEV_HARDWARE_SPI_setSpeed(16000000);
+    DEV_HARDWARE_SPI_setSpeed(20000000);
     DEV_HARDWARE_SPI_SetDataInterval(5);
 }
 
@@ -169,7 +193,6 @@ int DEV_HARDWARE_SPI_setSpeed(uint32_t speed)
     }
     hardware_SPI.speed = speed;
     tr.speed_hz = hardware_SPI.speed;
-
     return 1;
 }
 
@@ -213,9 +236,9 @@ Info:
 int DEV_HARDWARE_SPI_CSEN(SPICSEN EN)
 {
     if(EN == ENABLE){
-        hardware_SPI.mode |= PIN_SPI_NO_CS;
+        hardware_SPI.mode |= SPI_NO_CS;
     }else {
-        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
+        hardware_SPI.mode &= ~SPI_NO_CS;
     }
     //Write device
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
@@ -237,31 +260,21 @@ Info:
         Return 1 success 
         Return -1 failed
 ******************************************************************************/
-int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode) {  
+int DEV_HARDWARE_SPI_ChipSelect(SPIChipSelect CS_Mode)
+{
     if(CS_Mode == SPI_CS_Mode_HIGH){
-        hardware_SPI.mode |= PIN_SPI_CS_HIGH;
-        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
+        hardware_SPI.mode |= SPI_CS_HIGH;
+        hardware_SPI.mode &= ~SPI_NO_CS;
         DEV_HARDWARE_SPI_Debug("CS HIGH \r\n");
     }else if(CS_Mode == SPI_CS_Mode_LOW){
-        hardware_SPI.mode &= ~PIN_SPI_CS_HIGH;
-        hardware_SPI.mode &= ~PIN_SPI_NO_CS;
-    } else if (CS_Mode == SPI_CS_Mode_NONE) {
+        hardware_SPI.mode &= ~SPI_CS_HIGH;
+        hardware_SPI.mode &= ~SPI_NO_CS;
+    }else if(CS_Mode == SPI_CS_Mode_NONE){
         hardware_SPI.mode |= SPI_NO_CS;
     }
-
+    
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
-    DEV_HARDWARE_SPI_Debug(
-        "SPI_IOC_WR_MODE failed!\r\n"
-        "  fd: %d\r\n"
-        "  mode: 0x%02X\r\n"
-        "  errno: %d\r\n"
-        "  error: %s\r\n",
-        hardware_SPI.fd,
-        hardware_SPI.mode,
-        errno,
-        strerror(errno)
-    );      
-        /* DEV_HARDWARE_SPI_Debug("can't set spi mode: %s\r\n", strerror(errno));  */
+        DEV_HARDWARE_SPI_Debug("can't set spi mode\r\n"); 
         return -1;
     }
     return 1;
@@ -281,18 +294,18 @@ Info:
 int DEV_HARDWARE_SPI_SetBitOrder(SPIBitOrder Order)
 {
     if(Order == SPI_BIT_ORDER_LSBFIRST){
-        hardware_SPI.mode |= PIN_SPI_LSB_FIRST;
-        DEV_HARDWARE_SPI_Debug("PIN_SPI_LSB_FIRST\r\n");
+        hardware_SPI.mode |= SPI_LSB_FIRST;
+        DEV_HARDWARE_SPI_Debug("SPI_LSB_FIRST\r\n");
     }else if(Order == SPI_BIT_ORDER_MSBFIRST){
-        hardware_SPI.mode &= ~PIN_SPI_LSB_FIRST;
+        hardware_SPI.mode &= ~SPI_LSB_FIRST;
         DEV_HARDWARE_SPI_Debug("SPI_MSB_FIRST\r\n");
     }
     
-    DEV_HARDWARE_SPI_Debug("hardware_SPI.mode = 0x%02x\r\n", hardware_SPI.mode);
+    // DEV_HARDWARE_SPI_Debug("hardware_SPI.mode = 0x%02x\r\n", hardware_SPI.mode);
     int fd = ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode);
     DEV_HARDWARE_SPI_Debug("fd = %d\r\n",fd);
     if (fd == -1) {
-        DEV_HARDWARE_SPI_Debug("can't set spi PIN_SPI_LSB_FIRST\r\n"); 
+        DEV_HARDWARE_SPI_Debug("can't set spi SPI_LSB_FIRST\r\n"); 
         return -1;
     }
     return 1;
@@ -312,9 +325,9 @@ Info:
 int DEV_HARDWARE_SPI_SetBusMode(BusMode mode)
 {
     if(mode == SPI_3WIRE_Mode){
-        hardware_SPI.mode |= PIN_SPI_3WIRE;
+        hardware_SPI.mode |= SPI_3WIRE;
     }else if(mode == SPI_4WIRE_Mode){
-        hardware_SPI.mode &= ~PIN_SPI_3WIRE;
+        hardware_SPI.mode &= ~SPI_3WIRE;
     }
     if (ioctl(hardware_SPI.fd, SPI_IOC_WR_MODE, &hardware_SPI.mode) == -1) {
         DEV_HARDWARE_SPI_Debug("can't set spi mode\r\n"); 
@@ -342,31 +355,6 @@ parameter:
     buf :   Sent data
 Info:
 ******************************************************************************/
-/* uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t byte) */
-/* { */
-/*     /\* printf("%s: byte=0x%02x\n", __func__, byte); *\/ */
-
-/*     uint8_t tx = byte; */
-/*     uint8_t rx = 0; */
-
-/*     struct spi_ioc_transfer tr = {0}; */
-
-/*     tr.tx_buf = (uintptr_t)&tx;     // IMPORTANT: uintptr_t */
-/*     tr.rx_buf = (uintptr_t)&rx; */
-/*     tr.len    = 1; */
-/*     tr.speed_hz = 1000000;          // set something valid (1 MHz example) */
-/*     tr.bits_per_word = 8;           // typical */
-
-/*     int ret = ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr); */
-/*     if (ret < 1) { */
-/*         printf("Debug: can't send spi message, ret=%d\n", */
-/*                ret); */
-/*         perror(__func__); */
-/*     } */
-
-/*     return rx; */
-/* } */
-
 uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t buf)
 {
     uint8_t rbuf[1];
@@ -375,10 +363,8 @@ uint8_t DEV_HARDWARE_SPI_TransferByte(uint8_t buf)
     tr.rx_buf =  (unsigned long)rbuf;
     
     //ioctl Operation, transmission of data
-    if ( ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr) < 1 )  {
-      DEV_HARDWARE_SPI_Debug("can't send spi message\r\n");
-      perror(__func__);
-    }
+    if ( ioctl(hardware_SPI.fd, SPI_IOC_MESSAGE(1), &tr) < 1 )  
+        DEV_HARDWARE_SPI_Debug("can't send spi message\r\n"); 
     return rbuf[0];
 }
 
@@ -387,8 +373,8 @@ function: The SPI port reads a byte
 parameter:
 Info: Return read data
 ******************************************************************************/
-int DEV_HARDWARE_SPI_Transfer(uint8_t *buf, uint32_t len) {
-  /*  */
+int DEV_HARDWARE_SPI_Transfer(uint8_t *buf, uint32_t len)
+{
     tr.len = len;
     tr.tx_buf =  (unsigned long)buf;
     tr.rx_buf =  (unsigned long)buf;

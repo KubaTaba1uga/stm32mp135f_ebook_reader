@@ -28,7 +28,6 @@
 #
 ******************************************************************************/
 #include "DEV_Config.h"
-#include "Raspberry/lib/Config/dev_hardware_SPI.h"
 #include <fcntl.h>
 
 #if LGPIO
@@ -85,19 +84,6 @@ void DEV_SPI_WriteByte(UBYTE Value)
 	DEV_HARDWARE_SPI_TransferByte(Value);
 #endif
 }
-
-/******************************************************************************
-function:	SPI Write
-parameter:
-Info:
-******************************************************************************/
-void DEV_SPI_WriteBytes(UBYTE * Value, UDOUBLE Length)
-{
-#if GPIOD
-  DEV_HARDWARE_SPI_Transfer(Value, Length);
-#endif
-}
-
 
 /******************************************************************************
 function:	SPI Read
@@ -206,9 +192,10 @@ static void DEV_GPIO_Init(void)
 
 #elif GPIOD
 	DEV_GPIO_Mode(EPD_BUSY_PIN, 0);
-        DEV_GPIO_Mode(EPD_RST_PIN, 1);
-        DEV_GPIO_Mode(EPD_CS_PIN, 1);
-        DEV_Digital_Write(EPD_CS_PIN, 1);
+	DEV_GPIO_Mode(EPD_RST_PIN, 1);
+    DEV_GPIO_Mode(EPD_CS_PIN, 1);
+
+    DEV_Digital_Write(EPD_CS_PIN, 1);
 #endif
 	
 }
@@ -268,7 +255,7 @@ UBYTE DEV_Module_Init(void)
     if(fgets(buffer, sizeof(buffer), fp) != NULL)
     {
         GPIO_Handle = lgGpiochipOpen(4);
-        If (GPIO_Handle < 0)
+        if (GPIO_Handle < 0)
         {
             Debug( "gpiochip4 Export Failed\n");
             return -1;
@@ -286,15 +273,21 @@ UBYTE DEV_Module_Init(void)
     SPI_Handle = lgSpiOpen(0, 0, 12500000, 0);
     DEV_GPIO_Init();
 #elif GPIOD
-	printf("Write and read /dev/spidev0.0 \r\n");
-	GPIOD_Export();
-	DEV_GPIO_Init();
-	DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
-        DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
-#endif
+    printf("Write and read /dev/spidev0.0 \r\n");
+    GPIOD_Export();
+    DEV_GPIO_Init();
+    DEV_HARDWARE_SPI_begin("/dev/spidev0.0");
 
+#ifndef EBK
+    DEV_HARDWARE_SPI_setSpeed(12500000);
+#else
+    DEV_HARDWARE_SPI_setSpeed(16000000);
+    DEV_HARDWARE_SPI_SetBitOrder(SPI_BIT_ORDER_MSBFIRST);
+#endif // ifndef EBK
+
+#endif
     Debug("/***********************************/ \r\n");
-    return 0;
+	return 0;
 }
 
 
@@ -318,11 +311,25 @@ void DEV_Module_Exit(void)
     // lgSpiClose(SPI_Handle);
     // lgGpiochipClose(GPIO_Handle);
 #elif GPIOD
-    DEV_HARDWARE_SPI_end();
-    DEV_Digital_Write(EPD_CS_PIN, 0);
-    DEV_Digital_Write(EPD_RST_PIN, 0);
+	DEV_HARDWARE_SPI_end();
+	DEV_Digital_Write(EPD_CS_PIN, 0);
+	DEV_Digital_Write(EPD_RST_PIN, 0);
     GPIOD_Unexport(EPD_RST_PIN);
     GPIOD_Unexport(EPD_BUSY_PIN);
     GPIOD_Unexport_GPIO();
 #endif
 }
+
+#ifdef EBK
+/******************************************************************************
+function:	SPI Write Bytes
+parameter:
+Info:
+******************************************************************************/
+void DEV_SPI_WriteBytes(UBYTE * Value, UDOUBLE Length)
+{
+#if GPIOD
+  DEV_HARDWARE_SPI_Transfer(Value, Length);
+#endif
+}
+#endif // ifdef EBK
