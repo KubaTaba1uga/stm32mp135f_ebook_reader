@@ -17,6 +17,9 @@ static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
                                       uint32_t buf_len);
 static inline int dd_graphic_get_pixel(int x, int y, int width,
                                        unsigned char *buf, uint32_t buf_len);
+int dd_graphic_get_4bits(int i, unsigned char *buf, uint32_t buf_len,
+                         unsigned char *tmp);
+
 
 #define TIME_CALL(label, expr)                                                 \
   do {                                                                         \
@@ -50,6 +53,7 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   unsigned char *dst = malloc(buf_len);
   for (src_x = width - 1; src_x >= 0; --src_x) {
     for (src_y = 0; src_y < heigth; src_y += 4) {
+      // 
       tmp[0] = dd_graphic_get_pixel(src_x, src_y, width, buf, buf_len);
       tmp[1] = dd_graphic_get_pixel(src_x, src_y + 1, width, buf, buf_len);
       tmp[2] = dd_graphic_get_pixel(src_x, src_y + 2, width, buf, buf_len);
@@ -103,7 +107,7 @@ int dd_graphic_get_4bits(int i, unsigned char *buf, uint32_t buf_len,
   uint16x4_t nbytes = vld1_u16(bytes);
   uint16x4_t nbytes_shifted = vshr_n_u16(nbytes, 3);
   vst1_u16(bytes, nbytes_shifted);
-
+  
   uint16_t bits[4] = {
       (i + 0) % 8,
       (i + 1) % 8,
