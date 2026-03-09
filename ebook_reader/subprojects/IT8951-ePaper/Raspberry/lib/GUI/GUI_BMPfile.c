@@ -236,7 +236,7 @@ static void DrawMatrix(UWORD Xpos, UWORD Ypos,UWORD Width, UWORD High,const UBYT
 				break;
 				
 				default:
-				break;
+				  goto out;
 			}
 		
 			Gray = (R*299 + G*587 + B*114 + 500) / 1000;
@@ -245,7 +245,8 @@ static void DrawMatrix(UWORD Xpos, UWORD Ypos,UWORD Width, UWORD High,const UBYT
 			else
 				Paint_SetPixel(i, j, Gray);
 		}
-	}
+        }
+ out:;        
 }
 
 UBYTE GUI_ReadBmp(const char *path, UWORD x, UWORD y)

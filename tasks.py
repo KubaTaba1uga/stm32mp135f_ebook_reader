@@ -402,8 +402,11 @@ def fbuild_display_driver(c):
             f.write(cross_txt)
 
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=release {build_dir}"
         )
+        # c.run(
+        #     f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+        # )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )

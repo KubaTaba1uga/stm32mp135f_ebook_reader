@@ -14,8 +14,9 @@ pkg-config = 'PLACEHOLDER/build/buildroot/host/bin/pkg-config'
 [properties]
 sys_root = 'PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot'
 needs_exe_wrapper = true
-c_args   = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
-cpp_args = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
+c_args   = ['-march=armv7-a+neon-vfpv4', '-mtune=cortex-a7', '-mthumb', '-mfloat-abi=hard']
+cpp_args = ['-march=armv7-a+neon-vfpv4', '-mtune=cortex-a7', '-mthumb', '-mfloat-abi=hard']
+
 
 [host_machine]
 system = 'linux'
