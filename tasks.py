@@ -401,12 +401,12 @@ def fbuild_display_driver(c):
         with open(cross_out_path, "w", encoding="utf-8") as f:
             f.write(cross_txt)
 
-        # c.run(
-        #     f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=release {build_dir}"
-        # )
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=release {build_dir}"
         )
+        # c.run(
+        #     f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
+        # )
         # c.run(
         #     f"meson setup -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
         # )

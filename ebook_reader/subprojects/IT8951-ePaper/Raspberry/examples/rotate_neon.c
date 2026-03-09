@@ -1,3 +1,4 @@
+#include <arm_neon.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   unsigned char tmp[4];
   int dst_i = 0;
   int src_y;
-  int src_x;    
+  int src_x;
   /* int v; */
 
   unsigned char *dst = malloc(buf_len);
@@ -54,11 +55,10 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
       tmp[2] = dd_graphic_get_pixel(src_x, src_y + 2, width, buf, buf_len);
       tmp[3] = dd_graphic_get_pixel(src_x, src_y + 3, width, buf, buf_len);
 
-
       dd_graphic_set_bit(dst_i++, tmp[0], dst, buf_len);
       dd_graphic_set_bit(dst_i++, tmp[1], dst, buf_len);
       dd_graphic_set_bit(dst_i++, tmp[2], dst, buf_len);
-      dd_graphic_set_bit(dst_i++, tmp[3], dst, buf_len);      
+      dd_graphic_set_bit(dst_i++, tmp[3], dst, buf_len);
     }
   }
 
@@ -80,11 +80,47 @@ static inline int dd_graphic_get_bit(int i, unsigned char *buf,
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return -1;
   }
-  int byte = i >> 3; // same as i/8 but faster  
+  int byte = i >> 3; // same as i/8 but faster
   /* int byte = i / 8; */
   /* int bit = 7 - (i % 8); */
   int bit = (i % 8);
   return (buf[byte] >> bit) & 1;
+}
+
+int dd_graphic_get_4bits(int i, unsigned char *buf, uint32_t buf_len,
+                         unsigned char *tmp) {
+  if (i < 0 || (uint32_t)i >= buf_len * 8) {
+    return -1;
+  };
+
+  /* int byte = i >> 3; // same as i/8 but faster */
+  uint16_t bytes[4] = {
+      i + 0,
+      i + 1,
+      i + 2,
+      i + 3,
+  };
+  uint16x4_t nbytes = vld1_u16(bytes);
+  uint16x4_t nbytes_shifted = vshr_n_u16(nbytes, 3);
+  vst1_u16(bytes, nbytes_shifted);
+
+  uint16_t bits[4] = {
+      (i + 0) % 8,
+      (i + 1) % 8,
+      (i + 2) % 8,
+      (i + 3) % 8,
+  };
+  /* int bit = (i % 8); */
+  /* uint16x4_t nbits = vand_u16(i, vdup_n_u16(7)); */
+  /* uint16_t bits[4]; */
+  /* vst1_u16(bits, nbits); */
+
+  /* return (buf[byte] >> bit) & 1; */
+  tmp[0] = buf[bytes[0]] >> bits[0] & 1;
+  tmp[1] = buf[bytes[1]] >> bits[1] & 1;
+  tmp[2] = buf[bytes[2]] >> bits[2] & 1;
+  tmp[3] = buf[bytes[3]] >> bits[3] & 1;
+  return 0;
 }
 
 static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
