@@ -1,0 +1,49 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <time.h>
+
+#include <arm_neon.h>
+
+#define TIME_CALL(label, expr)                                                 \
+  do {                                                                         \
+    long long t0 = now_ns();                                                   \
+    (expr);                                                                    \
+    long long t1 = now_ns();                                                   \
+    print_ms((label), (t1 - t0));                                              \
+  } while (0)
+
+static inline long long now_ns(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
+static inline void print_ms(const char *name, long long dt_ns) {
+  printf("%s: %.3f ms\n", name, (double)dt_ns / 1e6);
+}
+
+void neon(uint8_t *a, uint8_t *b, uint8_t *out) {
+  for (int i = 0; i < 128; i++) {
+    uint8x16_t va = vld1q_u8(a);
+    uint8x16_t vb = vld1q_u8(b);
+    uint8x16_t vr = vaddq_u8(va, vb);
+    vst1q_u8(out, vr);
+  }
+}
+
+void no_neon(uint8_t *a, uint8_t *b, uint8_t *out) {
+  for (int _ = 0; _ < 128; _++) {
+    for (int i=0 ; i<16; i++) {
+      out[i] = a[i] + b[i];
+	}
+  }
+}
+
+
+int main(void) {
+  uint8_t A[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  uint8_t B[16] = {10, 20, 30, 40, 50, 60, 70, 80, 1, 2, 3, 4, 5, 6, 7, 8};
+  uint8_t out[16];
+  TIME_CALL("neon", neon(A, B, out));
+  TIME_CALL("no_neon", no_neon(A, B, out));  
+}

@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
   int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 2;
   uint8_t *buf = malloc(buf_len);
 
-  /* for (int i = 0; i < 16; i++) { */
+  for (int i = 0; i < 16; i++) {
   memset(buf, 0x00, buf_len);
   TIME_CALL("1bp_Refresh GC16 - Black",
             EPD_IT8951_1bp_Refresh(buf, 0, 0, Dev_Info.Panel_W,
@@ -179,12 +179,12 @@ int main(int argc, char *argv[]) {
                                    Init_Target_Memory_Addr, true));
   sleep(5);
 
-  TIME_CALL("1bp_Refresh GC16 - Cat",
-            EPD_IT8951_1bp_Refresh(
-                                   big_cat,
-                0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H - 4, GC16_Mode,
-                Init_Target_Memory_Addr, true));
-  sleep(5);
+  /* TIME_CALL("1bp_Refresh GC16 - Cat", */
+  /*           EPD_IT8951_1bp_Refresh( */
+  /*                                  big_cat, */
+  /*               0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H - 4, GC16_Mode, */
+  /*               Init_Target_Memory_Addr, true)); */
+  /* sleep(5); */
 
 
   TIME_CALL("1bp_Refresh GC16 - Cat rotated",
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
   
 
   
-  /* } */
+  }
 
   EPD_IT8951_Sleep();
 
@@ -215,26 +215,27 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-#include <stdint.h>
-
-static inline int dd_graphic_get_bit(int i, unsigned char *buf, uint32_t buf_len) {
+static inline int dd_graphic_get_bit(int i, unsigned char *buf,
+                                     uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return -1;
   }
-  int byte = i / 8;
+  int byte = i >> 3; // same as i/8 but faster  
+  /* int byte = i / 8; */
   /* int bit = 7 - (i % 8); */
-  int bit = (i % 8);  
+  int bit = (i % 8);
   return (buf[byte] >> bit) & 1;
 }
 
-static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) {
+static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
+                                      uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return;
   }
-  int byte = i / 8;
+  int byte = i >> 3; // same as i/8 but faster
   /* int bit = 7 - (i % 8); */
   int bit = (i % 8);
-  
+
   if (val) {
     buf[byte] |= (1u << bit);
   } else {
@@ -242,8 +243,8 @@ static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf, uint32
   }
 }
 
-static inline int dd_graphic_get_pixel(int x, int y, int width, unsigned char *buf,
-                         uint32_t buf_len) {
+static inline int dd_graphic_get_pixel(int x, int y, int width,
+                                       unsigned char *buf, uint32_t buf_len) {
   if (x < 0 || y < 0) {
     return -1;
   }
@@ -253,18 +254,32 @@ static inline int dd_graphic_get_pixel(int x, int y, int width, unsigned char *b
   return dd_graphic_get_bit(bit, buf, buf_len);
 }
 
+
+
 static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
                                          unsigned char *buf, int buf_len) {
+  unsigned char tmp[4];
   int dst_i = 0;
-  int v;
+  int src_y;
+  int src_x;    
+  /* int v; */
 
   unsigned char *dst = malloc(buf_len);
-  for (int x = width - 1; x >= 0; --x) {
-    for (int y = 0; y < heigth; ++y) {
-      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
-      dd_graphic_set_bit(dst_i++, v, dst, buf_len);
+  for (src_x = width - 1; src_x >= 0; --src_x) {
+    for (src_y = 0; src_y < heigth; src_y += 4) {
+      tmp[0] = dd_graphic_get_pixel(src_x, src_y, width, buf, buf_len);
+      tmp[1] = dd_graphic_get_pixel(src_x, src_y + 1, width, buf, buf_len);
+      tmp[2] = dd_graphic_get_pixel(src_x, src_y + 2, width, buf, buf_len);
+      tmp[3] = dd_graphic_get_pixel(src_x, src_y + 3, width, buf, buf_len);
+
+
+      dd_graphic_set_bit(dst_i++, tmp[0], dst, buf_len);
+      dd_graphic_set_bit(dst_i++, tmp[1], dst, buf_len);
+      dd_graphic_set_bit(dst_i++, tmp[2], dst, buf_len);
+      dd_graphic_set_bit(dst_i++, tmp[3], dst, buf_len);      
     }
   }
 
   return dst;
 }
+

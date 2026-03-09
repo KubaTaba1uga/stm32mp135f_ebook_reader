@@ -93,3 +93,7 @@ executable('it8951_main',
 executable('it8951_rotate',
   sources: ['Raspberry/examples/rotate.c'],
 )
+
+executable('it8951_rotate_neon',
+  sources: ['Raspberry/examples/rotate_neon.c'],
+)
