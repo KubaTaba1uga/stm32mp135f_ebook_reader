@@ -6,6 +6,7 @@
 #include "cat_big.c"
 #include "cat_big_not_rot.c"
 #include "rotation_tables.c"
+#include "timing.h"
 
 static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
                                          unsigned char *buf, int buf_len);
