@@ -9,15 +9,6 @@
 
 static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
                                          unsigned char *buf, int buf_len);
-static inline int dd_graphic_get_bit(int i, unsigned char *buf,
-                                     uint32_t buf_len);
-static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
-                                      uint32_t buf_len);
-static inline int dd_graphic_get_pixel(int x, int y, int width,
-                                       unsigned char *buf, uint32_t buf_len);
-static inline void dd_graphic_set_pixel(int x, int y, int v, int width,
-                                        unsigned char *buf, uint32_t buf_len);
-
 int main(void) {
   long long t0 = now_ns();
 
@@ -33,20 +24,25 @@ int main(void) {
 
 static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
                                          unsigned char *buf, int buf_len) {
-  int v;
-
-  unsigned char *dst = malloc(buf_len);
-  for (int y = 0; y < heigth; ++y) {
-    for (int x = width - 1, x2 = 0; x >= 0; --x, x2++) {
-      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
-      dd_graphic_set_pixel(y, x2, v, heigth, dst, buf_len);
+  unsigned char *dst = calloc(buf_len, 1);
+  for (int y = 0; y < heigth; y++) {
+    int src_row = y * width;
+    for (int x = 0; x < width; x++) {
+      int src_bit = src_row + (width - 1 - x);
+      int dst_bit = x * heigth + y;
+      int v = (buf[src_bit >> 3] >> (src_bit & 7)) & 1;
+      if (v) {
+        dst[dst_bit >> 3] |= (1 << (dst_bit & 7));
+      }
     }
   }
 
   return dst;
 }
 
-static inline int dd_graphic_get_bit(int i, unsigned char *buf,
+
+
+ int dd_graphic_get_bit(int i, unsigned char *buf,
                                      uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return -1;
@@ -58,7 +54,7 @@ static inline int dd_graphic_get_bit(int i, unsigned char *buf,
   return (buf[byte] >> bit) & 1;
 }
 
-static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
+ void dd_graphic_set_bit(int i, int val, unsigned char *buf,
                                       uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return;
@@ -74,16 +70,34 @@ static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
   }
 }
 
-static inline int dd_graphic_get_pixel(int x, int y, int width,
+ int dd_graphic_get_pixel(int x, int y, int width,
                                        unsigned char *buf, uint32_t buf_len) {
   int bit = width * y + x;
 
   return dd_graphic_get_bit(bit, buf, buf_len);
 }
 
-static inline void dd_graphic_set_pixel(int x, int y, int v, int width,
+ void dd_graphic_set_pixel(int x, int y, int v, int width,
                                         unsigned char *buf, uint32_t buf_len) {
   int bit = width * y + x;
 
   dd_graphic_set_bit(bit, v, buf, buf_len);
 }
+
+ unsigned char *dd_wvs75v2b_rotate_not_optimized(int width, int heigth,
+                                         unsigned char *buf, int buf_len) {
+  int v;
+
+  unsigned char *dst = calloc(buf_len, 1);
+  for (int y = 0; y < heigth; ++y) {
+    for (int x = width - 1, x2 = 0; x >= 0; --x, x2++) {
+      v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
+      if (v){
+        dd_graphic_set_pixel(y, x2, v, heigth, dst, buf_len);
+      }
+    }
+  }
+
+  return dst;
+}
+
