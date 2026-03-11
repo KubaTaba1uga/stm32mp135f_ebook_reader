@@ -229,18 +229,14 @@ static inline int dd_graphic_get_bit(int i, unsigned char *buf,
 
 static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
                                       uint32_t buf_len) {
-  if (i < 0 || (uint32_t)i >= buf_len * 8) {
+  if (!val) {
     return;
-  }
+  }    
   int byte = i >> 3; // same as i/8 but faster
   /* int bit = 7 - (i % 8); */
   int bit = (i % 8);
 
-  if (val) {
-    buf[byte] |= (1u << bit);
-  } else {
-    buf[byte] &= ~(1u << bit);
-  }
+  buf[byte] |= (1u << bit);
 }
 
 static inline int dd_graphic_get_pixel(int x, int y, int width,
@@ -265,6 +261,7 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   /* int v; */
 
   unsigned char *dst = malloc(buf_len);
+  memset(dst, 0, buf_len);
   for (src_x = width - 1; src_x >= 0; --src_x) {
     for (src_y = 0; src_y < heigth; src_y += 4) {
       tmp[0] = dd_graphic_get_pixel(src_x, src_y, width, buf, buf_len);

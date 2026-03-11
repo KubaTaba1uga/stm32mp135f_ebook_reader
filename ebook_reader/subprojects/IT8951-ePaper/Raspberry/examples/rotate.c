@@ -79,8 +79,9 @@ static inline int dd_graphic_get_bit(int i, unsigned char *buf,
 static inline void dd_graphic_set_bit(int i, int val, unsigned char *buf,
                                       uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
-    return;
+    return ;
   }
+
   int byte = i >> 3; // same as i/8 but faster
   /* int bit = 7 - (i % 8); */
   int bit = (i % 8);
