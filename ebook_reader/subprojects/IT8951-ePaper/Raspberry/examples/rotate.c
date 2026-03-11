@@ -40,10 +40,7 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   return dst;
 }
 
-
-
- int dd_graphic_get_bit(int i, unsigned char *buf,
-                                     uint32_t buf_len) {
+int dd_graphic_get_bit(int i, unsigned char *buf, uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return -1;
   }
@@ -54,8 +51,7 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   return (buf[byte] >> bit) & 1;
 }
 
- void dd_graphic_set_bit(int i, int val, unsigned char *buf,
-                                      uint32_t buf_len) {
+void dd_graphic_set_bit(int i, int val, unsigned char *buf, uint32_t buf_len) {
   if (i < 0 || (uint32_t)i >= buf_len * 8) {
     return;
   }
@@ -70,29 +66,30 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
   }
 }
 
- int dd_graphic_get_pixel(int x, int y, int width,
-                                       unsigned char *buf, uint32_t buf_len) {
+int dd_graphic_get_pixel(int x, int y, int width, unsigned char *buf,
+                         uint32_t buf_len) {
   int bit = width * y + x;
 
   return dd_graphic_get_bit(bit, buf, buf_len);
 }
 
- void dd_graphic_set_pixel(int x, int y, int v, int width,
-                                        unsigned char *buf, uint32_t buf_len) {
+void dd_graphic_set_pixel(int x, int y, int v, int width, unsigned char *buf,
+                          uint32_t buf_len) {
   int bit = width * y + x;
 
   dd_graphic_set_bit(bit, v, buf, buf_len);
 }
 
- unsigned char *dd_wvs75v2b_rotate_not_optimized(int width, int heigth,
-                                         unsigned char *buf, int buf_len) {
+unsigned char *dd_wvs75v2b_rotate_not_optimized(int width, int heigth,
+                                                unsigned char *buf,
+                                                int buf_len) {
   int v;
 
   unsigned char *dst = calloc(buf_len, 1);
   for (int y = 0; y < heigth; ++y) {
     for (int x = width - 1, x2 = 0; x >= 0; --x, x2++) {
       v = dd_graphic_get_pixel(x, y, width, buf, buf_len);
-      if (v){
+      if (v) {
         dd_graphic_set_pixel(y, x2, v, heigth, dst, buf_len);
       }
     }
@@ -100,4 +97,3 @@ static unsigned char *dd_wvs75v2b_rotate(int width, int heigth,
 
   return dst;
 }
-
