@@ -215,27 +215,18 @@ int main(int argc, char *argv[]) {
 */
 static unsigned char *dd_wvs75v2b_rotate(int width, int height,
                                          unsigned char *buf, int buf_len) {
-  unsigned char *dst = calloc(1, buf_len);
-  int src_row = 0;
+  unsigned char *dst = calloc(buf_len, 1);
   for (int y = 0; y < height; y++) {
-    int src_bit = src_row + (width - 1);
-    int dst_bit = y;
-
-    for (int x = width - 1; x >= 0; x--) {
-
+    int src_row = y * width;
+    for (int x = 0; x < width; x++) {
+      int src_bit = src_row + (width - 1 - x);
+      int dst_bit = x * height + y;
       int v = (buf[src_bit >> 3] >> (src_bit & 7)) & 1;
-
       if (v) {
-        dst[dst_bit >> 3] |= 1 << (dst_bit & 7);
+        dst[dst_bit >> 3] |= (1 << (dst_bit & 7));
       }
-
-      src_bit--;
-      dst_bit += height;
     }
-
-    src_row += width;
   }
 
   return dst;
 }
-
