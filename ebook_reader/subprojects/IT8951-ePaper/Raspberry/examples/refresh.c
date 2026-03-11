@@ -161,12 +161,12 @@ int main(int argc, char *argv[]) {
   if (argc == 4) {
     puts(argv[3]);
   }
-
   TIME_CALL(
-      "Clear_Refresh INIT",
-      EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode));
+	      "Clear_Refresh INIT",
+	      EPD_IT8951_Clear_Refresh(Dev_Info, Init_Target_Memory_Addr, INIT_Mode));
   puts("INIT MODE DONE");
   sleep(1);
+
 
   int buf_len = Dev_Info.Panel_W * Dev_Info.Panel_H / 2;
   uint8_t *buf = malloc(buf_len);
@@ -179,12 +179,12 @@ int main(int argc, char *argv[]) {
                                      Init_Target_Memory_Addr, true));
     sleep(5);
 
-    /* TIME_CALL("1bp_Refresh GC16 - Cat", */
-    /*           EPD_IT8951_1bp_Refresh( */
-    /*                                  big_cat, */
-    /*               0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H - 4, GC16_Mode, */
-    /*               Init_Target_Memory_Addr, true)); */
-    /* sleep(5); */
+    TIME_CALL("1bp_Refresh GC16 - Cat",
+              EPD_IT8951_1bp_Refresh(
+                                     big_cat,
+                  0, 0, Dev_Info.Panel_W, Dev_Info.Panel_H - 4, GC16_Mode,
+                  Init_Target_Memory_Addr, true));
+    sleep(5);
 
     TIME_CALL("1bp_Refresh GC16 - Cat rotated",
               EPD_IT8951_1bp_Refresh(
@@ -200,6 +200,9 @@ int main(int argc, char *argv[]) {
                                      Dev_Info.Panel_H - 4, GC16_Mode,
                                      Init_Target_Memory_Addr, true));
     sleep(5);
+
+    EPD_IT8951_Sleep();
+    sleep(5);    
   }
 
   EPD_IT8951_Sleep();

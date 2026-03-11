@@ -30,6 +30,7 @@
 ******************************************************************************/
 #include "EPD_IT8951.h"
 #include <assert.h>
+#include <stdio.h>
 #include <time.h>
 
 //basic mode definition
@@ -77,8 +78,7 @@ static void EPD_IT8951_ReadBusy(void)
 function :	write command
 parameter:  command
 ******************************************************************************/
-static void EPD_IT8951_WriteCommand(UWORD Command)
-{
+static void EPD_IT8951_WriteCommand(UWORD Command) {
 	//Set Preamble for Write Command
 	UWORD Write_Preamble = 0x6000;
 	
@@ -86,7 +86,7 @@ static void EPD_IT8951_WriteCommand(UWORD Command)
 
 	DEV_Digital_Write(EPD_CS_PIN, LOW);
 
-#ifndef EBK        
+#ifndef EBK
 	DEV_SPI_WriteByte(Write_Preamble>>8);
 	DEV_SPI_WriteByte(Write_Preamble);
 	
@@ -722,8 +722,9 @@ function :	Cmd3 SLEEP
 parameter:  Sleep
 ******************************************************************************/
 void EPD_IT8951_Sleep(void)
-{
-    EPD_IT8951_WriteCommand(IT8951_TCON_SLEEP);
+{puts(__func__);
+  EPD_IT8951_WriteCommand(IT8951_TCON_SLEEP);
+puts("DONE");  
 }
 
 
@@ -760,7 +761,7 @@ parameter:
 ******************************************************************************/
 void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Addr, UWORD Mode)
 {
-
+  puts(__func__);
     UDOUBLE ImageSize = ((Dev_Info.Panel_W * 4 % 8 == 0)? (Dev_Info.Panel_W * 4 / 8 ): (Dev_Info.Panel_W * 4 / 8 + 1)) * Dev_Info.Panel_H;
     UBYTE* Frame_Buf = malloc (ImageSize);
     memset(Frame_Buf, 0xFF, ImageSize);
@@ -792,6 +793,7 @@ void EPD_IT8951_Clear_Refresh(IT8951_Dev_Info Dev_Info,UDOUBLE Target_Memory_Add
 
     free(Frame_Buf);
     Frame_Buf = NULL;
+  puts("DONE");    
 }
 
 
