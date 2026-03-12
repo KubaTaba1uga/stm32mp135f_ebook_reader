@@ -200,9 +200,6 @@ int main(int argc, char *argv[]) {
                                      Dev_Info.Panel_H - 4, GC16_Mode,
                                      Init_Target_Memory_Addr, true));
     sleep(5);
-
-    EPD_IT8951_Sleep();
-    sleep(5);    
   }
 
   EPD_IT8951_Sleep();
