@@ -15,6 +15,7 @@ project('ebook_reader', 'c',
 # *    Config
 # ******************************************************************************
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
+add_global_arguments('-pg', language: ['c', 'cpp'])
 
 # We use `EBK` macro to compile code paths wich are meant especially for ebook.
 # For example it is used in it8951 driver.
@@ -35,6 +36,9 @@ if display == 'x11'
    add_global_arguments('-DEBK_DISPLAY_X11', language: ['c', 'cpp'])   
    ebook_reader_deps += [dependency('x11', required: true)]
    ebook_reader_src += [files('src/display/display_x11.c')]
+elif display == 'png'
+   add_global_arguments('-DEBK_DISPLAY_X11', language: ['c', 'cpp'])   
+   ebook_reader_src += [files('src/display/display_png.c')]   
 else
    add_global_arguments('-DEBK_DISPLAY_IT8951', language: ['c', 'cpp'])      
    ebook_reader_deps += [dependency('it8951_epaper', fallback: ['it8951_epaper', 'it8951_epaper_dep'], required: true, static: true)]

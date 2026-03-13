@@ -13,4 +13,5 @@ int display_get_x(display_t display);
 int display_get_y(display_t display);
 void display_panic(display_t display);
 
+void display_set_trace(void) ;
 #endif // EBOOK_READER_DISPLAY_H
