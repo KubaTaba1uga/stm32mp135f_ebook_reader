@@ -11,13 +11,13 @@
 
 #include <lvgl.h>
 
-static const int bar_y = 48;
-static const int bar_clock_x = 336;
-static const int books_x_off = 48;
-static const int books_y_off = 64;
-static const int book_x = 296;
-static const int book_text_y = 80;
-static const int book_y = 392 + book_text_y;
+static int bar_y;
+static int bar_clock_x;
+static int books_x_off;
+static int books_y_off;
+static int book_x;
+static int book_text_y;
+static int book_y;
 
 uint32_t time_now(void) {
   struct timespec ts;
@@ -112,7 +112,7 @@ int wdgt_books_init(void) {
   lv_obj_add_style(books_container, &style, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   for (int i = 0; i < 9; i++) {
-    int buf_len = book_x * (book_y - book_text_y) / 8;
+    int buf_len = book_x * (book_y - book_text_y) * 4;
     uint8_t *buf = malloc(buf_len); // I8
     memset(buf, 0xFF, buf_len);
 
@@ -133,10 +133,10 @@ static int wdgt_book_create(lv_obj_t *books, const char *book_title,
   if (thumbnail) {
     book_img = lv_image_create(book_card);
     static lv_img_dsc_t dsc = {0};
-    dsc.header.cf = LV_COLOR_FORMAT_I1;
+    dsc.header.cf = LV_COLOR_FORMAT_ARGB8888;
     dsc.header.w = book_x;
     dsc.header.h = (book_y - book_text_y);
-    dsc.data_size = dsc.header.w * dsc.header.h / 8;
+    dsc.data_size = dsc.header.w * dsc.header.h * 4;
     dsc.data = thumbnail;
     lv_image_set_src(book_img, &dsc);
     lv_obj_set_style_border_width(book_img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -169,37 +169,36 @@ static int wdgt_book_create(lv_obj_t *books, const char *book_title,
 
   return 0;
 }
-void lv_example_get_started_1(void)
-{
-    /*Change the active screen's background color*/
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+void lv_example_get_started_1(void) {
+  /*Change the active screen's background color*/
+  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
 
-    /*Create a white label, set its text and align it to the center*/
-    lv_obj_t * label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "Hello world");
-    lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+  /*Create a white label, set its text and align it to the center*/
+  lv_obj_t *label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "Hello world");
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(),
+                              LV_PART_MAIN);
+  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 }
 
+void lv_example_line_1(void) {
+  /*Create an array for the points of the line*/
+  static lv_point_precise_t line_points[] = {
+      {5, 5}, {70, 70}, {120, 10}, {180, 60}, {240, 10}};
 
-void lv_example_line_1(void)
-{
-    /*Create an array for the points of the line*/
-    static lv_point_precise_t line_points[] = { {5, 5}, {70, 70}, {120, 10}, {180, 60}, {240, 10} };
+  /*Create style*/
+  static lv_style_t style_line;
+  lv_style_init(&style_line);
+  lv_style_set_line_width(&style_line, 8);
+  lv_style_set_line_color(&style_line, lv_color_black());
+  lv_style_set_line_rounded(&style_line, true);
 
-    /*Create style*/
-    static lv_style_t style_line;
-    lv_style_init(&style_line);
-    lv_style_set_line_width(&style_line, 8);
-    lv_style_set_line_color(&style_line, lv_color_black());
-    lv_style_set_line_rounded(&style_line, true);
-
-    /*Create a line and apply the new style*/
-    lv_obj_t * line1;
-    line1 = lv_line_create(lv_screen_active());
-    lv_line_set_points(line1, line_points, 5);     /*Set the points*/
-    lv_obj_add_style(line1, &style_line, 0);
-    lv_obj_center(line1);
+  /*Create a line and apply the new style*/
+  lv_obj_t *line1;
+  line1 = lv_line_create(lv_screen_active());
+  lv_line_set_points(line1, line_points, 5); /*Set the points*/
+  lv_obj_add_style(line1, &style_line, 0);
+  lv_obj_center(line1);
 }
 
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
@@ -220,7 +219,25 @@ int main(int argc, char *argv[]) {
   y = atoi(argv[2]);
   cairo_format = CAIRO_FORMAT_ARGB32;
   lvgl_format = LV_COLOR_FORMAT_ARGB8888;
-  
+
+  if (x < 1000) {
+    bar_y = 30;
+    bar_clock_x = 160;
+    books_x_off = 10;
+    books_y_off = 20;
+    book_x = 120;
+    book_text_y = 50;
+    book_y = 170 + book_text_y;
+  } else {
+    bar_y = 48;
+    bar_clock_x = 336;
+    books_x_off = 48;
+    books_y_off = 64;
+    book_x = 296;
+    book_text_y = 80;
+    book_y = 392 + book_text_y;
+  }
+
   printf("x=%d\n", x);
   printf("y=%d\n", y);
 
@@ -235,15 +252,16 @@ int main(int argc, char *argv[]) {
   char *buf = malloc(cairo_format_stride_for_width(cairo_format, x) * y);
   lv_display_set_color_format(lv_disp, lvgl_format);
   lv_display_set_flush_cb(lv_disp, display_flush_callback);
-  lv_display_set_buffers(lv_disp, buf, NULL, cairo_format_stride_for_width(cairo_format, x) * y,
+  lv_display_set_buffers(lv_disp, buf, NULL,
+                         cairo_format_stride_for_width(cairo_format, x) * y,
                          LV_DISPLAY_RENDER_MODE_FULL);
 
   t0 = now_ns();
 
-  lv_example_line_1();
-  
-  /* wdgt_bar_init(); */
-  /* wdgt_books_init(); */
+  /* lv_example_line_1(); */
+
+  wdgt_bar_init();
+  wdgt_books_init();
   while (1) {
     lv_timer_handler();
   }
@@ -259,10 +277,11 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
   long long t1 = now_ns();
   print_ms("Cat rotated", (t1 - t0));
 
-  printf("x=%d, y=%d, stride=%d\n",x, y, cairo_format_stride_for_width(cairo_format, x));
-  
+  printf("x=%d, y=%d, stride=%d\n", x, y,
+         cairo_format_stride_for_width(cairo_format, x));
+
   cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data(
-      px_map , cairo_format, x, y,
+      px_map, cairo_format, x, y,
       cairo_format_stride_for_width(cairo_format, x));
 
   /* cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data( */
