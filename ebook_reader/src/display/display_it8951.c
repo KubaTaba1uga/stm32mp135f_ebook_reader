@@ -58,18 +58,9 @@ err_t display_init(display_t *out) {
   printf("display->dev_info.Panel_H=%d\n", display->dev_info.Panel_H);
   printf("ui_display_it8951_width=%d\n", ui_display_it8951_width);
   printf("ui_display_it8951_heigth=%d\n", ui_display_it8951_heigth);
-
-  /* assert(display->dev_info.Panel_W == */
-  /*        ui_display_it8951_heigth); // The screen is in horizontal position */
-  /* assert(display->dev_info.Panel_H == */
-  /*        ui_display_it8951_width + */
-  /*            4); //  so we need to reverse width and heigth. */
-  /* display->dev_info.Panel_H = ui_display_it8951_width; */
-  /* display->dev_info.Panel_W = ui_display_it8951_heigth; */
   
   EPD_IT8951_Clear_Refresh(display->dev_info, display->init_mem_addr,
                            INIT_Mode);
-
   // Configure LVGL
   lv_indev_t *lv_indev =
       lv_evdev_create(LV_INDEV_TYPE_KEYPAD, settings_input_path);
