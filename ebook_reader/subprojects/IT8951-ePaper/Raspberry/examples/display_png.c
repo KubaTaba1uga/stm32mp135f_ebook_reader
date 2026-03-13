@@ -157,7 +157,8 @@ static unsigned char *graphic_argb32_to_i1(int w, int h, const uint8_t *src,
 
       int byte_i = y * dst_stride + (x >> 3);
 
-      int bit = 7 - (x & 7); // MSB first
+      /* int bit = 7 - (x & 7); // MSB first */
+      int bit = (x & 7); // MSB first      
       if (black) {
         dst[byte_i] |= (1u << bit);
       }
