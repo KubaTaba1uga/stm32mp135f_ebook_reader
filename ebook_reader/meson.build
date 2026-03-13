@@ -37,7 +37,7 @@ if display == 'x11'
    ebook_reader_deps += [dependency('x11', required: true)]
    ebook_reader_src += [files('src/display/display_x11.c')]
 elif display == 'png'
-   add_global_arguments('-DEBK_DISPLAY_X11', language: ['c', 'cpp'])   
+   add_global_arguments('-DEBK_DISPLAY_PNG', language: ['c', 'cpp'])   
    ebook_reader_src += [files('src/display/display_png.c')]   
 else
    add_global_arguments('-DEBK_DISPLAY_IT8951', language: ['c', 'cpp'])      

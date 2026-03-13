@@ -98,6 +98,10 @@ executable('it8951_rotate',
 #   sources: ['Raspberry/examples/rotate_neon.c'],
 # )
 
-executable('it8951_rotate_quick',
-  sources: ['Raspberry/examples/rotate_quick.c'],
+executable('it8951_png',
+  sources: ['Raspberry/examples/display_png.c'],
+  include_directories: it8951_epaper_inc,
+  dependencies: it8951_epaper_deps + [it8951_epaper_dep] + [dependency('cairo',
+                                     required: true,
+                          )],
 )
