@@ -1,9 +1,11 @@
+#include <cairo.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "lv_init.h"
+#include "misc/lv_color.h"
 #include "misc/lv_timer.h"
 #include "timing.h"
 
@@ -167,18 +169,60 @@ static int wdgt_book_create(lv_obj_t *books, const char *book_title,
 
   return 0;
 }
+void lv_example_get_started_1(void)
+{
+    /*Change the active screen's background color*/
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+
+    /*Create a white label, set its text and align it to the center*/
+    lv_obj_t * label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "Hello world");
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+}
+
+
+void lv_example_line_1(void)
+{
+    /*Create an array for the points of the line*/
+    static lv_point_precise_t line_points[] = { {5, 5}, {70, 70}, {120, 10}, {180, 60}, {240, 10} };
+
+    /*Create style*/
+    static lv_style_t style_line;
+    lv_style_init(&style_line);
+    lv_style_set_line_width(&style_line, 8);
+    lv_style_set_line_color(&style_line, lv_color_black());
+    lv_style_set_line_rounded(&style_line, true);
+
+    /*Create a line and apply the new style*/
+    lv_obj_t * line1;
+    line1 = lv_line_create(lv_screen_active());
+    lv_line_set_points(line1, line_points, 5);     /*Set the points*/
+    lv_obj_add_style(line1, &style_line, 0);
+    lv_obj_center(line1);
+}
 
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map);
 long long t0;
+int x;
+int y;
+int cairo_format;
+int lvgl_format;
+
 int main(int argc, char *argv[]) {
   if (argc < 3) {
     printf("%s <x> <y>\n", argv[0]);
     return 1;
   }
 
-  int x = atoi(argv[1]);
-  int y = atoi(argv[2]);
+  x = atoi(argv[1]);
+  y = atoi(argv[2]);
+  cairo_format = CAIRO_FORMAT_ARGB32;
+  lvgl_format = LV_COLOR_FORMAT_ARGB8888;
+  
+  printf("x=%d\n", x);
+  printf("y=%d\n", y);
 
   lv_init();
   lv_tick_set_cb(time_now);
@@ -188,16 +232,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  char *buf = malloc(x * y / 8 + 8);
-  lv_display_set_color_format(lv_disp, LV_COLOR_FORMAT_I1);
+  char *buf = malloc(cairo_format_stride_for_width(cairo_format, x) * y);
+  lv_display_set_color_format(lv_disp, lvgl_format);
   lv_display_set_flush_cb(lv_disp, display_flush_callback);
-  lv_display_set_buffers(lv_disp, buf, NULL, x * y / 8 + 8,
+  lv_display_set_buffers(lv_disp, buf, NULL, cairo_format_stride_for_width(cairo_format, x) * y,
                          LV_DISPLAY_RENDER_MODE_FULL);
 
   t0 = now_ns();
 
-  wdgt_bar_init();
-  wdgt_books_init();
+  lv_example_line_1();
+  
+  /* wdgt_bar_init(); */
+  /* wdgt_books_init(); */
   while (1) {
     lv_timer_handler();
   }
@@ -212,4 +258,18 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map) {
   long long t1 = now_ns();
   print_ms("Cat rotated", (t1 - t0));
+
+  printf("x=%d, y=%d, stride=%d\n",x, y, cairo_format_stride_for_width(cairo_format, x));
+  
+  cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data(
+      px_map , cairo_format, x, y,
+      cairo_format_stride_for_width(cairo_format, x));
+
+  /* cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data( */
+  /* 								       px_map +
+   * 8, CAIRO_FORMAT_A1, 1400, 1872, */
+  /*     cairo_format_stride_for_width(CAIRO_FORMAT_A1, 1400)); */
+  cairo_status_t cairo_status =
+      cairo_surface_write_to_png(cairo_surface, "menu.png");
+  puts(cairo_status_to_string(cairo_status));
 }
