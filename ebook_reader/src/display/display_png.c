@@ -22,7 +22,7 @@ struct Display {
 };
 
 static const int ui_display_it8951_heigth = 1872;
-static const int ui_display_it8951_width = 1400; // Display is 1404 but lvgl in
+static const int ui_display_it8951_width = 1404; // Display is 1404 but lvgl in
                                                  // i1 needs byte aligned values
                                                  // 1404 % 8 != 0
 

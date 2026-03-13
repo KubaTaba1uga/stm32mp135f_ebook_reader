@@ -336,8 +336,7 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
             + (" --wipe " if recompile else " ")
             + (
                 # f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false"                
-                f" --cross-file {cross_out_path} -Dbuildtype=release "
-                f" -Ddisplay={display} "
+                f" --cross-file {cross_out_path} -Dbuildtype=release -Ddisplay=png "
                 if not local
                 else " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=png "
                 # else " -Ddisplay=x11 "
