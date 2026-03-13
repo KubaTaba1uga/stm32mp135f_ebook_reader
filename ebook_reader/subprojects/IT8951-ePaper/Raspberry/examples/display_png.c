@@ -114,12 +114,11 @@ int main(int argc, char *argv[]) {
   cairo_surface_t *cairo_surface = cairo_image_surface_create_from_png(argv[3]);
   uint8_t *buf = cairo_image_surface_get_data(cairo_surface);
 
-
   long long now = now_ns();
   uint8_t *dst = graphic_argb32_to_i1(
       Panel_Width, Panel_Height, buf,
       cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, Panel_Width));
-  uint8_t *final = dd_wvs75v2b_rotate(Panel_Height,Panel_Width,  dst,
+  uint8_t *final = dd_wvs75v2b_rotate(Panel_Height, Panel_Width, dst,
                                       Panel_Width * Panel_Height / 8);
 
   print_ms("Convert and rotate", now_ns() - now);
@@ -154,11 +153,12 @@ static unsigned char *graphic_argb32_to_i1(int w, int h, const uint8_t *src,
 
       uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100;
       bool black = lum > 130;
+      /* bool black = (r + g + b) != 0; */
 
       int byte_i = y * dst_stride + (x >> 3);
 
-      /* int bit = 7 - (x & 7); // MSB first */
-      int bit = (x & 7); // MSB first      
+      /* int bit = 7 - (x & 7); // MSB */
+      int bit = (x & 7); // LSB
       if (black) {
         dst[byte_i] |= (1u << bit);
       }

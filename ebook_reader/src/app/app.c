@@ -37,7 +37,8 @@ err_t app_init(app_t *out) {
 #endif
 
   lv_init();
-
+  lv_tick_set_cb(time_now);
+  
 #ifdef TRACE_APP
   trace_end(&trace);
 #endif
