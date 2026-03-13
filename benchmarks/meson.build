@@ -12,7 +12,7 @@ project('benchmarks', 'c',
 )
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 add_global_arguments('-DEBK_DISPLAY_WVS7IN5V2', language: ['c', 'cpp'])
-
+add_global_arguments('-pg', language: ['c', 'cpp'])
 # ******************************************************************************
 # *    Examples
 # ******************************************************************************

@@ -198,10 +198,10 @@ static wdgt_book_t wdgt_book_create(wdgt_books_t books, const char *book_title,
     book_img = lv_image_create(book_card);
     lv_img_dsc_t *dsc = mem_malloc(sizeof(lv_image_dsc_t));
     *dsc = (lv_img_dsc_t){0};
-    dsc->header.cf = LV_COLOR_FORMAT_I1;
+    dsc->header.cf = LV_COLOR_FORMAT_ARGB8888;
     dsc->header.w = book_x;
     dsc->header.h = (book_y - book_text_y);
-    dsc->data_size = dsc->header.w * dsc->header.h / 8;
+    dsc->data_size = dsc->header.w * dsc->header.h * 4;
     dsc->data = thumbnail;
     lv_image_set_src(book_img, dsc);
     lv_obj_set_style_border_width(book_img, 2, LV_PART_MAIN | LV_STATE_DEFAULT);

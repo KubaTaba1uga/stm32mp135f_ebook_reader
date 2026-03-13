@@ -332,13 +332,14 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
         )
 
         c.run(
-            f"meson setup -Dbuildtype=debug {build_dir} "
+            f"meson setup  {build_dir} "
             + (" --wipe " if recompile else " ")
             + (
-                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false"
+                # f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false"                
+                f" --cross-file {cross_out_path} -Dbuildtype=release "
                 f" -Ddisplay={display} "
                 if not local
-                else "  -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=x11 "
+                else " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=png "
                 # else " -Ddisplay=x11 "
             )
         )

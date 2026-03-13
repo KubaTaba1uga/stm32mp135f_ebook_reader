@@ -284,10 +284,6 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
       px_map, cairo_format, x, y,
       cairo_format_stride_for_width(cairo_format, x));
 
-  /* cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data( */
-  /* 								       px_map +
-   * 8, CAIRO_FORMAT_A1, 1400, 1872, */
-  /*     cairo_format_stride_for_width(CAIRO_FORMAT_A1, 1400)); */
   cairo_status_t cairo_status =
       cairo_surface_write_to_png(cairo_surface, "menu.png");
   puts(cairo_status_to_string(cairo_status));
