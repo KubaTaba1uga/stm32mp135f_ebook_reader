@@ -119,6 +119,8 @@ int display_get_y(display_t display) {
 
 unsigned char *dd_wvs75v2b_rotate(int width, int heigth, unsigned char *buf,
                                   int buf_len) {
+  display_trace = trace_start(__func__);
+  
   unsigned char *dst = calloc(buf_len, 1);
   for (int y = 0; y < heigth; y++) {
     int src_row = y * width;
@@ -132,11 +134,14 @@ unsigned char *dd_wvs75v2b_rotate(int width, int heigth, unsigned char *buf,
     }
   }
 
+  trace_end(&display_trace);
+  
   return dst;
 }
 
 static unsigned char *graphic_argb32_to_i1(int w, int h, const uint8_t *src,
                                            int stride) {
+  display_trace = trace_start(__func__);  
   int dst_stride = (w + 7) / 8;
   int dst_len = dst_stride * h;
   unsigned char *dst = malloc(dst_len);
@@ -164,16 +169,32 @@ static unsigned char *graphic_argb32_to_i1(int w, int h, const uint8_t *src,
     }
   }
 
+  trace_end(&display_trace);
+  
   return dst;
 }
 
 
+void display_refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H,
+                     UBYTE Mode, UDOUBLE Target_Memory_Addr,
+                     bool Packed_Write) {
+  display_trace = trace_start(__func__);
+  
+  EPD_IT8951_1bp_Refresh(Frame_Buf, X, Y, W,
+                         H, GC16_Mode,
+                         Target_Memory_Addr, Packed_Write);
+
+  trace_end(&display_trace);  
+}
+
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map) {
   puts(__func__);
+  trace_end(&display_trace);
+  
   struct Display *mydisp = lv_display_get_user_data(display);
 
-  
+
   
   uint8_t *dst = graphic_argb32_to_i1(
       mydisp->dev_info.Panel_W, mydisp->dev_info.Panel_H, px_map,
@@ -183,7 +204,7 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
       mydisp->dev_info.Panel_H, mydisp->dev_info.Panel_W, dst,
       mydisp->dev_info.Panel_W * mydisp->dev_info.Panel_H / 8);
 
-  EPD_IT8951_1bp_Refresh(final, 0, 0, mydisp->dev_info.Panel_W,
+  display_refresh(final, 0, 0, mydisp->dev_info.Panel_W,
                          mydisp->dev_info.Panel_H, GC16_Mode,
                          mydisp->init_mem_addr, true);
 
