@@ -53,7 +53,7 @@ ebook_reader_deps += [dependency('lvgl',
                        default_options: [
                           'CONFIG_LV_BUILD_EXAMPLES=false',
                           'CONFIG_LV_BUILD_DEMOS=false',
-                          'werror=false',
+                          'werror=true',
 			  'LV_BUILD_LVGL_H_SIMPLE_INCLUDE=true',
                        ]),
                        dependency('poppler',
