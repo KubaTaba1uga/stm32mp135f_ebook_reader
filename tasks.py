@@ -335,8 +335,8 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
             f"meson setup  {build_dir} "
             + (" --wipe " if recompile else " ")
             + (
-                f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=it8951 "                
-                # f" --cross-file {cross_out_path} -Dbuildtype=release -Ddisplay=it8951 "
+                # f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=it8951 "                
+                f" --cross-file {cross_out_path} -Dbuildtype=release -Ddisplay=it8951 "
                 if not local
                 else " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=png "
                 # else " -Ddisplay=x11 "
