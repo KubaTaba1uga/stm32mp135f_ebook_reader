@@ -16,6 +16,7 @@ project('ebook_reader', 'c',
 # ******************************************************************************
 add_global_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
 add_global_arguments('-pg', language: ['c', 'cpp'])
+# add_global_arguments('-DLV_CONF_INCLUDE_SIMPLE', language: ['c', 'cpp'])
 
 # We use `EBK` macro to compile code paths wich are meant especially for ebook.
 # For example it is used in it8951 driver.
@@ -52,7 +53,8 @@ ebook_reader_deps += [dependency('lvgl',
                        default_options: [
                           'CONFIG_LV_BUILD_EXAMPLES=false',
                           'CONFIG_LV_BUILD_DEMOS=false',
-                          'werror=false',
+                          'werror=true',
+			  'LV_BUILD_LVGL_H_SIMPLE_INCLUDE=true',
                        ]),
                        dependency('poppler',
                         required: true,
