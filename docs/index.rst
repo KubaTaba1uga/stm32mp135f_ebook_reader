@@ -41,4 +41,4 @@ Each part is described in the sections below, but start with **Getting Started**
    :caption: Contents:
 
    getting_started
-   
+   display
