@@ -161,7 +161,6 @@ error_list_cleanup:
   closedir(books_dir);
 error_out:
   mem_deref(list);
-  log_error(err_o);
   return NULL;
 };
 

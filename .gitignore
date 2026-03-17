@@ -8,6 +8,7 @@ Unity-2.6.1
 compile_commands.json
 lvgl-9.4.0
 ebook_reader/subprojects/IT8951-ePaper
+ebook_reader/subprojects/display_driver
 sqlite-amalgamation-3510100
 openjpeg-2.5.4
 cmake_poppler

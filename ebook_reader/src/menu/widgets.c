@@ -260,9 +260,7 @@ static void wdgt_book_event_cb(lv_event_t *e) {
   wdgt_book_t wx = lv_event_get_current_target(e);
   struct WdgtBook *wdgt = lv_obj_get_user_data(wx);
   lv_key_t key = lv_event_get_key(e);
-  
-  puts(__func__);
-  printf("%d\n", key);
+
   if (key == '\r' || key == '\n' || key == LV_KEY_ENTER) {
     books->event_cb(wdgt->user_data, books->event_data);
   }

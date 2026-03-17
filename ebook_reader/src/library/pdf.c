@@ -181,11 +181,7 @@ book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
   unsigned char *thumbnail = cairo_image_surface_get_data(thumb_surf);
   pdf_book->thumbnail = mem_malloc(x * y * 4); // ARGB
   memcpy(pdf_book->thumbnail, thumbnail, x * y * 4);
-  
-  /* graphic_argb32_to_i1(pdf_book->thumbnail, x, y, thumbnail, */
-  /*                      x * 4 // ARGB */
-  /* ); */
-
+ 
   cairo_surface_destroy(thumb_surf);
   pclose(pdfinfo);
 

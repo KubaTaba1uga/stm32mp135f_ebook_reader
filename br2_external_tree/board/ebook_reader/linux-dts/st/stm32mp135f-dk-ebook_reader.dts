@@ -1237,11 +1237,11 @@
 &pinctrl{
   spi5_pins: spi5-pins {
       pins {
-	  pinmux = <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
-	           <STM32_PINMUX('A', 8, AF5)>,  /* MISO */
-		   <STM32_PINMUX('H', 7, AF6)>;  /* SCK  */
+	  pinmux = <STM32_PINMUX('H', 7, AF6)>,  /* SCK  */
+		   <STM32_PINMUX('H', 3, AF5)>,  /* MOSI */
+		   <STM32_PINMUX('A', 8, AF5)>;  /* MISO */
 	  bias-disable;
-	  slew-rate = <1>;
+	  slew-rate = <0>;
       };
   };
 

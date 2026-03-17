@@ -221,11 +221,11 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num, bool is_int) {
   lv_label_set_text(up_label, LV_SYMBOL_UP);
 
   char buf[8] = {0};
-  /* if (!is_int) { */
-  /*   snprintf(buf, sizeof(buf), "%2.3f", hor_num); */
-  /* } else { */
-  /*   snprintf(buf, sizeof(buf), "%5.5d", (int)hor_num); */
-  /* } */
+  if (!is_int) {
+    snprintf(buf, sizeof(buf), "%2.3f", hor_num);
+  } else {
+    snprintf(buf, sizeof(buf), "%5.5d", (int)hor_num);
+  }
 
   lv_obj_t *hor_num_label = lv_label_create(set_hor_num);
   lv_label_set_text(hor_num_label, buf);
@@ -271,11 +271,11 @@ static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value,
   lvgl_obj_t label = lv_obj_get_user_data(wdgt);
   char buf[8] = {0};
 
-  /* if (!is_int) { */
-  /*   snprintf(buf, sizeof(buf), "%2.3f", value); */
-  /* } else { */
-  /*   snprintf(buf, sizeof(buf), "%5.5d", (int)value); */
-  /* } */
+  if (!is_int) {
+    snprintf(buf, sizeof(buf), "%2.3f", value);
+  } else {
+    snprintf(buf, sizeof(buf), "%5.5d", (int)value);
+  }
 
   lv_label_set_text(label, buf);
 }
