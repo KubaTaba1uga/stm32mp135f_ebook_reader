@@ -1,14 +1,15 @@
 #include <EPD_IT8951.h>
 #include <assert.h>
+#include <cairo.h>
 #include <errno.h>
 #include <lvgl.h>
 #include <math.h>
 #include <stdio.h>
-#include <cairo.h>
 
 #include "display/display.h"
 #include "misc/lv_color.h"
 #include "utils/err.h"
+#include "utils/graphic.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
@@ -58,7 +59,7 @@ err_t display_init(display_t *out) {
   printf("display->dev_info.Panel_H=%d\n", display->dev_info.Panel_H);
   printf("ui_display_it8951_width=%d\n", ui_display_it8951_width);
   printf("ui_display_it8951_heigth=%d\n", ui_display_it8951_heigth);
-  
+
   EPD_IT8951_Clear_Refresh(display->dev_info, display->init_mem_addr,
                            INIT_Mode);
   // Configure LVGL
@@ -72,7 +73,7 @@ err_t display_init(display_t *out) {
       (display->dev_info.Panel_W * display->dev_info.Panel_H * 4);
   display->render.buf = mem_malloc(display->render.len);
 
-  lv_display_set_color_format(display->lv_disp, LV_COLOR_FORMAT_ARGB8888);
+  lv_display_set_color_format(display->lv_disp, lvgl_color_format);
   lv_display_set_user_data(display->lv_disp, display);
   lv_display_set_flush_cb(display->lv_disp, display_flush_callback);
   lv_display_set_buffers(display->lv_disp, display->render.buf, NULL,
@@ -99,7 +100,6 @@ void display_destroy(display_t *out) {
   *out = NULL;
 }
 
-
 void display_set_trace(void) { display_trace = trace_start("render display"); };
 
 void display_add_to_ingroup(display_t display, void *wx) {
@@ -120,7 +120,7 @@ int display_get_y(display_t display) {
 unsigned char *dd_wvs75v2b_rotate(int width, int heigth, unsigned char *buf,
                                   int buf_len) {
   display_trace = trace_start(__func__);
-  
+
   unsigned char *dst = calloc(buf_len, 1);
   for (int y = 0; y < heigth; y++) {
     int src_row = y * width;
@@ -135,81 +135,43 @@ unsigned char *dd_wvs75v2b_rotate(int width, int heigth, unsigned char *buf,
   }
 
   trace_end(&display_trace);
-  
+
   return dst;
 }
-
-static unsigned char *graphic_argb32_to_i1(int w, int h, const uint8_t *src,
-                                           int stride) {
-  display_trace = trace_start(__func__);  
-  int dst_stride = (w + 7) / 8;
-  int dst_len = dst_stride * h;
-  unsigned char *dst = malloc(dst_len);
-  memset(dst, 0x00, dst_stride * h); // 0 = white
-
-  for (int y = 0; y < h; y++) {
-    const uint32_t *row = (const uint32_t *)(src + y * stride);
-    for (int x = 0; x < w; x++) {
-      uint32_t p = row[x]; // 0xAARRGGBB on little-endian
-      uint8_t r = (p >> 16) & 0xFF;
-      uint8_t g = (p >> 8) & 0xFF;
-      uint8_t b = (p >> 0) & 0xFF;
-
-      uint16_t lum = (uint16_t)(r * 30 + g * 59 + b * 11) / 100;
-      bool black = lum > 130;
-      /* bool black = (r + g + b) != 0; */
-
-      int byte_i = y * dst_stride + (x >> 3);
-
-      /* int bit = 7 - (x & 7); // MSB */
-      int bit = (x & 7); // LSB
-      if (black) {
-        dst[byte_i] |= (1u << bit);
-      }
-    }
-  }
-
-  trace_end(&display_trace);
-  
-  return dst;
-}
-
 
 void display_refresh(UBYTE *Frame_Buf, UWORD X, UWORD Y, UWORD W, UWORD H,
                      UBYTE Mode, UDOUBLE Target_Memory_Addr,
                      bool Packed_Write) {
   display_trace = trace_start(__func__);
-  
-  EPD_IT8951_1bp_Refresh(Frame_Buf, X, Y, W,
-                         H, GC16_Mode,
-                         Target_Memory_Addr, Packed_Write);
 
-  trace_end(&display_trace);  
+  EPD_IT8951_1bp_Refresh(Frame_Buf, X, Y, W, H, GC16_Mode, Target_Memory_Addr,
+                         Packed_Write);
+
+  trace_end(&display_trace);
 }
 
 static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
                                    uint8_t *px_map) {
   puts(__func__);
   trace_end(&display_trace);
-  
+
   struct Display *mydisp = lv_display_get_user_data(display);
 
-
-  
   uint8_t *dst = graphic_argb32_to_i1(
       mydisp->dev_info.Panel_W, mydisp->dev_info.Panel_H, px_map,
-      cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32,mydisp->dev_info.Panel_W));
-  
+      cairo_format_stride_for_width(cairo_color_format,
+                                    mydisp->dev_info.Panel_W));
+
   unsigned char *final = dd_wvs75v2b_rotate(
       mydisp->dev_info.Panel_H, mydisp->dev_info.Panel_W, dst,
       mydisp->dev_info.Panel_W * mydisp->dev_info.Panel_H / 8);
 
   display_refresh(final, 0, 0, mydisp->dev_info.Panel_W,
-                         mydisp->dev_info.Panel_H, GC16_Mode,
-                         mydisp->init_mem_addr, true);
+                  mydisp->dev_info.Panel_H, GC16_Mode, mydisp->init_mem_addr,
+                  true);
 
   free(dst);
-  free(final);  
+  free(final);
   lv_display_flush_ready(display);
   printf("%s done\n", __func__);
 }

@@ -11,6 +11,7 @@
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
+#include "utils/graphic.h"
 
 struct Display {
   lv_group_t *lv_ingroup;
@@ -51,11 +52,11 @@ err_t display_init(display_t *out) {
   lv_indev_set_group(lv_indev, display->lv_ingroup);
 
   display->render.len =
-      (      cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32,
+      (      cairo_format_stride_for_width(cairo_color_format,
                                     ui_display_it8951_width) * ui_display_it8951_heigth);
   display->render.buf = mem_malloc(display->render.len);
 
-  lv_display_set_color_format(display->lv_disp, LV_COLOR_FORMAT_ARGB8888);
+  lv_display_set_color_format(display->lv_disp, lvgl_color_format);
   lv_display_set_user_data(display->lv_disp, display);
   lv_display_set_flush_cb(display->lv_disp, display_flush_callback);
   lv_display_set_buffers(display->lv_disp, display->render.buf, NULL,
@@ -129,9 +130,9 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
 
 
   cairo_surface_t *cairo_surface = cairo_image_surface_create_for_data(
-      px_map, CAIRO_FORMAT_ARGB32, ui_display_it8951_width,
+      px_map, cairo_color_format, ui_display_it8951_width,
       ui_display_it8951_heigth,
-      cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32,
+      cairo_format_stride_for_width(cairo_color_format,
                                     ui_display_it8951_width));
   assert(cairo_surface != NULL);
   

@@ -220,7 +220,7 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num, bool is_int) {
   lv_obj_t *up_label = lv_label_create(up_btn);
   lv_label_set_text(up_label, LV_SYMBOL_UP);
 
-  char buf[8] = {0};
+  char buf[16] = {0};
   if (!is_int) {
     snprintf(buf, sizeof(buf), "%2.3f", hor_num);
   } else {
@@ -269,7 +269,7 @@ static lvgl_obj_t wdgt_set_hor_num_create(double hor_num, bool is_int) {
 static void wdgt_set_hor_num_set_value(lvgl_obj_t wdgt, double value,
                                        bool is_int) {
   lvgl_obj_t label = lv_obj_get_user_data(wdgt);
-  char buf[8] = {0};
+  char buf[16] = {0};
 
   if (!is_int) {
     snprintf(buf, sizeof(buf), "%2.3f", value);
@@ -324,7 +324,7 @@ lvgl_obj_t wdgt_set_ver_num_create(int ver_num) {
   lv_obj_t *left_label = lv_label_create(left_btn);
   lv_label_set_text(left_label, LV_SYMBOL_LEFT);
 
-  char buf[8] = {0};
+  char buf[16] = {0};
   snprintf(buf, sizeof(buf), "%5.5d", (int)ver_num);
   lv_obj_t *ver_num_label_cont = lv_obj_create(set_ver_num);
   lv_obj_t *ver_num_label = lv_label_create(ver_num_label_cont);
@@ -369,7 +369,7 @@ void wdgt_set_ver_num_destroy(lvgl_obj_t ver_num) { lv_obj_del(ver_num); };
 
 static void wdgt_set_ver_num_set_value(lvgl_obj_t wdgt, int value) {
   lvgl_obj_t label = lv_obj_get_user_data(wdgt);
-  char buf[8] = {0};
+  char buf[16] = {0};
   snprintf(buf, sizeof(buf), "%5.5d", (int)value);
   lv_label_set_text(label, buf);
 }

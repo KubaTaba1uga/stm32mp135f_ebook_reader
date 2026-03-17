@@ -5,6 +5,7 @@
 #include "utils/err.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"
+#include "utils/graphic.h"
 
 err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
                      int page_size, void (*event_cb)(lvgl_event_t),
@@ -14,7 +15,7 @@ err_t wdgt_page_init(wdgt_page_t *out, const unsigned char *page_data,
 
   lv_img_dsc_t *dsc = mem_malloc(sizeof(lv_img_dsc_t));
   *dsc = (lv_img_dsc_t){0};
-  dsc->header.cf = LV_COLOR_FORMAT_ARGB8888;
+  dsc->header.cf = lvgl_color_format;
   dsc->header.w = lv_display_get_horizontal_resolution(NULL);
   dsc->header.h = lv_display_get_vertical_resolution(NULL);
   dsc->data_size = page_size;

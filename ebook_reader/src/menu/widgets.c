@@ -9,6 +9,7 @@
 #include "utils/lvgl.h"
 #include "utils/mem.h"
 #include "utils/time.h"
+#include "utils/graphic.h"
 
 typedef lvgl_obj_t wdgt_book_t;
 
@@ -200,7 +201,7 @@ static wdgt_book_t wdgt_book_create(wdgt_books_t books, const char *book_title,
     book_img = lv_image_create(book_card);
     lv_img_dsc_t *dsc = mem_malloc(sizeof(lv_image_dsc_t));
     *dsc = (lv_img_dsc_t){0};
-    dsc->header.cf = LV_COLOR_FORMAT_ARGB8888;
+    dsc->header.cf = lvgl_color_format;
     dsc->header.w = book_x;
     dsc->header.h = (book_y - book_text_y);
     dsc->data_size = dsc->header.w * dsc->header.h * 4;
