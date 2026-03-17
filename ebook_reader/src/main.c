@@ -59,9 +59,9 @@ static void exit_handler(void) {
 
 static void signal_handler(int signum) {
   puts("SIGNAL");
-  /* if (app) { */
-  /* app_panic(app); */
-  /* } */
+  if (app) {
+    app_panic(app);
+  }
   _exit(1);
 };
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <cairo/cairo.h>
 #include <ctype.h>
 #include <errno.h>
 #include <libgen.h>
@@ -12,8 +13,12 @@
 #include "library/core.h"
 #include "library/library.h"
 #include "utils/err.h"
+#include "utils/graphic.h"
 #include "utils/log.h"
 #include "utils/mem.h"
+#include "utils/time.h"
+
+#define TRACE_PDF 1
 
 typedef struct Pdf *pdf_t;
 typedef struct PdfBook *pdf_book_t;
@@ -24,7 +29,7 @@ struct Pdf {
 };
 
 struct PdfBook {
-  cairo_surface_t *thumbnail;
+  unsigned char *thumbnail;
   cairo_surface_t *page;
 };
 
@@ -115,14 +120,14 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
               {
                   .buf = book_interface_pdf_book_get_thumbnail(
                       pdf, pdf_book, path, book_thumbnail_x, book_thumbnail_y),
-                  .len = book_thumbnail_x * book_thumbnail_y * 4 // ARGB
+                  .len = book_thumbnail_x * book_thumbnail_y * 4 // RGBA
               },
           .settings = {
               .scale = 1.0,
           }});
   ERR_TRY_CATCH(err_o, error_pages_cleanup);
 
-  cairo_surface_destroy(pdf_book->thumbnail);
+  mem_free(pdf_book->thumbnail);
   pdf_book->thumbnail = NULL;
   mem_free(title);
   mem_free(pages);
@@ -135,7 +140,7 @@ out:
   return 0;
 
 error_pages_cleanup:
-  cairo_surface_destroy(pdf_book->thumbnail);
+  mem_free(pdf_book->thumbnail);
   mem_free(pages);
 error_title_cleanup:
   mem_free(title);
@@ -156,6 +161,10 @@ static cairo_status_t cairo_read_func(void *closure, unsigned char *data,
 static const unsigned char *
 book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
                                       const char *path, int x, int y) {
+#ifdef TRACE_PDF
+  struct Trace trce = trace_start(path);
+#endif
+
   char cmd_buf[4096] = {0};
   snprintf(cmd_buf, sizeof(cmd_buf),
            "/usr/bin/pdftoppm -f 0 -l 0 -scale-to-x %d -scale-to-y %d -png "
@@ -166,14 +175,21 @@ book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
     goto error_out;
   }
 
-  pdf_book->thumbnail =
+  cairo_surface_t *thumb_surf =
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
-  unsigned char *thumbnail = cairo_image_surface_get_data(pdf_book->thumbnail);
-
+  unsigned char *thumbnail = cairo_image_surface_get_data(thumb_surf);
+  pdf_book->thumbnail = mem_malloc(x * y * 4); // ARGB
+  memcpy(pdf_book->thumbnail, thumbnail, x * y * 4);
+ 
+  cairo_surface_destroy(thumb_surf);
   pclose(pdfinfo);
 
-  return thumbnail;
+#ifdef TRACE_PDF
+  trace_end(&trce);
+#endif
+
+  return pdf_book->thumbnail;
 
 error_out:
   return NULL;
@@ -223,7 +239,7 @@ static void book_interface_pdf_book_destroy(void *private, book_t book) {
   pdf_t pdf = private;
 
   if (pdf_book->thumbnail) {
-    cairo_surface_destroy(pdf_book->thumbnail);
+    mem_free(pdf_book->thumbnail);
   }
 
   if (pdf_book->page) {
