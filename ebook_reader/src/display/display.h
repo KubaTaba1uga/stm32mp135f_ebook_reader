@@ -11,5 +11,7 @@ void display_add_to_ingroup(display_t display, void *wx);
 void display_del_from_ingroup(display_t display, void *wx);
 int display_get_x(display_t display);
 int display_get_y(display_t display);
+void display_panic(display_t display);
+void display_set_trace(void);
 
 #endif // EBOOK_READER_DISPLAY_H

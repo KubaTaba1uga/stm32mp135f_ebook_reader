@@ -11,15 +11,13 @@ objcopy = tc + 'objcopy'
 objdump = tc + 'objdump'
 pkg-config = 'PLACEHOLDER/build/buildroot/host/bin/pkg-config'
 
-[properties]
-sys_root = 'PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot'
-needs_exe_wrapper = true
-c_args   = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
-cpp_args = ['-mcpu=cortex-a7', '-mfpu=vfpv4', '-mfloat-abi=hard']
-
 [host_machine]
 system = 'linux'
 kernel = 'linux'
 cpu_family = 'arm'
 cpu = 'cortex-a7'
 endian = 'little'
+
+[built-in options]
+c_args = ['--sysroot=PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot', '-mcpu=cortex-a7', '-mfpu=neon', '-mthumb', '-mfloat-abi=hard']
+cpp_args = ['--sysroot=PLACEHOLDER/build/buildroot/host/arm-buildroot-linux-gnueabihf/sysroot', '-mcpu=cortex-a7', '-mfpu=neon', '-mthumb', '-mfloat-abi=hard']

@@ -10,6 +10,9 @@
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/zlist.h"
+#include "utils/time.h"
+
+#define TRACE_LIBRARY 1
 
 #define CAST_BOOK_PRIV(node) mem_container_of(node, struct Book, next)
 
@@ -87,6 +90,10 @@ void library_destroy(library_t *out) {
 };
 
 books_list_t library_list_books(library_t lib) {
+#ifdef TRACE_LIBRARY
+  struct Trace trce = trace_start(__func__);
+#endif
+  
   struct dirent *dirent;
   char *file_path;
   DIR *books_dir;
@@ -141,6 +148,10 @@ books_list_t library_list_books(library_t lib) {
   }
 
   closedir(books_dir);
+
+#ifdef TRACE_LIBRARY
+  trace_end(&trce);
+#endif
 
   return list;
 
