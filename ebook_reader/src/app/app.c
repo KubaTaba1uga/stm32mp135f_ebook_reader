@@ -160,8 +160,9 @@ void app_destroy(app_t *out) {
 };
 
 err_t app_main(app_t app) {
-  display_set_trace();  
+
   while (1) {
+    display_set_trace();    
     event_queue_step(app->event_queue);
 
     int ms = lv_timer_handler();
