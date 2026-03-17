@@ -1,5 +1,0 @@
-option('board',
-  type: 'string',
-  value: 'stm32',
-  description: 'Board configuration'
-)
