@@ -1,3 +1,3 @@
 ## Open source ebook reader
 
-Ebooks reader are awesome, so I created one. 
+Ebook readers are awesome, so I created one. 
