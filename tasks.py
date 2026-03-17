@@ -62,6 +62,7 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
 
     _pr_info(f"Building BSP completed")
 
+
 @task
 def install(c):
     _pr_info(f"Installing dependencies...")
@@ -299,7 +300,15 @@ def fbuild_linux_dt(c):
 
 
 @task
-def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
+def fbuild_ebook_reader(
+    c, recompile=False, local=False, benchmarks=False, debug=False, display="it8951"
+):
+    """Available displays:
+    - it8951
+    - x11
+    - png
+
+    """
     ereader_path = EBOOK_READER_PATH
     if not os.path.exists(ereader_path):
         return
@@ -326,20 +335,14 @@ def fbuild_ebook_reader(c, recompile=False, local=False, display="wvs7in5v2"):
             f.write(cross_txt)
 
         c.run(
-            f"rm -rf subprojects/display_driver && "
-            f"ln -s {DISPLAY_DRIVER_PATH} "
-            f"{os.path.join(ereader_path, 'subprojects', 'display_driver')}"
-        )
-
-        c.run(
-            f"meson setup  {build_dir} "
+            f"meson setup {build_dir} -Ddisplay={display}"
             + (" --wipe " if recompile else " ")
+            + (f" --cross-file {cross_out_path} " if not local else " ")
+            + (" -Dbenchmarks=true " if benchmarks else " ")
             + (
-                # f" --cross-file {cross_out_path} -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=it8951 "                
-                f" --cross-file {cross_out_path} -Dbuildtype=release -Ddisplay=it8951 "
-                if not local
-                else " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false -Ddisplay=png "
-                # else " -Ddisplay=x11 "
+                " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false "
+                if debug
+                else "  -Dbuildtype=release "
             )
         )
 
@@ -362,7 +365,7 @@ def fbuild_ebook_reader_test(c):
 
     with c.cd(tests_path):
         build_dir = os.path.join(BUILD_PATH, "test_ebook_reader")
-        
+
         c.run(
             f"meson setup -Dbuildtype=debug -Dtests=true -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
         )
@@ -378,7 +381,7 @@ def fbuild_ebook_reader_test(c):
 
 
 @task
-def fbuild_display_driver(c):
+def fbuild_display_driver(c, debug=False):
     driver_path = DISPLAY_DRIVER_PATH
     if not os.path.exists(driver_path):
         return
@@ -403,11 +406,13 @@ def fbuild_display_driver(c):
             f.write(cross_txt)
 
         c.run(
-            f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=release {build_dir}"
+            f"meson setup --cross-file {cross_out_path} {build_dir}"
+            + (
+                " -Dbuildtype=debug -Db_sanitize=address,undefined -Db_lundef=false "
+                if debug
+                else "  -Dbuildtype=release "
+            )
         )
-        # c.run(
-        #     f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
-        # )
         c.run(
             f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
         )
@@ -416,42 +421,6 @@ def fbuild_display_driver(c):
 
     _pr_info("Fast building display driver completed")
 
-@task
-def fbuild_benchmarks(c):
-    _pr_info("Fast building benchmarks...")
-    benchmarks_path = os.path.join(ROOT_PATH, "benchmarks")
-    
-    cross_tpl_path = os.path.join(
-        "br2_external_tree", "board", "ebook_reader", "meson-cross-compile.txt"
-    )
-
-    build_dir = os.path.join(BUILD_PATH, os.path.basename(benchmarks_path))
-    c.run(f"mkdir -p {build_dir}")
-
-    with c.cd(benchmarks_path):
-        root = os.path.abspath(ROOT_PATH)
-        with open(cross_tpl_path, "r", encoding="utf-8") as f:
-            cross_txt = f.read()
-            cross_txt = cross_txt.replace("PLACEHOLDER", root)
-
-        cross_out_path = os.path.join(BUILD_PATH, "cross-file.txt")
-        with open(cross_out_path, "w", encoding="utf-8") as f:
-            f.write(cross_txt)
-
-        c.run(
-            f"meson setup --cross-file {cross_out_path} -Dbuildtype=release {build_dir}"
-        )
-        # c.run(
-        #     f"meson setup --cross-file {cross_out_path} -Dboard=stm32 -Dbuildtype=debug  -Db_sanitize=address,undefined -Db_lundef=false {build_dir}"
-        # )
-        c.run(
-            f"rm -f compile_commands.json && ln -s {os.path.join(build_dir, 'compile_commands.json')} compile_commands.json"
-        )
-
-        c.run(f"meson compile -v -C {build_dir}")
-
-    _pr_info("Fast building display benchmarks completed")
-    
 
 @task
 def test_ebook_reader(c, asan_options=None):
@@ -542,12 +511,13 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         ):
             c.run(f"sudo cp lib*san* {directory}/lib")
 
-    with c.cd("build/IT8951-ePaper"):
-        c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
     with c.cd("build/ebook_reader"):
         c.run(f"sudo cp ebook_reader {directory}/root/")
+        c.run("sudo find -type f -name 'bench_*' -exec cp {} /srv/nfs/root/ \\;")
         c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
+        c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
 
+        
     _pr_info(f"Deploy to NFS completed")
 
 
