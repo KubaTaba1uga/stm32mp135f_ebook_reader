@@ -120,7 +120,7 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
               {
                   .buf = book_interface_pdf_book_get_thumbnail(
                       pdf, pdf_book, path, book_thumbnail_x, book_thumbnail_y),
-                  .len = book_thumbnail_x * book_thumbnail_y * 4 // RGBA
+                  .len = graphic_calc_screen_buf_size(book_thumbnail_x, book_thumbnail_y)
               },
           .settings = {
               .scale = 1.0,
@@ -179,8 +179,9 @@ book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
   unsigned char *thumbnail = cairo_image_surface_get_data(thumb_surf);
-  pdf_book->thumbnail = mem_malloc(x * y * 4); // ARGB
-  memcpy(pdf_book->thumbnail, thumbnail, x * y * 4);
+  int thumb_size = graphic_calc_screen_buf_size(x,  y);
+  pdf_book->thumbnail = mem_malloc(thumb_size);
+  memcpy(pdf_book->thumbnail, thumbnail, thumb_size);
  
   cairo_surface_destroy(thumb_surf);
   pclose(pdfinfo);
@@ -276,7 +277,7 @@ static const unsigned char *book_interface_pdf_get_page(void *private,
   cairo_surface_t *surface =
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
-  pdf_book->page = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, x, y);
+  pdf_book->page = cairo_image_surface_create(cairo_color_format, x, y);
   cairo_t *cr = cairo_create(pdf_book->page);
   cairo_set_source_surface(
       cr, surface, book->db_data.settings.x_off * book->db_data.settings.scale,
@@ -284,7 +285,7 @@ static const unsigned char *book_interface_pdf_get_page(void *private,
   cairo_paint(cr);
 
   unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
-  *buf_len = x * y * 4; // ARGB pixel size is 4 bytes
+  *buf_len = graphic_calc_screen_buf_size(x,y); // ARGB pixel size is 4 bytes
 
   pclose(pdfinfo);
   cairo_surface_destroy(surface);

@@ -12,6 +12,7 @@
 #include "utils/mem.h"
 #include "utils/settings.h"
 #include "utils/time.h"
+#include "utils/graphic.h"
 
 struct Display {
   lv_group_t *lv_ingroup;
@@ -72,7 +73,7 @@ err_t display_init(display_t *out) {
       (display->dev_info.Panel_W * display->dev_info.Panel_H * 4);
   display->render.buf = mem_malloc(display->render.len);
 
-  lv_display_set_color_format(display->lv_disp, LV_COLOR_FORMAT_ARGB8888);
+  lv_display_set_color_format(display->lv_disp, lvgl_color_format);
   lv_display_set_user_data(display->lv_disp, display);
   lv_display_set_flush_cb(display->lv_disp, display_flush_callback);
   lv_display_set_buffers(display->lv_disp, display->render.buf, NULL,
@@ -198,7 +199,7 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
   
   uint8_t *dst = graphic_argb32_to_i1(
       mydisp->dev_info.Panel_W, mydisp->dev_info.Panel_H, px_map,
-      cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32,mydisp->dev_info.Panel_W));
+      cairo_format_stride_for_width(cairo_color_format,mydisp->dev_info.Panel_W));
   
   unsigned char *final = dd_wvs75v2b_rotate(
       mydisp->dev_info.Panel_H, mydisp->dev_info.Panel_W, dst,

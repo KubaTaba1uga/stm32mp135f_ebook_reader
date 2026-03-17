@@ -1,6 +1,12 @@
+#include "cairo.h"
+#include "misc/lv_color.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+ int cairo_color_format = CAIRO_FORMAT_ARGB32;
+int lvgl_color_format = LV_COLOR_FORMAT_ARGB8888;
+
 
 void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
                           int stride) {
@@ -27,3 +33,9 @@ void graphic_argb32_to_i1(uint8_t *dst, int w, int h, const uint8_t *src,
     }
   }
 }
+
+int graphic_calc_screen_buf_size(int x, int y){
+  return x * y * 4; // RGBA
+  }
+
+  
