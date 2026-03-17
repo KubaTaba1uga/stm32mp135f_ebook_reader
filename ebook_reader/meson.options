@@ -3,6 +3,11 @@ option('tests',
   value: false,
   description: 'Build library tests'
 )
+option('benchmarks',
+  type: 'boolean',
+  value: false,
+  description: 'Build library benchmarks'
+)
 option('display',
   type: 'string',
   value: 'wvs7in5v2b',

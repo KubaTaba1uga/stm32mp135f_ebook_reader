@@ -32,6 +32,12 @@ add_global_arguments('-fmacro-prefix-map=../../=', language: ['c', 'cpp'])
 ebook_reader_deps = []
 ebook_reader_src = []
 
+buildtype = get_option('buildtype')
+if buildtype == 'debug' or buildtype == 'debugoptimized'
+  add_global_arguments('-DDEBUG', language: ['c', 'cpp'])
+  add_global_arguments('-pg', language: ['c', 'cpp'])
+endif
+
 display = get_option('display')
 if display == 'x11'
    add_global_arguments('-DEBK_DISPLAY_X11', language: ['c', 'cpp'])   
@@ -105,18 +111,28 @@ ebook_reader_src += [files('src/main.c',
 ]
 
 
-buildtype = get_option('buildtype')
-if buildtype == 'debug' or buildtype == 'debugoptimized'
-  add_project_arguments('-DDEBUG', language: 'c')
-endif
+
+# ******************************************************************************
+# *    Lib
+# ******************************************************************************
+ebook_reader_lib = static_library('ebook_reader',
+     sources: ebook_reader_src,
+     include_directories: ebook_reader_inc,
+     dependencies: ebook_reader_deps,
+)
+
+ebook_reader_dep = declare_dependency(
+  link_with: ebook_reader_lib,
+  include_directories: ebook_reader_inc,
+  dependencies: ebook_reader_deps,
+)
 
 # ******************************************************************************
 # *    App
 # ******************************************************************************
 ebook_reader_exe = executable('ebook_reader',
-  sources: ebook_reader_src,
   include_directories: ebook_reader_inc,
-  dependencies: ebook_reader_deps,
+  dependencies: ebook_reader_deps + [ebook_reader_dep],
 )
 
 pkgdatadir = 'assets'
@@ -127,4 +143,11 @@ install_subdir('data', install_dir: pkgdatadir)
 # ******************************************************************************
 if get_option('tests')
    subdir('test')
+endif
+
+# ******************************************************************************
+# *    Benchmarks
+# ******************************************************************************
+if get_option('benchmarks')
+   subdir('benchmark')
 endif
