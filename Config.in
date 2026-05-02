@@ -1,0 +1,4 @@
+config BR2_TARGET_UBOOT_RUN_POST_RSYNC_HOOK_SCRIPT
+	string "Run U-boot post-rsync hook"
+	default ""
+

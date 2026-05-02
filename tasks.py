@@ -15,12 +15,41 @@ C_LINTER = "clang-tidy-19"
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
 
+@task
+def install(c):
+    _pr_info(f"Installing dependencies...")
+
+    try:
+        c.run(
+            "sudo apt-get install -y doxygen virtualenv \
+              which sed make binutils build-essential diffutils \
+              gcc g++ bash patch gzip bzip2 perl tar cpio \
+              unzip rsync file bc findutils gawk curl \
+              git libncurses5-dev python3 libpoppler-glib-dev"
+            f" {C_FORMATER} {C_LINTER} "
+        )
+
+        c.run("virtualenv .venv")
+        c.run(
+            "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
+        )
+        install_libgpiod(c)
+
+    except Exception:
+        _pr_error("Installing failed")
+        raise
+
+    _pr_info(f"Installing dependencies completed")
+
 
 @task
-def build_bsp(c, config="ebook_reader_dev_defconfig"):
+def build_bsp(c, config="ebook_reader_stm32mp135f_dk_defconfig"):
     """
     @todo change config="ebook_reader_dev_defconfig" to config="ebook_reader_defconfig"
           dev build should not be default.
+
+    @todo download repos only if dev config
+    @todo get urls and versions from config file
     """
     repos = {
         "buildroot": {
@@ -58,36 +87,25 @@ def build_bsp(c, config="ebook_reader_dev_defconfig"):
         configure(c, config)
 
     with c.cd("build/buildroot"):
-        c.run("make BR2_DL_DIR=../../build/third_party")
+        c.run("make")
 
     _pr_info(f"Building BSP completed")
 
 
 @task
-def install(c):
-    _pr_info(f"Installing dependencies...")
+def configure(c, config="ebook_reader_dev_defconfig"):
+    _pr_info(f"Configuring buildroot...")
 
-    try:
-        c.run(
-            "sudo apt-get install -y doxygen virtualenv \
-              which sed make binutils build-essential diffutils \
-              gcc g++ bash patch gzip bzip2 perl tar cpio \
-              unzip rsync file bc findutils gawk curl \
-              git libncurses5-dev python3 libpoppler-glib-dev"
-            f" {C_FORMATER} {C_LINTER} "
-        )
+    with c.cd("third_party/buildroot"):
+        flags = [
+            "O=../../build/buildroot",
+            "BR2_EXTERNAL=../../",
+            config,
+        ]
 
-        c.run("virtualenv .venv")
-        c.run(
-            "pip install invoke sphinx==8.2.3 breathe==4.36.0 sphinx_rtd_theme==3.0.2 sphinx-autobuild==2025.08.25"
-        )
-        install_libgpiod(c)
+        c.run(f"make " + " ".join(flags))
 
-    except Exception:
-        _pr_error("Installing failed")
-        raise
-
-    _pr_info(f"Installing dependencies completed")
+    _pr_info(f"Configuring buildroot completed")
 
 
 @task
@@ -152,22 +170,6 @@ def serve_docs(c, port=8000):
     )
 
     _pr_info("Serving docs completed")
-
-
-@task
-def configure(c, config="ebook_reader_dev_defconfig"):
-    _pr_info(f"Configuring buildroot...")
-
-    with c.cd("third_party/buildroot"):
-        flags = [
-            "O=../../build/buildroot",
-            "BR2_EXTERNAL=../../br2_external_tree",
-            config,
-        ]
-
-        c.run(f"make " + " ".join(flags))
-
-    _pr_info(f"Configuring buildroot completed")
 
 
 @task
@@ -517,7 +519,6 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
         c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
 
-        
     _pr_info(f"Deploy to NFS completed")
 
 
