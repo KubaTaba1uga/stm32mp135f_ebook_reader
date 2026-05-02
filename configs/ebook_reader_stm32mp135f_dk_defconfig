@@ -88,6 +88,9 @@ BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 ##############################################
 #                  Rootfs                    #
 ##############################################
+BR2_PACKAGE_HOST_GENIMAGE=y
+BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
+BR2_ROOTFS_POST_SCRIPT_ARGS="-c $(BR2_EXTERNAL_EBK_READER_PATH)/boards/stm32mp135f_dk/dev/genimage.cfg"
 BR2_TARGET_ROOTFS_EXT2=y
 BR2_TARGET_ROOTFS_EXT2_2=y
 BR2_TARGET_ROOTFS_EXT2_LABEL="rootfs"
