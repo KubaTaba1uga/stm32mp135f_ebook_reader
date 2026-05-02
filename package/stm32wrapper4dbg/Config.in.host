@@ -1,0 +1,8 @@
+config BR2_PACKAGE_HOST_STM32WRAPPER4DBG
+        bool "host stm32wrapper4dbg"
+        help
+          Allow setting GDB breakpoints before the tf-a.
+	  Requires bootstrapping `.stm32` images.
+
+          https://github.com/STMicroelectronics/stm32wrapper4dbg
+	  
