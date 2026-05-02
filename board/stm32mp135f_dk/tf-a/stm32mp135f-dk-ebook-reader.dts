@@ -17,14 +17,14 @@
 #include "stm32mp13xf.dtsi"
 
 /* USER CODE BEGIN includes */
-#include "stm32mp135f_dk_ram.dtsi"
+#include "stm32mp135f-dk-ram.dtsi"
 #include "stm32mp13-ddr.dtsi"
 #include "stm32mp13-pinctrl.dtsi"
 /* USER CODE END includes */
 
 / {
 	model = "Ebook reader";
-	compatible = "st,stm32mp135f_dk_ebook_reader";
+	compatible = "st,stm32mp135f-dk-ebook-reader";
 
 	memory@c0000000 {
 		device_type = "memory";

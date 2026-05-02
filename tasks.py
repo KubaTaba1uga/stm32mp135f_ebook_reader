@@ -15,10 +15,11 @@ C_LINTER = "clang-tidy-19"
 os.environ["PATH"] = f"{os.path.join(ROOT_PATH, '.venv', 'bin')}:{os.environ['PATH']}"
 os.chdir(ROOT_PATH)
 
+
 @task
 def install(c):
     _pr_info(f"Installing dependencies...")
-
+    C_FORMA
     try:
         c.run(
             "sudo apt-get install -y doxygen virtualenv \

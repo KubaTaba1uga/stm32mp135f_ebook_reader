@@ -31,7 +31,7 @@
 
 / {
 	model = "Ebook reader";
-	compatible = "st,stm32mp135f_dk_ebook_reader";
+	compatible = "st,stm32mp135f-dk-ebook-reader";
 
 	memory@c0000000 {
 		device_type = "memory";
