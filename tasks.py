@@ -603,6 +603,22 @@ def format(c, project=""):
     _pr_info("Adding repo completed")
 
 
+@task
+def openocd(c, command: str | None = None):
+    all_commands = {"reboot": ["init", "reset run", "shutdown"]}
+
+    cmd = "openocd -f board/stm32mp13x_dk.cfg"
+    commands = []
+
+    if command:
+        commands = all_commands.get(command)
+
+    if commands:
+        cmd += " " + " ".join(f"-c '{command}'" for command in commands)
+
+    c.run(cmd, pty=True)
+
+    
 ###############################################
 #                Private API                  #
 ###############################################
