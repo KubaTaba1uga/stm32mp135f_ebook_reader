@@ -19,7 +19,7 @@ os.chdir(ROOT_PATH)
 @task
 def install(c):
     _pr_info(f"Installing dependencies...")
-    C_FORMA
+
     try:
         c.run(
             "sudo apt-get install -y doxygen virtualenv \

@@ -1,0 +1,13 @@
+diff --git a/core/drivers/clk/clk.c b/core/drivers/clk/clk.c
+index d801aac36..995ea9ecf 100644
+--- a/core/drivers/clk/clk.c
++++ b/core/drivers/clk/clk.c
+@@ -151,6 +151,8 @@ bool clk_is_enabled(struct clk *clk)
+ static void clk_disable_no_lock(struct clk *clk)
+ {
+ 	struct clk *parent = NULL;
++	if (!clk->enabled_count.val) // Already disabled
++		return;
+ 
+ 	if (!refcount_dec(&clk->enabled_count))
+ 		return;
