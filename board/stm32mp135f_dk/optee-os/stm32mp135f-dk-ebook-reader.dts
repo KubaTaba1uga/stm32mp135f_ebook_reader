@@ -30,8 +30,8 @@
 /* USER CODE END includes */
 
 / {
-	model = "Ebook reader";
-	compatible = "st,stm32mp135f-dk-ebook-reader";
+	model = "Ebook reader (stm32mp135f_dk)";
+	compatible = "ebk,stm32mp135f-dk";
 
 	memory@c0000000 {
 		device_type = "memory";
