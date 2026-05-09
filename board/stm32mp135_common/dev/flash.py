@@ -2,13 +2,18 @@ import subprocess
 import time
 import sys
 
+default_images = [
+    "build/buildroot/images/tf-a-ebook-reader.stm32",
+    "build/buildroot/images/fip.bin",
+    "build/buildroot/images/boot.ext2",
+]
+
 
 def main():
-    images = [
-        "build/buildroot/images/tf-a-ebook-reader.stm32",
-        "build/buildroot/images/fip.bin",
-        "build/buildroot/images/boot.ext2",
-    ]
+    images = default_images
+    if len(sys.argv) != 0:
+        images = sys.argv[1:4]
+        
     for image in images:
         wait_for_dfu()
         cmd = f"dfu-util -a 0 -R -D {image}"

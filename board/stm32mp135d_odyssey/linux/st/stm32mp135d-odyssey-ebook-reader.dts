@@ -190,7 +190,16 @@
 		pins {
 			pinmux = <STM32_PINMUX('G', 1, GPIO)>; /* USB1_EN */
 		};
-	};	
+	};
+
+	/* gpio_test_mx: gpio-test-mx-0 { */
+	/* 	pins { */
+	/* 		pinmux = <STM32_PINMUX('E', 8, GPIO)>; */
+	/* 		bias-pull-down; */
+	/* 		drive-push-pull; */
+	/* 		slew-rate = <0>;			 */
+	/* 	}; */
+	/* };	 */
 	/* USER CODE END pinctrl */
 };
 
@@ -336,5 +345,6 @@
         line-name = "enable-usb-a";
     };
 };
+
 /* USER CODE END addons */
 

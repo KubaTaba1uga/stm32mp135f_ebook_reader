@@ -14,6 +14,11 @@ done
 
 find ${BINARIES_DIR} -name '*.stm32' | while read -r path
 do
+    if [ `basename "$path"` = "tf-a-ebook-reader.stm32" ]
+    then
+	continue
+    fi
+
     mv $path ${BINARIES_DIR}/tf-a-ebook-reader.stm32
     break
 done

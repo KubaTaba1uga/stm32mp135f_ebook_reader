@@ -174,6 +174,20 @@
 			bias-disable;
 		};
 	};
+
+	buttons_pins_mx: buttons-0 {
+		pins1 {
+			pinmux = <STM32_PINMUX_NSEC('E', 8, GPIO)>; /* BTN X */
+			bias-pull-down;
+			drive-push-pull;
+			slew-rate = <0>;
+		};
+		/* pins2 { */
+		/* 	pinmux = <STM32_PINMUX_NSEC('E', 5, AF8)>; /\* UART4_RX *\/ */
+		/* 	bias-disable; */
+		/* }; */
+	};
+	
 	/* USER CODE END pinctrl */
 };
 
@@ -592,7 +606,9 @@
 };
 
 &gpioc {
-	st,protreg = < (TZPROT(13)) >;
+	st,protreg = <
+	        (TZPROT(13))
+	>;
 };
 
 &gpiob {
@@ -600,7 +616,10 @@
 };
 
 &gpioe {
-	st,protreg = < (TZPROT(15)) >;
+	st,protreg = <
+	        (TZPROT(15))
+	        /* (GPIO_STM32_NSEC | TZPROT(8)) */
+	>;
 };
 
 &sdmmc2_io {
