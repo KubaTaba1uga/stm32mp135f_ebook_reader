@@ -8,6 +8,5 @@ find ${BINARIES_DIR} -name 'tf-a-*.stm32' | while read -r path
 do
     file_name=$(basename $path .stm32)
     dst_path=${BINARIES_DIR}/${file_name}-debug.stm32
-    $HOST_DIR/bin/stm32wrapper4dbg -s $path -d $dst_path -b -f
-    cp $dst_path $path
+    $HOST_DIR/bin/stm32wrapper4dbg -s $path -d $dst_path -b
 done

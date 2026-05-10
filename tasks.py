@@ -1,5 +1,6 @@
 import os
 import glob
+import tempfile
 
 from invoke import task
 
@@ -76,7 +77,7 @@ def build_bsp(c, config="ebook_reader_stm32mp135f_dk_defconfig"):
     }
     _pr_info(f"Building BSP...")
 
-    if "dev" in config:
+    if "debug" in config:
         c.run("mkdir -p third_party")
         with c.cd("third_party"):
             for repo, rdata in repos.items():
@@ -508,17 +509,17 @@ def deploy_nfs(c, directory="/srv/nfs", rootfs=True, sanitizers=False):
         with c.cd("build/buildroot/images"):
             c.run(f"sudo tar xvf rootfs.tar -C {directory}")
 
-    if sanitizers:
-        with c.cd(
-            "build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"
-        ):
-            c.run(f"sudo cp lib*san* {directory}/lib")
+    # if sanitizers:
+    #     with c.cd(
+    #         "build/buildroot/build/toolchain-external-bootlin-2024.05-1/arm-buildroot-linux-gnueabihf/lib"
+    #     ):
+    #         c.run(f"sudo cp lib*san* {directory}/lib")
 
-    with c.cd("build/ebook_reader"):
-        c.run(f"sudo cp ebook_reader {directory}/root/")
-        c.run("sudo find -type f -name 'bench_*' -exec cp {} /srv/nfs/root/ \\;")
-        c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
-        c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
+    # with c.cd("build/ebook_reader"):
+    #     c.run(f"sudo cp ebook_reader {directory}/root/")
+    #     c.run("sudo find -type f -name 'bench_*' -exec cp {} /srv/nfs/root/ \\;")
+    #     c.run(f"sudo cp -r ../../ebook_reader/data {directory}/root/")
+    #     c.run("sudo find -type f -name 'it8951_*' -exec cp {} /srv/nfs/root/ \\;")
 
     _pr_info(f"Deploy to NFS completed")
 
@@ -618,7 +619,57 @@ def openocd(c, command: str | None = None):
 
     c.run(cmd, pty=True)
 
+@task
+def gdb(c, phase="tf-a", runetime_attach=False):
+    """
+    Phase selects which firmware will be used for debugging.
+    Available `phase` values are:
+       - tf-a
+       - optee-os
+       - u-boot
+       - linux
+
+    Runetime attach decides whether to force reset before
+    attaching debugger or attach it to CPU as it is.
+    Setting `runetime_attach` to True means we won't do reset.
+    """
+    stage_phase_map = {
+        "tf-a": 1,
+        "optee-os": 2,
+        "u-boot": 3,
+        "linux": 4,
+    }
+    _pr_info(f"Running gdb...")
+    debug_phase = stage_phase_map.get(phase)
+    if not debug_phase:
+        raise ValueError(f"Wrong {phase=}")
+
+    debug_mode = 0
+    if runetime_attach:
+        debug_mode = 1
+
+    tools_path = os.path.join(ROOT_PATH, "tools", "gdb")
+    with open(os.path.join(tools_path, "init.gdb"), "r") as src:
+        src_txt = src.read()
+
+    src_txt = src_txt.replace(
+        "set $debug_phase = 1", f"set $debug_phase = {debug_phase}", count=1
+    )
+    src_txt = src_txt.replace(
+        "set $debug_mode = 0", f"set $debug_mode = {debug_mode}", count=1
+    )
+
+    with tempfile.NamedTemporaryFile(
+        "w", prefix="init", suffix=".gdb", delete_on_close=False
+    ) as dst:
+        dst.write(src_txt)
+        dst.close()
+
+        with c.cd(tools_path):
+            c.run(f"gdb-multiarch -x {str(dst.name)}", pty=True)
+
     
+
 ###############################################
 #                Private API                  #
 ###############################################

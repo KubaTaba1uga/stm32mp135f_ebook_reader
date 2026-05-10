@@ -124,6 +124,15 @@
 
 /* Warning: the configuration of the secured GPIOs should be added in (addons) User Section */
 &pinctrl {
+	buttons_pins_mx: buttons-0 {
+		pins1 {
+			pinmux = <STM32_PINMUX_NSEC('E', 8, GPIO)>; /* BTN X */
+			bias-pull-down;
+			drive-push-pull;
+			slew-rate = <0>;
+		};
+	};
+	
 	i2c4_pins_mx: i2c4_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('B', 7, AF6)>, /* I2C4_SDA */
@@ -173,19 +182,6 @@
 			pinmux = <STM32_PINMUX_NSEC('E', 5, AF8)>; /* UART4_RX */
 			bias-disable;
 		};
-	};
-
-	buttons_pins_mx: buttons-0 {
-		pins1 {
-			pinmux = <STM32_PINMUX_NSEC('E', 8, GPIO)>; /* BTN X */
-			bias-pull-down;
-			drive-push-pull;
-			slew-rate = <0>;
-		};
-		/* pins2 { */
-		/* 	pinmux = <STM32_PINMUX_NSEC('E', 5, AF8)>; /\* UART4_RX *\/ */
-		/* 	bias-disable; */
-		/* }; */
 	};
 	
 	/* USER CODE END pinctrl */
@@ -616,10 +612,7 @@
 };
 
 &gpioe {
-	st,protreg = <
-	        (TZPROT(15))
-	        /* (GPIO_STM32_NSEC | TZPROT(8)) */
-	>;
+	st,protreg = < (TZPROT(15)) >;
 };
 
 &sdmmc2_io {

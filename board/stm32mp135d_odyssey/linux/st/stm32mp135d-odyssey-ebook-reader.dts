@@ -16,6 +16,8 @@
 
 /* USER CODE BEGIN includes */
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
 /* USER CODE END includes */
 
 / {
@@ -62,8 +64,63 @@
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
 	};
-	/* USER CODE END root */
+	
+	gpio_buttons: gpio-buttons-0 {
+		compatible = "gpio-keys";
+		poll-interval = <300>;		
+		
+		button_menu: button-menu { // PIN 7
+			label = "menu";
+			linux,code = <KEY_ESC>;
+			gpios = <&gpiob 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};
+		
+		button_enter: button-enter { // PIN 11
+			label = "enter";
+			linux,code = <KEY_ENTER>;
+			gpios = <&gpiod 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};
+		
+		button_down: button-down { // PIN 13
+			label = "down";
+			linux,code = <KEY_DOWN>;
+			gpios = <&gpiod 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};
 
+		button_rigth: button-rigth { // PIN 10
+			label = "rigth";
+			linux,code = <KEY_RIGHT>;
+			gpios = <&gpiod 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};
+		
+		button_up: button-up {  // PIN 12
+			label = "up";
+			linux,code = <KEY_UP>;
+			gpios = <&gpioc 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};
+		
+		button_left: button-left { // PIN 16
+			label = "left";
+			linux,code = <KEY_LEFT>;
+			gpios = <&gpioe 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		};		
+	};
+
+	/**
+	   todo: figure out why GPIOF 13 doesnt work with `gpio-keys` driver.
+	*/
+	/* gpio-keys-polled { */
+	/* 	compatible = "gpio-keys-polled"; */
+	/* 	poll-interval = <300>; */
+
+	/* 	button { // PIN 8 */
+	/* 		label = "left";  */
+	/* 		linux,code = <KEY_LEFT>; */
+	/* 		gpios = <&gpiof 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>; */
+	/* 	}; */
+	/* }; */
+	/* USER CODE END root */
+	
 	clocks{
 		clk_hsi: clk-hsi {
 			clock-frequency = <64000000>;
@@ -191,15 +248,6 @@
 			pinmux = <STM32_PINMUX('G', 1, GPIO)>; /* USB1_EN */
 		};
 	};
-
-	/* gpio_test_mx: gpio-test-mx-0 { */
-	/* 	pins { */
-	/* 		pinmux = <STM32_PINMUX('E', 8, GPIO)>; */
-	/* 		bias-pull-down; */
-	/* 		drive-push-pull; */
-	/* 		slew-rate = <0>;			 */
-	/* 	}; */
-	/* };	 */
 	/* USER CODE END pinctrl */
 };
 
