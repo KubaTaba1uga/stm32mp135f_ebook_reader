@@ -233,7 +233,7 @@
 		pins {
 			pinmux = <STM32_PINMUX('E', 4, AF1)>, /* SPI5_MISO */
 				 <STM32_PINMUX('G', 10, AF5)>, /* SPI5_SCK */
-				 <STM32_PINMUX('H', 11, AF1)>, /* SPI5_NSS */
+				 /* <STM32_PINMUX('H', 11, AF1)>, /\* SPI5_NSS *\/ */
 				 <STM32_PINMUX('H', 12, AF5)>; /* SPI5_MOSI */
 			bias-disable;
 			drive-push-pull;
@@ -243,9 +243,8 @@
 
 	spi5_sleep_pins_mx: spi5_sleep_mx-0 {
 		pins {
-			pinmux = <STM32_PINMUX('E', 4, ANALOG)>, /* SPI5_MISO */
+			pinmux = <STM32_PINMUX('E', 4, ANALOG)>,  /* SPI5_MISO */
 				 <STM32_PINMUX('G', 10, ANALOG)>, /* SPI5_SCK */
-				 <STM32_PINMUX('H', 11, ANALOG)>, /* SPI5_NSS */
 				 <STM32_PINMUX('H', 12, ANALOG)>; /* SPI5_MOSI */
 		};
 	};
@@ -257,6 +256,15 @@
 			pinmux = <STM32_PINMUX('G', 1, GPIO)>; /* USB1_EN */
 		};
 	};
+
+	spi5_ctrl_pins: spi5-ctrl-pins {
+	         pins {
+	        	 pinmux = <STM32_PINMUX('A', 7, GPIO)>,  /* SPI5_BSY */
+				  <STM32_PINMUX('B', 10, GPIO)>, /* SPI5_RST */
+				  <STM32_PINMUX('H', 11, GPIO)>; /* SPI5_CS */
+               		 bias-disable;
+	     };
+	 };
 	/* USER CODE END pinctrl */
 };
 

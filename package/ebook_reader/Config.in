@@ -1,0 +1,5 @@
+config BR2_PACKAGE_EBOOK_READER
+        bool "ebook_reader"
+        help
+          Ebook reader application.
+	  
