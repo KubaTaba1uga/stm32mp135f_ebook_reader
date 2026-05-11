@@ -12,15 +12,15 @@ do
     break
 done
 
-find ${BINARIES_DIR} -name '*.stm32' | while read -r path
+find "${BINARIES_DIR}" -name '*.stm32' | while IFS= read -r path
 do
-    if [ `basename "$path"` = "tf-a-ebook-reader.stm32" ||
-	 `basename "$path"` = "tf-a-ebook-reader-debug.stm32" ]
+    if [ "$(basename "$path")" = 'tf-a-ebook-reader.stm32' ] ||
+       [ "$(basename "$path")" = 'tf-a-ebook-reader-debug.stm32' ]
     then
-	continue
+        continue
     fi
-    
-    mv $path ${BINARIES_DIR}/tf-a-ebook-reader.stm32
+
+    mv "$path" "${BINARIES_DIR}/tf-a-ebook-reader.stm32"
     break
 done
 
