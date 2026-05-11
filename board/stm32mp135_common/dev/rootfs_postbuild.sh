@@ -25,4 +25,4 @@ do
 done
 
 rm -f ${BINARIES_DIR}/boot.ext2
-mke2fs -d ${BINARIES_DIR}/boot ${BINARIES_DIR}/boot.ext2 16M
+mke2fs -d ${BINARIES_DIR}/boot ${BINARIES_DIR}/boot.ext2 10M

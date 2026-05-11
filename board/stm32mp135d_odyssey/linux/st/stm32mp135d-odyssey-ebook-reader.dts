@@ -229,32 +229,34 @@
 		};
 	};
 
+	spi5_pins_mx: spi5_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('E', 4, AF1)>, /* SPI5_MISO */
+				 <STM32_PINMUX('G', 10, AF5)>, /* SPI5_SCK */
+				 <STM32_PINMUX('H', 11, AF1)>, /* SPI5_NSS */
+				 <STM32_PINMUX('H', 12, AF5)>; /* SPI5_MOSI */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <1>;
+		};
+	};
+
+	spi5_sleep_pins_mx: spi5_sleep_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('E', 4, ANALOG)>, /* SPI5_MISO */
+				 <STM32_PINMUX('G', 10, ANALOG)>, /* SPI5_SCK */
+				 <STM32_PINMUX('H', 11, ANALOG)>, /* SPI5_NSS */
+				 <STM32_PINMUX('H', 12, ANALOG)>; /* SPI5_MOSI */
+		};
+	};
+
+	
 	/* USER CODE BEGIN pinctrl */
 	usb_connector_a_pin_mx: usb_connector_a_pin_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('G', 1, GPIO)>; /* USB1_EN */
 		};
 	};
-	
-	spi5_pins: spi5-pins-0 {
-	    pins {
-		pinmux = <STM32_PINMUX('E', 4, AF1)>,  /* SPI5_MISO */
-			 <STM32_PINMUX('H', 12, AF5)>, /* SPI5_MOSI */
-			 <STM32_PINMUX('G', 10, AF5)>; /* SPI5_CLK */
-		bias-disable;
-		slew-rate = <0>;
-	    };
-	};
-
-	/* spi5_ctrl_pins: spi5-ctrl-pins-0 { */
-	/*     pins { */
-	/* 	pinmux = <STM32_PINMUX('A', 7, GPIO)>,   /\* SPI5_BSY *\/ */
-	/* 		 <STM32_PINMUX('B', 10, GPIO)>,  /\* SPI5_RST *\/ */
-	/* 		 <STM32_PINMUX('H', 11, GPIO)>;  /\* SPI5_CS *\/	 */
-	/* 	bias-disable;	   */
-	/*     }; */
-	/* }; */
-	
 	/* USER CODE END pinctrl */
 };
 
@@ -345,6 +347,23 @@
 	/* USER CODE END usbotg_hs */
 };
 
+&spi5 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&spi5_pins_mx>;
+	pinctrl-1 = <&spi5_sleep_pins_mx>;
+	status = "okay";
+
+	/* USER CODE BEGIN spi5 */
+	cs-gpios = <0>;
+
+	spidev@0 {
+           compatible = "rohm,dh2228fv";
+           reg = <0>;
+           spi-max-frequency = <40000000>; // 40MHz
+        };	
+	/* USER CODE END spi5 */
+};
+
 /* USER CODE BEGIN addons */
 &cpu0 {
         clock-frequency = <996000000>;  // in Hz
@@ -400,55 +419,5 @@
         line-name = "enable-usb-a";
     };
 };
-
-/* &pinctrl{ */
-/*   spi5_pins: spi5-pins { */
-/*       pins { */
-/* 	  pinmux = <STM32_PINMUX('G', 10, AF5)>, /\* SPI5_CLK *\/ */
-/* 		   <STM32_PINMUX('H', 12, AF5)>, /\* SPI5_MOSI *\/ */
-/* 		   <STM32_PINMUX('E', 4, AF1)>;  /\* SPI5_MISO *\/ */
-/* 	  bias-disable; */
-/* 	  slew-rate = <0>; */
-/*       }; */
-/*   }; */
-
-/*   spi5_ctrl_pins: spi5-ctrl-pins { */
-/*       pins { */
-/* 	  pinmux = <STM32_PINMUX('A', 7, GPIO)>,   /\* SPI5_BSY *\/ */
-/* 		   <STM32_PINMUX('B', 10, GPIO)>,  /\* SPI5_RST *\/ */
-/*    		   <STM32_PINMUX('H', 11, GPIO)>;  /\* SPI5_CS *\/	 */
-/* 	  bias-disable;	   */
-/*       }; */
-/*   }; */
-/* }; */
-
-&spi5 {
-    pinctrl-names = "default";
-    pinctrl-0 = <&spi5_pins>;
-    status = "okay";
-
-    cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>; /* Chip Select (CS) */
-	
-    spidev@0{
-        compatible = "rohm,dh2228fv";
-        reg = <0>;
-        spi-max-frequency = <4000000>;
-    };
-};
-
-/* &spi5 { */
-/*     status = "okay"; */
-/*     pinctrl-names = "default"; */
-/*     pinctrl-0 = <&spi5_pins>; */
-
-/*     // cs-gpios = <&gpioh 11 GPIO_ACTIVE_LOW>; /\* Chip Select (CS) *\/ */
-/*     cs-gpios = <0>;  */
-
-/*     spidev@0 { */
-/*       compatible = "dh,dhcom-board"; */
-/*       reg = <0>;            */
-/*       spi-max-frequency = <40000000>; // 40MHz       */
-/*     };     */
-/* }; */
 /* USER CODE END addons */
 
