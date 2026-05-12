@@ -1,0 +1,5 @@
+CS  = /dev/gpiochip7 11
+BSY = /dev/gpiochip6 7
+RST = /dev/gpiochip2 10
+
+

@@ -1,0 +1,4 @@
+config BR2_PACKAGE_IT8951_EPAPER
+        bool "it8951_epaper"
+        help
+          Driver to IT8951epaper screen.

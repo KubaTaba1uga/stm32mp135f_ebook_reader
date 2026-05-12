@@ -146,6 +146,7 @@ BR2_PACKAGE_OPTEE_TEST=y
 BR2_PACKAGE_OPTEE_TEST_LATEST=y
 BR2_PACKAGE_OPTEE_TEST_VERSION="4.0.0"
 BR2_PACKAGE_EBOOK_READER=y
+BR2_PACKAGE_IT8951_EPAPER=y
 
 ##############################################
 #                  Debug                    #
