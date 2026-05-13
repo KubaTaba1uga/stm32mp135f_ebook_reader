@@ -1,0 +1,15 @@
+option('tests',
+  type: 'boolean',
+  value: false,
+  description: 'Build library tests'
+)
+option('benchmarks',
+  type: 'boolean',
+  value: false,
+  description: 'Build library benchmarks'
+)
+option('display',
+  type: 'string',
+  value: 'it8951',
+  description: 'Build appropriate display support'
+)

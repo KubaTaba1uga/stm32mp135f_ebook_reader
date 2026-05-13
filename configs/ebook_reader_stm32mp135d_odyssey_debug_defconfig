@@ -148,8 +148,10 @@ BR2_PACKAGE_OPTEE_TEST_LATEST=y
 BR2_PACKAGE_OPTEE_TEST_VERSION="4.0.0"
 BR2_PACKAGE_EBOOK_READER=y
 BR2_PACKAGE_IT8951_EPAPER=y
+BR2_PACKAGE_LVGL=y
 
 ##############################################
 #                  Debug                    #
 ##############################################
 BR2_PACKAGE_OVERRIDE_FILE="$(BR2_EXTERNAL_EBK_READER_PATH)/board/stm32mp135_common/dev/local.mk"
+BR2_PACKAGE_HOST_ENVIRONMENT_SETUP=y

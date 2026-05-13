@@ -3,5 +3,6 @@ config BR2_TARGET_UBOOT_RUN_POST_RSYNC_HOOK_SCRIPT
 	default ""
 
 source "$BR2_EXTERNAL_EBK_READER_PATH/package/stm32wrapper4dbg/Config.in.host"
-source "$BR2_EXTERNAL_EBK_READER_PATH/package/ebook_reader/Config.in"
 source "$BR2_EXTERNAL_EBK_READER_PATH/package/it8951_epaper/Config.in"
+source "$BR2_EXTERNAL_EBK_READER_PATH/package/lvgl/Config.in"
+source "$BR2_EXTERNAL_EBK_READER_PATH/package/ebook_reader/Config.in"
