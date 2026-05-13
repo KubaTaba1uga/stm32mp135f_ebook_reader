@@ -2,6 +2,7 @@
 
 #include "display/display.h"
 #include "utils/mem.h"
+#include "utils/time.h"
 
 struct Display {
   lv_group_t *lv_ingroup;
