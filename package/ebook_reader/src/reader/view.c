@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "library/library.h"
-#include "misc/lv_event.h"
 #include "reader/core.h"
 #include "utils/err.h"
 #include "utils/log.h"

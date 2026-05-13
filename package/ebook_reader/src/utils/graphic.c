@@ -1,8 +1,8 @@
-#include "cairo.h"
-#include "misc/lv_color.h"
+#include <cairo.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <lvgl.h>
 
 #include "utils/mem.h"
 #include "utils/time.h"

@@ -1,6 +1,5 @@
 #include <lvgl.h>
 
-#include "core/lv_group.h"
 #include "display/display.h"
 #include "utils/mem.h"
 
@@ -9,6 +8,7 @@ struct Display {
   lv_display_t *lv_disp;
 };
 
+static struct Trace display_trace = {0};
 static const int ui_display_x11_heigth = 1872;
 static const int ui_display_x11_width = 1404;
 
@@ -67,3 +67,6 @@ int display_get_y(display_t display) {
 void display_panic(display_t display){
   
   }
+
+void display_set_trace(void) { display_trace = trace_start("render display"); };
+

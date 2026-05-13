@@ -94,7 +94,9 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
     goto error_out;
   }
 
-  fread(cmd_buf, 1, sizeof(cmd_buf), pdfinfo);
+  if (fread(cmd_buf, 1, sizeof(cmd_buf), pdfinfo) != sizeof(cmd_buf)) {
+    // Do nothing
+  };
 
   char *title = pdfinfo_find_field(pdf, cmd_buf, "Title");
   if (!title) {
@@ -109,22 +111,20 @@ static err_t book_interface_pdf_book_create(void *interface, const char *path,
   }
 
   err_o = db_book_insert(
-      pdf->db,
-      (struct DbBook){
-          .extension = BookExtensionEnum_PDF,
-          .title = title,
-          .max_page_number = atoi(pages),
-          .page_number = 1,
-          .path = path,
-          .thumbnail =
-              {
-                  .buf = book_interface_pdf_book_get_thumbnail(
-                      pdf, pdf_book, path, book_thumbnail_x, book_thumbnail_y),
-                  .len = graphic_calc_screen_buf_size(book_thumbnail_x, book_thumbnail_y)
-              },
-          .settings = {
-              .scale = 1.0,
-          }});
+      pdf->db, (struct DbBook){
+                   .extension = BookExtensionEnum_PDF,
+                   .title = title,
+                   .max_page_number = atoi(pages),
+                   .page_number = 1,
+                   .path = path,
+                   .thumbnail = {.buf = book_interface_pdf_book_get_thumbnail(
+                                     pdf, pdf_book, path, book_thumbnail_x,
+                                     book_thumbnail_y),
+                                 .len = graphic_calc_screen_buf_size(
+                                     book_thumbnail_x, book_thumbnail_y)},
+                   .settings = {
+                       .scale = 1.0,
+                   }});
   ERR_TRY_CATCH(err_o, error_pages_cleanup);
 
   mem_free(pdf_book->thumbnail);
@@ -153,7 +153,9 @@ error_out:
 
 static cairo_status_t cairo_read_func(void *closure, unsigned char *data,
                                       unsigned int length) {
-  fread(data, 1, length, closure);
+  if (fread(data, 1, length, closure) != length) {
+    // Do nothing
+  }
 
   return CAIRO_STATUS_SUCCESS;
 }
@@ -179,10 +181,10 @@ book_interface_pdf_book_get_thumbnail(void *private, pdf_book_t pdf_book,
       cairo_image_surface_create_from_png_stream(cairo_read_func, pdfinfo);
 
   unsigned char *thumbnail = cairo_image_surface_get_data(thumb_surf);
-  int thumb_size = graphic_calc_screen_buf_size(x,  y);
+  int thumb_size = graphic_calc_screen_buf_size(x, y);
   pdf_book->thumbnail = mem_malloc(thumb_size);
   memcpy(pdf_book->thumbnail, thumbnail, thumb_size);
- 
+
   cairo_surface_destroy(thumb_surf);
   pclose(pdfinfo);
 
@@ -285,7 +287,7 @@ static const unsigned char *book_interface_pdf_get_page(void *private,
   cairo_paint(cr);
 
   unsigned char *page = cairo_image_surface_get_data(pdf_book->page);
-  *buf_len = graphic_calc_screen_buf_size(x,y); // ARGB pixel size is 4 bytes
+  *buf_len = graphic_calc_screen_buf_size(x, y); // ARGB pixel size is 4 bytes
 
   pclose(pdfinfo);
   cairo_surface_destroy(surface);

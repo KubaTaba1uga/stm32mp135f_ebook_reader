@@ -1,6 +1,5 @@
 #include <lvgl.h>
 
-#include "core/lv_group.h"
 #include "display/display.h"
 #include "utils/mem.h"
 

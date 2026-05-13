@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "book_settings/core.h"
-#include "core/lv_obj.h"
 #include "utils/err.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"

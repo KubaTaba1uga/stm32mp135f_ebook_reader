@@ -48,15 +48,8 @@ else
 endif
 
 ebook_reader_deps += [dependency('lvgl',
-                       fallback: ['lvgl', 'lvgl_dep'],
-                       required: true,
-                       static: true,
-                       default_options: [
-                          'CONFIG_LV_BUILD_EXAMPLES=false',
-                          'CONFIG_LV_BUILD_DEMOS=false',
-                          'werror=true',
-			  'LV_BUILD_LVGL_H_SIMPLE_INCLUDE=true',
-                       ]),
+                        required: true,
+		       ),
                        dependency('poppler',
                         required: true,
                        ),
@@ -74,7 +67,7 @@ ebook_reader_deps += [dependency('lvgl',
                        ),                       
                        dependency('sqlite3',
                         required: true,
-                       ),                       
+                       ),
 ]
 
 ebook_reader_inc = include_directories(['src'])
@@ -85,6 +78,7 @@ ebook_reader_src += [files('src/main.c',
                           'src/book_settings/view.c',
                           'src/book_settings/widgets.c',
 	  		  'src/db/db.c',
+	  		  'src/display/display.c',			  
                           'src/event_queue/event_queue.c',			  
                           'src/library/library.c',
                           'src/library/pdf.c',

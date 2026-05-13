@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "display/display.h"
-#include "misc/lv_color.h"
 #include "utils/err.h"
 #include "utils/graphic.h"
 #include "utils/mem.h"

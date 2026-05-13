@@ -1,11 +1,8 @@
 #include <lvgl.h>
 #include <stdio.h>
 
-#include "core/lv_obj.h"
 #include "library/library.h"
-#include "lv_api_map_v8.h"
 #include "menu/core.h"
-#include "misc/lv_color.h"
 #include "utils/lvgl.h"
 #include "utils/mem.h"
 #include "utils/time.h"

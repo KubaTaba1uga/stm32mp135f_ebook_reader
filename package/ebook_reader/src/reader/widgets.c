@@ -1,6 +1,5 @@
 #include <lvgl.h>
 
-#include "lv_api_map_v8.h"
 #include "reader/core.h"
 #include "utils/err.h"
 #include "utils/lvgl.h"

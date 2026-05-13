@@ -6,7 +6,6 @@
 
 #include "cairo.h"
 #include "display/display.h"
-#include "misc/lv_color.h"
 #include "utils/err.h"
 #include "utils/mem.h"
 #include "utils/settings.h"
@@ -147,3 +146,5 @@ static void display_flush_callback(lv_display_t *display, const lv_area_t *area,
 void display_panic(display_t display) {
   puts(__func__);
 }
+
+

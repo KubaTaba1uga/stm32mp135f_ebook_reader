@@ -2,7 +2,6 @@
 #include <lvgl.h>
 
 #include "utils/lvgl.h"
-#include "widgets/image/lv_image.h"
 
 /* #define EBK_DEBUG_LVGL 1 */
 

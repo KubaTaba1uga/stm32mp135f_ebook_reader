@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "book_settings/core.h"
-#include "core/lv_group.h"
 #include "utils/err.h"
 
 static void scale_click_event_cb(lvgl_event_t);
